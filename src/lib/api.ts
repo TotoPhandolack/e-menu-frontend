@@ -36,15 +36,17 @@ export interface MenuItem {
 }
 
 export interface Order {
+  created_at: string | number | Date;
   id: string;
   status:
-  | "PENDING"
-  | "CONFIRMED"
-  | "PREPARING"
-  | "SERVED"
-  | "PAID"
-  | "CANCELLED";
+    | "PENDING"
+    | "CONFIRMED"
+    | "PREPARING"
+    | "SERVED"
+    | "PAID"
+    | "CANCELLED";
   total_amount: number;
+  table?: Table | null;
   orderItems: {
     id: string;
     quantity: number;
@@ -69,3 +71,11 @@ export const createOrder = (data: {
 
 export const getOrdersByTable = (table_id: string) =>
   api.get<Order[]>(`/orders/table/${table_id}`);
+
+export const getOrdersByRestaurant = (restaurant_id: string) =>
+  api.get<Order[]>(`/orders/restaurant/${restaurant_id}`);
+
+export const getRestaurants = () => api.get<Restaurant[]>("/restaurants");
+
+export const updateOrderStatus = (order_id: string, status: Order["status"]) =>
+  api.put<Order>(`/orders/${order_id}/status`, { status });

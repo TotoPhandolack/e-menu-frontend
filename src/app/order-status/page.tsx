@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getOrdersByTable, Order } from "@/lib/api";
 import { useCartStore } from "@/stores/cart.store";
+import { useSocket } from "@/hooks/useSocket";
+import { toast } from "sonner";
 import { CheckCircle, Clock, ChefHat, UtensilsCrossed } from "lucide-react";
 
 const STATUS_CONFIG = {
@@ -43,8 +45,7 @@ const STATUS_CONFIG = {
 export default function OrderStatusPage() {
   const searchParams = useSearchParams();
   const table_id = searchParams.get("table_id");
-  const { clearCart } = useCartStore();
-
+  const { restaurant_id, clearCart } = useCartStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -58,12 +59,23 @@ export default function OrderStatusPage() {
     }
   };
 
+  // ✅ real-time — อัปเดต status ทันทีโดยไม่ต้อง polling
+  useSocket(
+    restaurant_id,
+    () => {}, // new_order ไม่ต้องทำอะไรฝั่ง customer
+    (updatedOrder) => {
+      setOrders((prev) =>
+        prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)),
+      );
+      toast.success(
+        `ສະຖານະອັບເດດ: ${STATUS_CONFIG[updatedOrder.status as keyof typeof STATUS_CONFIG]?.label}`,
+      );
+    },
+  );
+
   useEffect(() => {
-    clearCart(); // clear cart หลังสั่งสำเร็จ
+    clearCart();
     fetchOrders();
-    // polling ทุก 10 วินาที เช็ค status ใหม่
-    const interval = setInterval(fetchOrders, 10000);
-    return () => clearInterval(interval);
   }, [table_id]);
 
   if (loading)
@@ -76,12 +88,10 @@ export default function OrderStatusPage() {
   return (
     <div className="min-h-screen bg-slate-50 p-4">
       <h1 className="text-lg font-semibold mb-4">ສະຖານະການສັ່ງອາຫານ</h1>
-
       <div className="space-y-4">
         {orders.map((order) => {
           const config = STATUS_CONFIG[order.status];
           const Icon = config.icon;
-
           return (
             <div key={order.id} className="bg-white rounded-xl p-4 shadow-sm">
               <div className="flex justify-between items-center mb-3">
@@ -95,7 +105,6 @@ export default function OrderStatusPage() {
                   {config.label}
                 </span>
               </div>
-
               <div className="space-y-1">
                 {order.orderItems.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
@@ -111,7 +120,6 @@ export default function OrderStatusPage() {
                   </div>
                 ))}
               </div>
-
               <div className="border-t mt-3 pt-3 flex justify-between font-semibold">
                 <span>ລວມ</span>
                 <span>₭{Number(order.total_amount).toLocaleString()}</span>

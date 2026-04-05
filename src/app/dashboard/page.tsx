@@ -10,6 +10,9 @@ import {
 import { useSocket } from "@/hooks/useSocket";
 import StatusColumn from "@/components/dashboard/StatusColumn";
 import { toast } from "sonner";
+import { useAuthStore } from "@/stores/auth.store";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 const ACTIVE_STATUSES = [
   "PENDING",
@@ -23,6 +26,14 @@ export default function DashboardPage() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>("");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const { admin, logout } = useAuthStore();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   // โหลด restaurant list
   useEffect(() => {
@@ -68,17 +79,21 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="bg-white border-b px-6 py-4 flex justify-between items-center">
         <h1 className="text-xl font-semibold">Kitchen Dashboard</h1>
-        <select
-          className="border rounded-lg px-3 py-1.5 text-sm bg-white"
-          value={selectedRestaurant}
-          onChange={(e) => setSelectedRestaurant(e.target.value)}
-        >
-          {restaurants.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.name}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-slate-500">{admin?.name}</span>
+          <select
+            className="border rounded-lg px-3 py-1.5 text-sm bg-white"
+            value={selectedRestaurant}
+            onChange={(e) => setSelectedRestaurant(e.target.value)}
+          >
+            {restaurants.map((r) => (
+              <option key={r.id} value={r.id}>{r.name}</option>
+            ))}
+          </select>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            ອອກຈາກລະບົບ
+          </Button>
+        </div>
       </div>
 
       {/* Kanban Board */}

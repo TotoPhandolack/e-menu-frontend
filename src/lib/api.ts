@@ -39,12 +39,12 @@ export interface Order {
   created_at: string | number | Date;
   id: string;
   status:
-    | "PENDING"
-    | "CONFIRMED"
-    | "PREPARING"
-    | "SERVED"
-    | "PAID"
-    | "CANCELLED";
+  | "PENDING"
+  | "CONFIRMED"
+  | "PREPARING"
+  | "SERVED"
+  | "PAID"
+  | "CANCELLED";
   total_amount: number;
   table?: Table | null;
   orderItems: {
@@ -55,6 +55,27 @@ export interface Order {
     menuItem: MenuItem;
   }[];
 }
+
+export interface Admin {
+  id: string;
+  name: string;
+  email: string;
+  restaurant_id: string;
+  restaurant: { name: string };
+}
+
+export interface AuthResponse {
+  access_token: string;
+  admin: Admin;
+}
+
+export const login = (email: string, password: string) =>
+  api.post<AuthResponse>('/auth/login', { email, password });
+
+export const getMe = (token: string) =>
+  api.get<Admin>('/auth/me', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
 // --- API calls ---
 export const scanQR = (token: string, latitude: number, longitude: number) =>

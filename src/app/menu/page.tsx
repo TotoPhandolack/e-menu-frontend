@@ -53,13 +53,14 @@ export default function MenuPage() {
       // 4. ดึงเมนู
       const { data: items } = await getMenuItems(table.restaurant_id);
       setMenuItems(items);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Failed to load menu";
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const msg = error.response?.data?.message || "Failed to load menu";
       toast.error(msg);
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, setTableInfo]);
 
   useEffect(() => {
     init();
@@ -146,7 +147,7 @@ export default function MenuPage() {
       />
 
       {/* Menu Items */}
-      <div className="p-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="p-4 md:p-10 grid grid-cols-2 gap-3 md:gap-10 md:grid-cols-4">
         {filtered.map((item) => (
           <MenuItemCard key={item.id} item={item} />
         ))}

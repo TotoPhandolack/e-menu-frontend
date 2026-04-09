@@ -79,13 +79,12 @@ export default function MenuPage() {
       : menuItems.filter((m) => m.category.id === selectedCategory);
 
   const handleOrder = async () => {
-
-    console.log('table_id:', table_id);
-    console.log('session_id:', session_id);
-    console.log('items:', items);
+    console.log("table_id:", table_id);
+    console.log("session_id:", session_id);
+    console.log("items:", items);
 
     if (!table_id || !session_id || items.length === 0) {
-      console.log('blocked here!'); // ถ้าขึ้นตรงนี้แปลว่า store ไม่มีค่า
+      console.log("blocked here!"); // ถ้าขึ้นตรงนี้แปลว่า store ไม่มีค่า
       return;
     }
 
@@ -147,7 +146,7 @@ export default function MenuPage() {
       />
 
       {/* Menu Items */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 grid grid-cols-2 gap-4 md:grid-cols-4">
         {filtered.map((item) => (
           <MenuItemCard key={item.id} item={item} />
         ))}

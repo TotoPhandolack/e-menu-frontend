@@ -10,7 +10,7 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@/components/ui/sheet";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -20,7 +20,7 @@ interface Props {
 }
 
 export default function CartSheet({ open, onClose, onOrder, ordering }: Props) {
-  const { items, updateQuantity, removeItem, totalPrice } = useCartStore();
+  const { items, updateQuantity, totalPrice } = useCartStore();
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -56,18 +56,18 @@ export default function CartSheet({ open, onClose, onOrder, ordering }: Props) {
                   <Button
                     size="icon"
                     variant="outline"
-                    className="h-7 w-7"
-                    onClick={() => updateQuantity(menuItem.id, quantity + 1)}
+                    className="h-7 w-7 border-yellow-400 text-yellow-600 hover:bg-yellow-50"
+                    onClick={() => updateQuantity(menuItem.id, quantity - 1)}
                   >
-                    <Plus className="h-3 w-3" />
+                    <Minus className="h-3 w-3" />
                   </Button>
                   <Button
                     size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 text-red-500"
-                    onClick={() => removeItem(menuItem.id)}
+                    variant="outline"
+                    className="h-7 w-7 border-yellow-400 text-yellow-600 hover:bg-yellow-50"
+                    onClick={() => updateQuantity(menuItem.id, quantity + 1)}
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Plus className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
@@ -81,7 +81,7 @@ export default function CartSheet({ open, onClose, onOrder, ordering }: Props) {
             <span>₭{totalPrice().toLocaleString()}</span>
           </div>
           <Button
-            className="w-full"
+            className="w-full bg-yellow-400 text-slate-900 hover:bg-yellow-500 font-semibold"
             disabled={items.length === 0 || ordering}
             onClick={onOrder}
           >

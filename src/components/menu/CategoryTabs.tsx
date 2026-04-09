@@ -20,8 +20,8 @@ export default function CategoryTabs({
           onClick={() => onSelect(cat.id)}
           className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
             selected === cat.id
-              ? "bg-slate-900 text-white"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              ? "bg-yellow-400 text-slate-900 font-semibold"
+              : "bg-slate-100 text-slate-600 hover:bg-yellow-100"
           }`}
         >
           {cat.name}

@@ -49,7 +49,7 @@ export default function MenuItemCard({ item }: Props) {
               <Button
                 size="icon"
                 variant="outline"
-                className="h-7 w-7"
+                className="h-7 w-7 border-yellow-400 text-yellow-600 hover:bg-yellow-50"
                 onClick={() => updateQuantity(item.id, quantity - 1)}
               >
                 <Minus className="h-3 w-3" />
@@ -59,7 +59,7 @@ export default function MenuItemCard({ item }: Props) {
               </span>
               <Button
                 size="icon"
-                className="h-7 w-7"
+                className="h-7 w-7 bg-yellow-400 text-slate-900 hover:bg-yellow-500"
                 onClick={() => addItem(item)}
               >
                 <Plus className="h-3 w-3" />
@@ -68,7 +68,7 @@ export default function MenuItemCard({ item }: Props) {
           ) : (
             <Button
               size="icon"
-              className="h-7 w-7 rounded-md"
+              className="h-7 w-7 rounded-md bg-yellow-400 text-slate-900 hover:bg-yellow-500"
               onClick={() => addItem(item)}
             >
               <Plus className="h-3 w-3" />

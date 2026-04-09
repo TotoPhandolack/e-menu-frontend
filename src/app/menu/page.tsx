@@ -127,12 +127,12 @@ export default function MenuPage() {
         <Button
           variant="outline"
           size="icon"
-          className="relative"
+          className="relative border-yellow-400 text-yellow-500 hover:bg-yellow-50 hover:text-yellow-600"
           onClick={() => setCartOpen(true)}
         >
           <ShoppingCart className="h-5 w-5" />
           {totalItems() > 0 && (
-            <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center">
+            <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-yellow-400 text-slate-900 hover:bg-yellow-500">
               {totalItems()}
             </Badge>
           )}

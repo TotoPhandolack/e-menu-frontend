@@ -65,7 +65,9 @@ export default function OrderStatusPage() {
     () => {}, // new_order ไม่ต้องทำอะไรฝั่ง customer
     (updatedOrder) => {
       setOrders((prev) =>
-        prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)),
+        prev.map((o) =>
+          o.id === updatedOrder.id ? { ...o, status: updatedOrder.status } : o
+        )
       );
       toast.success(
         `ສະຖານະອັບເດດ: ${STATUS_CONFIG[updatedOrder.status as keyof typeof STATUS_CONFIG]?.label}`,

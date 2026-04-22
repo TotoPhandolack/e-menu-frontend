@@ -1,7 +1,7 @@
 // src/app/menu/page.tsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { scanQR, getMenuItems, createOrder, MenuItem } from "@/lib/api";
 import { useCartStore } from "@/stores/cart.store";
@@ -26,6 +26,13 @@ export default function MenuPage() {
   const [cartOpen, setCartOpen] = useState(false);
   const [ordering, setOrdering] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const init = useCallback(async () => {
     if (!token) {
@@ -77,23 +84,64 @@ export default function MenuPage() {
     items: menuItems.filter((m) => m.category.id === cat.id),
   }));
 
-  const baseGroups =
-    selectedCategory === "all"
-      ? categoryGroups
-      : categoryGroups.filter((g) => g.category.id === selectedCategory);
-
+  // Always show all category groups; only filter by search query
   const visibleGroups = searchQuery.trim()
-    ? baseGroups
-        .map((g) => ({
-          ...g,
-          items: g.items.filter(
-            (item) =>
-              item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              item.description?.toLowerCase().includes(searchQuery.toLowerCase()),
-          ),
-        }))
-        .filter((g) => g.items.length > 0)
-    : baseGroups;
+    ? categoryGroups
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((item) =>
+          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.description ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
+        ),
+      }))
+      .filter((g) => g.items.length > 0)
+    : categoryGroups;
+
+  // ── Scroll spy refs ────────────────────────────────────────────
+  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const isProgrammaticScroll = useRef(false);
+
+  // IntersectionObserver: auto-highlight the category tab in view
+  useEffect(() => {
+    if (visibleGroups.length === 0) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isProgrammaticScroll.current) return;
+        // Pick the entry closest to the top of the viewport
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length > 0) {
+          const id = visible[0].target.getAttribute("data-category-id");
+          if (id) setSelectedCategory(id);
+        }
+      },
+      // Trigger when section enters the top 40% of the screen
+      { rootMargin: "-20% 0px -55% 0px", threshold: 0 },
+    );
+    sectionRefs.current.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleGroups.length]);
+
+  // Tab click: scroll to section (or top for "all")
+  const handleCategorySelect = (catId: string) => {
+    setSelectedCategory(catId);
+    if (catId === "all") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    const el = sectionRefs.current.get(catId);
+    if (el) {
+      isProgrammaticScroll.current = true;
+      // Offset for sticky header height (~120px)
+      const y = el.getBoundingClientRect().top + window.scrollY - 130;
+      window.scrollTo({ top: y, behavior: "smooth" });
+      setTimeout(() => {
+        isProgrammaticScroll.current = false;
+      }, 800);
+    }
+  };
 
   const handleOrder = async () => {
     if (!table_id || !session_id || items.length === 0) return;
@@ -122,15 +170,22 @@ export default function MenuPage() {
   if (loading)
     return (
       <div className="min-h-screen bg-[#FAFAF8]">
-        {/* Header skeleton */}
-        <div className="sticky top-0 z-20 bg-white border-b border-slate-100 px-4 py-3.5">
-          <Skeleton className="h-5 w-32 rounded-md" />
-        </div>
-        {/* Tabs skeleton */}
-        <div className="flex gap-2 px-4 py-2.5 border-b border-slate-100">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-9 w-20 rounded-full" />
-          ))}
+        {/* Sticky skeleton block */}
+        <div className="sticky top-0 z-20 bg-white border-b border-slate-100">
+          {/* Header row */}
+          <div className="px-4 py-3.5">
+            <Skeleton className="h-5 w-32 rounded-md" />
+          </div>
+          {/* Search bar skeleton */}
+          <div className="px-4 pb-3">
+            <Skeleton className="h-10 w-full rounded-xl" />
+          </div>
+          {/* Tabs skeleton */}
+          <div className="flex gap-2 px-4 py-2.5">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-9 w-20 rounded-full" />
+            ))}
+          </div>
         </div>
         {/* Item skeletons */}
         <div className="px-4 pt-6 space-y-6">
@@ -156,62 +211,89 @@ export default function MenuPage() {
   // ── Main Page ──────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#FAFAF8] pb-32">
-      {/* ── Header ── */}
-      <div className="sticky top-0 z-20 bg-white border-b border-slate-100 px-4 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <UtensilsCrossed className="h-5 w-5 text-amber-500" />
-          <h1 className="text-base font-bold text-slate-800 tracking-tight">
-            Menu
-          </h1>
+      {/* ── Sticky top block: Header + Search + Category Tabs ── */}
+      <div className="sticky top-0 z-20 bg-white border-b border-slate-100">
+        {/* Header row — collapses on scroll */}
+        <div
+          className="overflow-hidden transition-all duration-300 ease-in-out"
+          style={{
+            maxHeight: scrolled ? "0px" : "64px",
+            opacity: scrolled ? 0 : 1,
+          }}
+        >
+          <div className="px-4 py-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <UtensilsCrossed className="h-5 w-5 text-amber-500" />
+              <h1 className="text-base font-bold text-slate-800 tracking-tight">
+                Menu
+              </h1>
+            </div>
+            {table_id && (
+              <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+                Table #{table_id.slice(-4)}
+              </span>
+            )}
+          </div>
         </div>
-        {/* Table number indicator if available */}
-        {table_id && (
-          <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
-            Table #{table_id.slice(-4)}
-          </span>
-        )}
-      </div>
 
-      {/* ── Search Bar ── */}
-      <div className="bg-white border-b border-slate-100 px-4 py-2">
-        <div className="relative flex items-center">
-          <Search className="absolute left-3 h-4 w-4 text-slate-400 pointer-events-none" />
-          <input
-            id="menu-search"
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="ຄົ້ນຫາເມນູ..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-9 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300 transition-all"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
+        {/* Search bar */}
+        <div className="px-4 pt-2 pb-3">
+          <div className="relative flex items-center">
+            <Search className="absolute left-3 h-4 w-4 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="ຄົ້ນຫາເມນູ…"
+              className="w-full bg-slate-100 rounded-xl pl-9 pr-9 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-amber-300 transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 text-slate-400 hover:text-slate-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* ── Category Tabs ── */}
-      <CategoryTabs
-        categories={categories}
-        selected={selectedCategory}
-        onSelect={setSelectedCategory}
-      />
+        {/* Category Tabs */}
+        <CategoryTabs
+          categories={categories}
+          selected={selectedCategory}
+          onSelect={handleCategorySelect}
+        />
+      </div>
 
       {/* ── Menu Sections ── */}
       <div className="px-4 pt-2">
         {visibleGroups.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
-            <UtensilsCrossed className="h-12 w-12 text-slate-200" />
-            <p className="text-slate-400 text-sm">ບໍ່ມີລາຍການ</p>
+            <Search className="h-12 w-12 text-slate-200" />
+            <p className="text-slate-400 text-sm">
+              {searchQuery ? `ບໍ່ພົບ "${searchQuery}"` : "ບໍ່ມີລາຍການ"}
+            </p>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="text-amber-500 text-sm font-medium"
+              >
+                ລ້າງການຄົ້ນຫາ
+              </button>
+            )}
           </div>
         ) : (
           visibleGroups.map((group) => (
-            <section key={group.category.id} className="mt-6 first:mt-4">
+            <section
+              key={group.category.id}
+              data-category-id={group.category.id}
+              ref={(el) => {
+                if (el) sectionRefs.current.set(group.category.id, el);
+                else sectionRefs.current.delete(group.category.id);
+              }}
+              className="mt-6 first:mt-4"
+            >
               {/* Category heading — handwriting-style */}
               <h2
                 className="text-2xl text-slate-700 mb-3 pb-1"

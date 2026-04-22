@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import MenuItemCard from "@/components/menu/MenuItemCard";
 import CategoryTabs from "@/components/menu/CategoryTabs";
 import CartSheet from "@/components/menu/CartSheet";
-import { ShoppingCart, UtensilsCrossed } from "lucide-react";
+import { ShoppingCart, UtensilsCrossed, Search, X } from "lucide-react";
 
 export default function MenuPage() {
   const searchParams = useSearchParams();
@@ -25,6 +25,7 @@ export default function MenuPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [cartOpen, setCartOpen] = useState(false);
   const [ordering, setOrdering] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const init = useCallback(async () => {
     if (!token) {
@@ -76,10 +77,23 @@ export default function MenuPage() {
     items: menuItems.filter((m) => m.category.id === cat.id),
   }));
 
-  const visibleGroups =
+  const baseGroups =
     selectedCategory === "all"
       ? categoryGroups
       : categoryGroups.filter((g) => g.category.id === selectedCategory);
+
+  const visibleGroups = searchQuery.trim()
+    ? baseGroups
+        .map((g) => ({
+          ...g,
+          items: g.items.filter(
+            (item) =>
+              item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              item.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
+        }))
+        .filter((g) => g.items.length > 0)
+    : baseGroups;
 
   const handleOrder = async () => {
     if (!table_id || !session_id || items.length === 0) return;
@@ -156,6 +170,29 @@ export default function MenuPage() {
             Table #{table_id.slice(-4)}
           </span>
         )}
+      </div>
+
+      {/* ── Search Bar ── */}
+      <div className="bg-white border-b border-slate-100 px-4 py-2">
+        <div className="relative flex items-center">
+          <Search className="absolute left-3 h-4 w-4 text-slate-400 pointer-events-none" />
+          <input
+            id="menu-search"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="ຄົ້ນຫາເມນູ..."
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-9 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300 transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Category Tabs ── */}

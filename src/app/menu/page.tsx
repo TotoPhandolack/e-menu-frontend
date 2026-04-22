@@ -3,7 +3,8 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { scanQR, getMenuItems, createOrder, MenuItem } from "@/lib/api";
+import { scanQRNoLocation, getMenuItems, createOrder, MenuItem } from "@/lib/api";
+
 import { useCartStore } from "@/stores/cart.store";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -37,21 +38,13 @@ export default function MenuPage() {
 
   const init = useCallback(async () => {
     if (!token) {
-      3
       toast.error("Invalid QR Code");
       return;
     }
 
     try {
-      const position = await new Promise<GeolocationPosition>((res, rej) =>
-        navigator.geolocation.getCurrentPosition(res, rej),
-      );
-
-      const { data: table } = await scanQR(
-        token,
-        position.coords.latitude,
-        position.coords.longitude,
-      );
+      // Load menu without requiring location — accessible from anywhere
+      const { data: table } = await scanQRNoLocation(token);
 
       setTableInfo(table.table_id, table.restaurant_id);
 
@@ -65,6 +58,7 @@ export default function MenuPage() {
       setLoading(false);
     }
   }, [token, setTableInfo]);
+
 
   useEffect(() => {
     init();
@@ -150,6 +144,22 @@ export default function MenuPage() {
 
     setOrdering(true);
     try {
+      // 1. Get current location — user must be at the restaurant to order
+      let position: GeolocationPosition;
+      try {
+        position = await new Promise<GeolocationPosition>((res, rej) =>
+          navigator.geolocation.getCurrentPosition(res, rej, {
+            timeout: 10000,
+            maximumAge: 0,
+          }),
+        );
+      } catch {
+        toast.error("ບໍ່ສາມາດດຶງຕຳແໜ່ງໄດ້. ກະລຸນາອະນຸຍາດ GPS ແລ້ວລອງໃໝ່.");
+        setOrdering(false);
+        return;
+      }
+
+      // 2. Send order with location — backend will reject if not inside restaurant
       const { data: order } = await createOrder({
         table_id,
         session_id,
@@ -158,15 +168,20 @@ export default function MenuPage() {
           quantity: i.quantity,
           special_note: i.special_note,
         })),
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
       });
       setCartOpen(false);
       router.push(`/order-status?order_id=${order.id}&table_id=${table_id}`);
-    } catch {
-      toast.error("Order failed. Please try again.");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const msg = error.response?.data?.message || "Order failed. Please try again.";
+      toast.error(msg);
     } finally {
       setOrdering(false);
     }
   };
+
 
   // ── Loading State ──────────────────────────────────────────────
   if (loading)

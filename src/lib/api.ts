@@ -101,6 +101,11 @@ export const getMe = (token: string) =>
   });
 
 // --- API calls ---
+// Scan QR to load menu — no location required, accessible from anywhere
+export const scanQRNoLocation = (token: string) =>
+  api.get<Table>(`/tables/scan/${token}`);
+
+// Scan QR with location verification — used before placing an order
 export const scanQR = (token: string, latitude: number, longitude: number) =>
   api.post<Table>(`/tables/scan/${token}`, { latitude, longitude });
 
@@ -111,6 +116,8 @@ export const createOrder = (data: {
   table_id: string;
   session_id: string;
   items: { menu_item_id: string; quantity: number; special_note?: string }[];
+  latitude: number;
+  longitude: number;
 }) => api.post<Order>("/orders", data);
 
 export const getOrdersByTable = (table_id: string) =>

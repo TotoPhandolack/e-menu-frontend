@@ -90,7 +90,7 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
             )}
           </div>
 
-          <p className="text-xl font-bold text-amber-500">
+          <p className="text-sm font-bold text-amber-500">
             ₭{Number(item.price).toLocaleString()}
           </p>
         </div>

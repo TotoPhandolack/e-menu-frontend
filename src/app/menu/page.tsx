@@ -36,6 +36,7 @@ export default function MenuPage() {
 
   const init = useCallback(async () => {
     if (!token) {
+      3
       toast.error("Invalid QR Code");
       return;
     }
@@ -121,7 +122,7 @@ export default function MenuPage() {
     );
     sectionRefs.current.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleGroups.length]);
 
   // Tab click: scroll to section (or top for "all")

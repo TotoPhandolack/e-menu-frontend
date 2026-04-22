@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import MenuItemCard from "@/components/menu/MenuItemCard";
 import CategoryTabs from "@/components/menu/CategoryTabs";
 import CartSheet from "@/components/menu/CartSheet";
-import { ShoppingCart, UtensilsCrossed, Search, X } from "lucide-react";
+import { ShoppingCart, UtensilsCrossed, Search, X, LayoutGrid, LayoutList } from "lucide-react";
 
 export default function MenuPage() {
   const searchParams = useSearchParams();
@@ -27,6 +27,7 @@ export default function MenuPage() {
   const [ordering, setOrdering] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -269,6 +270,32 @@ export default function MenuPage() {
 
       {/* ── Menu Sections ── */}
       <div className="px-4 pt-2">
+        {/* View toggle toolbar */}
+        <div className="flex justify-end">
+          <div className="flex items-center bg-amber-50 rounded-xl p-1 gap-0.5">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === "grid"
+                ? "bg-amber-400 text-white shadow-sm"
+                : "text-amber-400 hover:text-amber-500"
+                }`}
+              aria-label="Grid view"
+            >
+              <LayoutGrid className="h-6 w-6" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === "list"
+                ? "bg-amber-400 text-white shadow-sm"
+                : "text-amber-400 hover:text-amber-500"
+                }`}
+              aria-label="List view"
+            >
+              <LayoutList className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
+
         {visibleGroups.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <Search className="h-12 w-12 text-slate-200" />
@@ -293,7 +320,6 @@ export default function MenuPage() {
                 if (el) sectionRefs.current.set(group.category.id, el);
                 else sectionRefs.current.delete(group.category.id);
               }}
-              className="mt-6 first:mt-4"
             >
               {/* Category heading — handwriting-style */}
               <h2
@@ -303,12 +329,20 @@ export default function MenuPage() {
                 {group.category.name}
               </h2>
 
-              {/* Items list */}
-              <div className="bg-white rounded-2xl px-4 shadow-sm border border-slate-100">
-                {group.items.map((item) => (
-                  <MenuItemCard key={item.id} item={item} />
-                ))}
-              </div>
+              {/* Items — grid or list */}
+              {viewMode === "grid" ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {group.items.map((item) => (
+                    <MenuItemCard key={item.id} item={item} viewMode="grid" />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl px-4 shadow-sm border border-slate-100">
+                  {group.items.map((item) => (
+                    <MenuItemCard key={item.id} item={item} viewMode="list" />
+                  ))}
+                </div>
+              )}
             </section>
           ))
         )}

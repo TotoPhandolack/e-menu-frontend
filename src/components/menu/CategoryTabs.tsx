@@ -7,26 +7,24 @@ interface Props {
   onSelect: (id: string) => void;
 }
 
-export default function CategoryTabs({
-  categories,
-  selected,
-  onSelect,
-}: Props) {
+export default function CategoryTabs({ categories, selected, onSelect }: Props) {
   return (
-    <div className="flex gap-2 px-4 py-3 overflow-x-auto bg-white border-b no-scrollbar">
-      {categories.map((cat) => (
-        <button
-          key={cat.id}
-          onClick={() => onSelect(cat.id)}
-          className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
-            selected === cat.id
-              ? "bg-yellow-400 text-slate-900 font-semibold"
-              : "bg-slate-100 text-slate-600 hover:bg-yellow-100"
-          }`}
-        >
-          {cat.name}
-        </button>
-      ))}
+    <div className="sticky top-[57px] z-10 bg-[#FAFAF8] border-b border-slate-100">
+      <div className="flex gap-2 px-4 py-2.5 overflow-x-auto no-scrollbar">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => onSelect(cat.id)}
+            className={`px-4 py-2 rounded-full text-sm whitespace-nowrap font-medium transition-all min-h-[36px] active:scale-95 ${
+              selected === cat.id
+                ? "bg-amber-400 text-white shadow-sm shadow-amber-200"
+                : "bg-white text-slate-500 border border-slate-200 active:bg-slate-50"
+            }`}
+          >
+            {cat.name}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

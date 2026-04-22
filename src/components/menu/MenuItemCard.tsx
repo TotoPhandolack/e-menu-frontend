@@ -3,8 +3,7 @@
 
 import { MenuItem } from "@/lib/api";
 import { useCartStore } from "@/stores/cart.store";
-import { Button } from "@/components/ui/button";
-import { Plus, Minus, ChefHat } from "lucide-react";
+import { ChefHat, Plus, Minus } from "lucide-react";
 
 interface Props {
   item: MenuItem;
@@ -16,9 +15,9 @@ export default function MenuItemCard({ item }: Props) {
   const quantity = cartItem?.quantity ?? 0;
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm flex flex-col">
-      {/* Image */}
-      <div className="relative w-full aspect-4/3 bg-slate-100">
+    <div className="flex items-center gap-3 py-3 border-b border-slate-100 last:border-0">
+      {/* Photo */}
+      <div className="relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-slate-100">
         {item.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -27,54 +26,65 @@ export default function MenuItemCard({ item }: Props) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-            <ChefHat className="h-12 w-12 text-slate-400" />
+          <div className="w-full h-full flex items-center justify-center">
+            <ChefHat className="h-8 w-8 text-slate-300" />
+          </div>
+        )}
+        {!item.is_available && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+            <span className="text-xs font-medium text-slate-400">ໝົດ</span>
           </div>
         )}
       </div>
 
-      {/* Body */}
-      <div className="p-3 flex flex-col flex-1">
-        <p className="text-sm font-medium text-slate-900 truncate">
+      {/* Text */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2">
           {item.name}
         </p>
-
-        <div className="mt-auto pt-2 flex justify-between items-center">
-          <p className="text-sm font-semibold text-slate-900">
-            ₭{Number(item.price).toLocaleString()}
+        {item.description && (
+          <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+            {item.description}
           </p>
+        )}
+        <p className="text-sm font-bold text-amber-600 mt-1">
+          ₭{Number(item.price).toLocaleString()}
+        </p>
+      </div>
 
-          {quantity > 0 ? (
-            <div className="flex items-center gap-1.5">
-              <Button
-                size="icon"
-                variant="outline"
-                className="h-7 w-7 border-yellow-400 text-yellow-600 hover:bg-yellow-50"
-                onClick={() => updateQuantity(item.id, quantity - 1)}
-              >
-                <Minus className="h-3 w-3" />
-              </Button>
-              <span className="text-sm font-medium w-4 text-center">
-                {quantity}
-              </span>
-              <Button
-                size="icon"
-                className="h-7 w-7 bg-yellow-400 text-slate-900 hover:bg-yellow-500"
-                onClick={() => addItem(item)}
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-          ) : (
-            <Button
-              size="icon"
-              className="h-7 w-7 rounded-md bg-yellow-400 text-slate-900 hover:bg-yellow-500"
-              onClick={() => addItem(item)}
+      {/* Quantity Controls */}
+      <div className="flex-shrink-0 flex items-center gap-1.5">
+        {quantity > 0 ? (
+          <>
+            <button
+              className="w-8 h-8 rounded-full border border-amber-400 text-amber-600 flex items-center justify-center active:bg-amber-50 transition-colors"
+              onClick={() => updateQuantity(item.id, quantity - 1)}
+              aria-label="Decrease quantity"
             >
-              <Plus className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
+              <Minus className="h-3.5 w-3.5" />
+            </button>
+            <span className="text-sm font-semibold text-slate-800 w-5 text-center">
+              {quantity}
+            </span>
+            <button
+              className="w-8 h-8 rounded-full bg-amber-400 text-white flex items-center justify-center active:bg-amber-500 transition-colors"
+              onClick={() => addItem(item)}
+              disabled={!item.is_available}
+              aria-label="Increase quantity"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </>
+        ) : (
+          <button
+            className="w-8 h-8 rounded-full bg-amber-400 text-white flex items-center justify-center active:bg-amber-500 transition-colors disabled:opacity-40"
+            onClick={() => addItem(item)}
+            disabled={!item.is_available}
+            aria-label="Add to cart"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 // src/app/order-status/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getOrdersByTable, Order } from "@/lib/api";
 import { useCartStore } from "@/stores/cart.store";
@@ -42,7 +42,7 @@ const STATUS_CONFIG = {
   },
 };
 
-export default function OrderStatusPage() {
+function OrderStatusPageContent() {
   const searchParams = useSearchParams();
   const table_id = searchParams.get("table_id");
   const { restaurant_id, clearCart } = useCartStore();
@@ -131,5 +131,17 @@ export default function OrderStatusPage() {
         })}
       </div>
     </div>
+  );
+}
+
+export default function OrderStatusPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-slate-500">ກຳລັງໂຫຼດ...</p>
+      </div>
+    }>
+      <OrderStatusPageContent />
+    </Suspense>
   );
 }

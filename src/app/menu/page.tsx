@@ -1,7 +1,7 @@
 // src/app/menu/page.tsx
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { scanQRNoLocation, getMenuItems, createOrder, MenuItem } from "@/lib/api";
 
@@ -13,7 +13,7 @@ import CategoryTabs from "@/components/menu/CategoryTabs";
 import CartSheet from "@/components/menu/CartSheet";
 import { ShoppingCart, UtensilsCrossed, Search, X, LayoutGrid, LayoutList } from "lucide-react";
 
-export default function MenuPage() {
+function MenuPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -33,7 +33,7 @@ export default function MenuPage() {
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll); ``
   }, []);
 
   const init = useCallback(async () => {
@@ -396,5 +396,17 @@ export default function MenuPage() {
         ordering={ordering}
       />
     </div>
+  );
+}
+
+export default function MenuPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+        <div className="text-slate-400 text-sm">Loading menu…</div>
+      </div>
+    }>
+      <MenuPageContent />
+    </Suspense>
   );
 }

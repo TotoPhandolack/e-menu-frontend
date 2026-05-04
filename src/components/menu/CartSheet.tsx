@@ -82,7 +82,7 @@ export default function CartSheet({ open, onClose, onOrder, ordering }: Props) {
                       {quantity}
                     </span>
                     <button
-                      className="w-8 h-8 rounded-full bg-amber-400 text-white flex items-center justify-center active:bg-amber-500"
+                      className="w-8 h-8 rounded-full bg-[#3a5a40] text-white flex items-center justify-center active:bg-[#2c4430]"
                       onClick={() => updateQuantity(menuItem.id, quantity + 1)}
                       aria-label="Increase"
                     >
@@ -103,7 +103,7 @@ export default function CartSheet({ open, onClose, onOrder, ordering }: Props) {
             </span>
           </div>
           <Button
-            className="w-full h-12 bg-amber-400 hover:bg-amber-500 active:bg-amber-600 text-white font-semibold text-base rounded-xl shadow-md shadow-amber-200 transition-all"
+            className="w-full h-12 bg-[#3a5a40] hover:bg-[#2c4430] active:bg-[#1e3022] text-white font-semibold text-base rounded-xl shadow-md shadow-[rgba(58,90,64,0.25)] transition-all"
             disabled={items.length === 0 || ordering}
             onClick={onOrder}
           >

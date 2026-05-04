@@ -24,7 +24,7 @@ export default function CartSheet({ open, onClose, onOrder, ordering }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-[80vh] flex flex-col rounded-t-2xl">
+      <SheetContent side="bottom" className="h-[80vh] flex flex-col rounded-t-2xl" aria-describedby={undefined}>
         <SheetHeader className="pb-2 border-b border-slate-100">
           <SheetTitle className="text-base font-semibold text-slate-800">
             🛒 ລາຍການອາຫານ

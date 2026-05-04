@@ -422,7 +422,7 @@ function MenuPageContent() {
 
       {/* ── Confirm Order Sheet ── */}
       <Sheet open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl px-6 pt-6 pb-8">
+        <SheetContent side="bottom" className="rounded-t-2xl px-6 pt-6 pb-8" aria-describedby={undefined}>
           <SheetHeader className="items-center pb-4">
             {/* Icon */}
             <div className="w-16 h-16 rounded-full bg-[#f0f5f1] flex items-center justify-center text-3xl mb-2">

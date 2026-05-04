@@ -11,6 +11,12 @@ import { toast } from "sonner";
 import MenuItemCard from "@/components/menu/MenuItemCard";
 import CategoryTabs from "@/components/menu/CategoryTabs";
 import CartSheet from "@/components/menu/CartSheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { ShoppingCart, UtensilsCrossed, Search, X, LayoutGrid, LayoutList } from "lucide-react";
 
 function MenuPageContent() {
@@ -26,6 +32,7 @@ function MenuPageContent() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [cartOpen, setCartOpen] = useState(false);
   const [ordering, setOrdering] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -139,9 +146,17 @@ function MenuPageContent() {
     }
   };
 
-  const handleOrder = async () => {
+  // Switch from cart sheet to confirm sheet
+  const handleOrder = () => {
     if (!table_id || !session_id || items.length === 0) return;
+    setCartOpen(false);
+    setConfirmOpen(true);
+  };
 
+  // Actually places the order after the user confirms
+  const handleConfirmOrder = async () => {
+    if (!table_id || !session_id || items.length === 0) return;
+    setConfirmOpen(false);
     setOrdering(true);
     try {
       // 1. Get current location — user must be at the restaurant to order
@@ -159,7 +174,10 @@ function MenuPageContent() {
         return;
       }
 
-      // 2. Send order with location — backend will reject if not inside restaurant
+      // 2. Snapshot items before cart is cleared
+      const totalQty = items.reduce((s, i) => s + i.quantity, 0);
+
+      // 3. Send order with location — backend will reject if not inside restaurant
       const { data: order } = await createOrder({
         table_id,
         session_id,
@@ -172,7 +190,10 @@ function MenuPageContent() {
         longitude: position.coords.longitude,
       });
       setCartOpen(false);
-      router.push(`/order-status?order_id=${order.id}&table_id=${table_id}`);
+      // Pass token so success page can navigate back to the same table
+      router.push(
+        `/order-status?order_id=${order.id}&table_id=${table_id}&token=${token ?? ""}&qty=${totalQty}`,
+      );
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       const msg = error.response?.data?.message || "Order failed. Please try again.";
@@ -395,6 +416,49 @@ function MenuPageContent() {
         onOrder={handleOrder}
         ordering={ordering}
       />
+
+      {/* ── Confirm Order Sheet ── */}
+      <Sheet open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <SheetContent side="bottom" className="rounded-t-2xl px-6 pt-6 pb-8">
+          <SheetHeader className="items-center pb-4">
+            {/* Icon */}
+            <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center text-3xl mb-2">
+              🛒
+            </div>
+            <SheetTitle className="text-lg font-bold text-slate-800">
+              ຢືນຢັນການສັ່ງ?
+            </SheetTitle>
+          </SheetHeader>
+
+          <p className="text-center text-sm text-slate-500 mb-6">
+            ທ່ານຕ້ອງການສັ່ງ{" "}
+            <strong className="text-amber-500">
+              {items.reduce((s, i) => s + i.quantity, 0)} ລາຍການ
+            </strong>{" "}
+            ແທ້ບໍ?
+          </p>
+
+          <div className="flex gap-3">
+            {/* No */}
+            <button
+              id="confirm-order-no"
+              onClick={() => setConfirmOpen(false)}
+              className="flex-1 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-semibold active:bg-slate-50 transition-colors"
+            >
+              ບໍ່
+            </button>
+
+            {/* Yes */}
+            <button
+              id="confirm-order-yes"
+              onClick={handleConfirmOrder}
+              className="flex-1 py-3 rounded-xl bg-amber-400 hover:bg-amber-500 active:bg-amber-600 text-white text-sm font-bold transition-colors shadow-md shadow-amber-200"
+            >
+              ແມ່ນ
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

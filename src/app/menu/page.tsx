@@ -160,20 +160,20 @@ function MenuPageContent() {
     setConfirmOpen(false);
     setOrdering(true);
     try {
-      // 1. Get current location — user must be at the restaurant to order
-      let position: GeolocationPosition;
-      try {
-        position = await new Promise<GeolocationPosition>((res, rej) =>
-          navigator.geolocation.getCurrentPosition(res, rej, {
-            timeout: 10000,
-            maximumAge: 0,
-          }),
-        );
-      } catch {
-        toast.error("ບໍ່ສາມາດດຶງຕຳແໜ່ງໄດ້. ກະລຸນາອະນຸຍາດ GPS ແລ້ວລອງໃໝ່.");
-        setOrdering(false);
-        return;
-      }
+      // 1. Get current location (Disabled for testing)
+      // let position: GeolocationPosition;
+      // try {
+      //   position = await new Promise<GeolocationPosition>((res, rej) =>
+      //     navigator.geolocation.getCurrentPosition(res, rej, {
+      //       timeout: 10000,
+      //       maximumAge: 0,
+      //     }),
+      //   );
+      // } catch {
+      //   toast.error("ບໍ່ສາມາດດຶງຕຳແໜ່ງໄດ້. ກະລຸນາອະນຸຍາດ GPS ແລ້ວລອງໃໝ່.");
+      //   setOrdering(false);
+      //   return;
+      // }
 
       // 2. Snapshot items before cart is cleared
       const totalQty = items.reduce((s, i) => s + i.quantity, 0);
@@ -187,8 +187,9 @@ function MenuPageContent() {
           quantity: i.quantity,
           special_note: i.special_note,
         })),
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
+        // Send default location since we disabled the check
+        latitude: 0, // position.coords.latitude,
+        longitude: 0, // position.coords.longitude,
       });
       setCartOpen(false);
       // Pass token so success page can navigate back to the same table

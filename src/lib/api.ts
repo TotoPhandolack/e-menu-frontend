@@ -79,10 +79,13 @@ export interface Order {
   }[];
 }
 
+export type AdminRole = 'ADMIN' | 'CASHIER';
+
 export interface Admin {
   id: string;
   name: string;
   email: string;
+  role: AdminRole;
   restaurant_id: string;
   restaurant: { name: string };
 }
@@ -130,3 +133,10 @@ export const getRestaurants = () => api.get<Restaurant[]>("/restaurants");
 
 export const updateOrderStatus = (order_id: string, status: Order["status"]) =>
   api.put<Order>(`/orders/${order_id}/status`, { status });
+
+// --- Cashier API ---
+export const getCashierOrders = (restaurant_id: string) =>
+  api.get<Order[]>(`/cashier/orders?restaurant_id=${restaurant_id}`);
+
+export const payOrder = (order_id: string) =>
+  api.patch<Order>(`/cashier/orders/${order_id}/pay`);

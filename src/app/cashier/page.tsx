@@ -1,606 +1,823 @@
-// src/app/cashier/page.tsx
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/auth.store';
-import { Order, getCashierOrders, payOrder, getRestaurants, Restaurant } from '@/lib/api';
-import { toast } from 'sonner';
+import { useState } from 'react';
+import {
+  Bell,
+  Plus,
+  Minus,
+  Edit2,
+  AlertCircle,
+  ShoppingBag,
+  Coffee,
+  GlassWater,
+  IceCream,
+  Wheat,
+  Cake,
+  LayoutGrid,
+} from 'lucide-react';
 
-// ---- helpers ----
-function formatCurrency(amount: number) {
-    return new Intl.NumberFormat('lo-LA', {
-        style: 'currency',
-        currency: 'LAK',
-        minimumFractionDigits: 0,
-    }).format(amount);
+// ── Mock Data ──────────────────────────────────────────────────────────────
+
+const CATEGORIES = [
+  { id: 'all', name: 'Semua Menu', count: 93, Icon: LayoutGrid },
+  { id: 'kopi', name: 'Minuman Kopi', count: 23, Icon: Coffee },
+  { id: 'non-kopi', name: 'Minuman Non Kopi', count: 14, Icon: GlassWater },
+  { id: 'eskrim', name: 'Es Krim', count: 44, Icon: IceCream },
+  { id: 'roti', name: 'Roti', count: 12, Icon: Wheat },
+  { id: 'kue', name: 'Kue', count: 23, Icon: Cake },
+];
+
+const PRODUCTS = [
+  {
+    id: '1',
+    name: 'Hot Cappucino',
+    desc: 'Espresso dengan busa susu yang lembut dan creamy',
+    price: 22000,
+    category: 'kopi',
+    emoji: '☕',
+    bg: '#ddd8f8',
+  },
+  {
+    id: '2',
+    name: 'Classic Americano',
+    desc: 'Espresso hitam halus dan ringan.',
+    price: 20000,
+    category: 'kopi',
+    emoji: '🥤',
+    bg: '#d8e8f8',
+  },
+  {
+    id: '3',
+    name: 'Rich Espresso Shot',
+    desc: 'Espresso pekat untuk pencinta kopi sejati',
+    price: 25000,
+    category: 'kopi',
+    emoji: '☕',
+    bg: '#d8d8f5',
+  },
+  {
+    id: '4',
+    name: 'Hazelnut Mocha Bliss',
+    desc: 'Espresso, cokelat, dan hazelnut pilihan',
+    price: 33000,
+    category: 'kopi',
+    emoji: '🧋',
+    bg: '#e8ddf8',
+  },
+  {
+    id: '5',
+    name: 'Dark Chocolate Coffe',
+    desc: 'Coklat hangat dengan espresso premium',
+    price: 28000,
+    category: 'kopi',
+    emoji: '🍫',
+    bg: '#e0d8f5',
+  },
+  {
+    id: '6',
+    name: 'Creamy Caramel Latte',
+    desc: 'Espresso lembut dengan karamel manis',
+    price: 22000,
+    category: 'kopi',
+    emoji: '🥛',
+    bg: '#f0e8d8',
+  },
+  {
+    id: '7',
+    name: 'Vanilla Sky Delight',
+    desc: 'Es krim vanilla lembut rasa klasik terbaik',
+    price: 28000,
+    category: 'eskrim',
+    emoji: '🍦',
+    bg: '#f8f0d8',
+  },
+  {
+    id: '8',
+    name: 'Minty Cool Breeze',
+    desc: 'Es krim mint segar cokelat renyah',
+    price: 20000,
+    category: 'eskrim',
+    emoji: '🍧',
+    bg: '#d8f0e8',
+  },
+  {
+    id: '9',
+    name: 'Golden Egg Toast',
+    desc: 'Roti panggang lembut gurih dengan telur',
+    price: 22000,
+    category: 'roti',
+    emoji: '🍳',
+    bg: '#f8f0d0',
+  },
+  {
+    id: '10',
+    name: 'Vanilla Dream Muffin',
+    desc: 'Muffin lembut rasa vanila yang menggugah',
+    price: 18000,
+    category: 'kue',
+    emoji: '🧁',
+    bg: '#f8e8d8',
+  },
+  {
+    id: '11',
+    name: 'Veggie Garden Wrap',
+    desc: 'Wrap sehat isi sayuran segar pilihan',
+    price: 25000,
+    category: 'roti',
+    emoji: '🌯',
+    bg: '#d8f0d8',
+  },
+  {
+    id: '12',
+    name: 'Chocolate Fudge Cake',
+    desc: 'Kue cokelat lembut dan kaya rasa premium',
+    price: 32000,
+    category: 'kue',
+    emoji: '🎂',
+    bg: '#e8d8f0',
+  },
+];
+
+type Product = (typeof PRODUCTS)[number];
+
+interface CartItem {
+  product: Product;
+  quantity: number;
+  note: string;
 }
 
-function timeAgo(date: string | number | Date) {
-    const diff = Date.now() - new Date(date).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'ຫາກໍສັ່ງ';
-    if (mins < 60) return `${mins} ນາທີກ່ອນ`;
-    const hrs = Math.floor(mins / 60);
-    return `${hrs} ຊົ່ວໂມງກ່ອນ`;
+const INITIAL_CART: CartItem[] = [
+  { product: PRODUCTS[0], quantity: 1, note: 'Hot, Less Sugar' },
+  { product: PRODUCTS[2], quantity: 1, note: 'Hot, No Sugar' },
+  { product: PRODUCTS[3], quantity: 1, note: 'Tambahan Espresso' },
+  { product: PRODUCTS[7], quantity: 1, note: 'Tidak ada tambahan' },
+  { product: PRODUCTS[8], quantity: 1, note: 'Tidak ada tambahan' },
+];
+
+const TAX_RATE = 0.12;
+
+function formatRp(n: number) {
+  return `Rp${n.toLocaleString('id-ID')}`;
 }
 
-// ---- Order Card ----
-function OrderCard({
-    order,
-    onPay,
-    paying,
-}: {
-    order: Order;
-    onPay: (id: string) => void;
-    paying: boolean;
-}) {
-    const table = order.table as { table_number: string } | null | undefined;
+// ── Component ──────────────────────────────────────────────────────────────
 
-    return (
-        <div className="order-card">
-            <div className="order-card-header">
-                <div className="table-badge">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                        <rect x="2" y="7" width="20" height="15" rx="2" />
-                        <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
-                    </svg>
-                    ໂຕະ {table?.table_number ?? '—'}
-                </div>
-                <span className="order-time">{timeAgo(order.created_at)}</span>
+export default function CashierPOSPage() {
+  const [activeTab, setActiveTab] = useState<'pesan' | 'aktifitas'>('pesan');
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [cart, setCart] = useState<CartItem[]>(INITIAL_CART);
+  const [selectedTable, setSelectedTable] = useState('');
+  const [orderType, setOrderType] = useState('Dine In');
+
+  const filteredProducts =
+    activeCategory === 'all'
+      ? PRODUCTS
+      : PRODUCTS.filter((p) => p.category === activeCategory);
+
+  const addToCart = (product: Product) => {
+    setCart((prev) => {
+      const existing = prev.find((i) => i.product.id === product.id);
+      if (existing) {
+        return prev.map((i) =>
+          i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i,
+        );
+      }
+      return [...prev, { product, quantity: 1, note: 'Tidak ada tambahan' }];
+    });
+  };
+
+  const updateQty = (productId: string, delta: number) => {
+    setCart((prev) =>
+      prev
+        .map((i) =>
+          i.product.id === productId ? { ...i, quantity: i.quantity + delta } : i,
+        )
+        .filter((i) => i.quantity > 0),
+    );
+  };
+
+  const subTotal = cart.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  const tax = Math.round(subTotal * TAX_RATE);
+  const total = subTotal + tax;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        height: '100vh',
+        overflow: 'hidden',
+        background: '#f0f0f8',
+        fontFamily:
+          'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        fontSize: 14,
+        color: '#111827',
+      }}
+    >
+      {/* ══════════════════════════════════════════
+          LEFT PANEL — Menu browser
+      ══════════════════════════════════════════ */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          minWidth: 0,
+        }}
+      >
+        {/* ─ Top header ─ */}
+        <div
+          style={{
+            background: 'white',
+            padding: '14px 28px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            borderBottom: '1px solid #ebebf5',
+            flexShrink: 0,
+          }}
+        >
+          {/* Avatar + name */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div
+              style={{
+                width: 46,
+                height: 46,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #8b85f0, #6366f1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: 700,
+                fontSize: 15,
+                border: '2.5px solid #c7c4f8',
+                flexShrink: 0,
+              }}
+            >
+              K1
             </div>
-
-            <div className="order-items">
-                {order.orderItems.map((item) => (
-                    <div key={item.id} className="order-item-row">
-                        <span className="item-qty">×{item.quantity}</span>
-                        <span className="item-name">{item.menuItem.name}</span>
-                        <span className="item-subtotal">
-                            {formatCurrency(item.quantity * item.unit_price)}
-                        </span>
-                    </div>
-                ))}
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.2 }}>Kasir 1</div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Farra Fitriyani</div>
             </div>
+          </div>
 
-            {order.orderItems.some((i) => i.special_note) && (
-                <div className="special-notes">
-                    {order.orderItems
-                        .filter((i) => i.special_note)
-                        .map((i) => (
-                            <span key={i.id} className="note-chip">
-                                💬 {i.menuItem.name}: {i.special_note}
-                            </span>
-                        ))}
-                </div>
-            )}
+          {/* Tabs */}
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 36,
+            }}
+          >
+            {(['pesan', 'aktifitas'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontWeight: 600,
+                  fontSize: 15,
+                  color: activeTab === tab ? '#6366f1' : '#9ca3af',
+                  paddingBottom: 4,
+                  borderBottom: activeTab === tab ? '2.5px solid #6366f1' : '2.5px solid transparent',
+                  transition: 'all 0.15s',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {tab === 'pesan' ? 'Pesan' : 'Aktifitas'}
+              </button>
+            ))}
+          </div>
 
-            <div className="order-card-footer">
-                <div className="total-section">
-                    <span className="total-label">ລວມທັງໝົດ</span>
-                    <span className="total-amount">{formatCurrency(Number(order.total_amount))}</span>
+          {/* Spacer so avatar doesn't pull tabs off-center */}
+          <div style={{ width: 58 }} />
+        </div>
+
+        {/* ─ Category tabs ─ */}
+        <div
+          className="no-scrollbar"
+          style={{
+            background: 'white',
+            padding: '14px 28px',
+            display: 'flex',
+            gap: 12,
+            overflowX: 'auto',
+            flexShrink: 0,
+            borderBottom: '1px solid #ebebf5',
+          }}
+        >
+          {CATEGORIES.map(({ id, name, count, Icon }) => {
+            const active = activeCategory === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveCategory(id)}
+                style={{
+                  flexShrink: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '10px 18px',
+                  borderRadius: 14,
+                  border: active ? '2px solid #6366f1' : '2px solid #e5e7eb',
+                  background: active ? '#6366f1' : 'white',
+                  color: active ? 'white' : '#374151',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <Icon size={18} strokeWidth={1.8} />
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, lineHeight: 1.2 }}>{name}</div>
+                  <div style={{ fontSize: 11, opacity: 0.75, marginTop: 2 }}>
+                    {count} Stok Produk
+                  </div>
                 </div>
-                <button
-                    className={`pay-btn${paying ? ' paying' : ''}`}
-                    onClick={() => onPay(order.id)}
-                    disabled={paying}
-                    id={`pay-btn-${order.id}`}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ─ Product grid ─ */}
+        <div
+          className="no-scrollbar"
+          style={{ flex: 1, overflowY: 'auto', padding: '20px 28px' }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
+              gap: 16,
+            }}
+          >
+            {filteredProducts.map((product) => {
+              const inCart = cart.some((i) => i.product.id === product.id);
+              return (
+                <div
+                  key={product.id}
+                  style={{
+                    background: 'white',
+                    borderRadius: 18,
+                    padding: 14,
+                    boxShadow: '0 1px 4px rgba(99,102,241,0.06)',
+                    transition: 'transform 0.15s, box-shadow 0.15s',
+                    cursor: 'default',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
+                    (e.currentTarget as HTMLDivElement).style.boxShadow =
+                      '0 6px 18px rgba(99,102,241,0.12)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
+                    (e.currentTarget as HTMLDivElement).style.boxShadow =
+                      '0 1px 4px rgba(99,102,241,0.06)';
+                  }}
                 >
-                    {paying ? (
-                        <span className="btn-spinner" />
-                    ) : (
-                        <>
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                                <rect x="1" y="4" width="22" height="16" rx="2" />
-                                <line x1="1" y1="10" x2="23" y2="10" />
-                            </svg>
-                            ຮັບເງິນ
-                        </>
-                    )}
-                </button>
-            </div>
+                  {/* Product image placeholder */}
+                  <div
+                    style={{
+                      background: product.bg,
+                      borderRadius: 12,
+                      height: 120,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 52,
+                      marginBottom: 12,
+                    }}
+                  >
+                    {product.emoji}
+                  </div>
+
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      fontSize: 14,
+                      color: '#111827',
+                      marginBottom: 4,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {product.name}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: '#9ca3af',
+                      marginBottom: 10,
+                      lineHeight: 1.5,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {product.desc}
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>
+                      {formatRp(product.price)}
+                    </span>
+                    <button
+                      onClick={() => addToCart(product)}
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: '50%',
+                        border: `2px solid ${inCart ? '#6366f1' : '#d1d5db'}`,
+                        background: inCart ? '#6366f1' : 'white',
+                        color: inCart ? 'white' : '#9ca3af',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.15s',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Plus size={14} strokeWidth={2.5} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-    );
+      </div>
+
+      {/* ══════════════════════════════════════════
+          RIGHT PANEL — Order summary
+      ══════════════════════════════════════════ */}
+      <div
+        style={{
+          width: 380,
+          flexShrink: 0,
+          background: 'white',
+          borderLeft: '1px solid #ebebf5',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        {/* ─ Panel header ─ */}
+        <div
+          style={{
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #f3f4f6',
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <ShoppingBag size={20} color="#111827" strokeWidth={1.8} />
+            <span style={{ fontWeight: 700, fontSize: 17 }}>Daftar Pesanan</span>
+          </div>
+          <button
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 4,
+              borderRadius: 8,
+            }}
+          >
+            <Bell size={20} color="#9ca3af" strokeWidth={1.8} />
+          </button>
+        </div>
+
+        {/* ─ Table + type selectors ─ */}
+        <div
+          style={{
+            padding: '12px 20px',
+            display: 'flex',
+            gap: 10,
+            borderBottom: '1px solid #f3f4f6',
+            flexShrink: 0,
+          }}
+        >
+          {[
+            {
+              value: selectedTable,
+              onChange: (v: string) => setSelectedTable(v),
+              options: [
+                { label: 'Pilih Meja', value: '' },
+                ...[1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({
+                  label: `Meja ${n}`,
+                  value: String(n),
+                })),
+              ],
+            },
+            {
+              value: orderType,
+              onChange: (v: string) => setOrderType(v),
+              options: [
+                { label: 'Dine In', value: 'Dine In' },
+                { label: 'Take Away', value: 'Take Away' },
+              ],
+            },
+          ].map((sel, idx) => (
+            <select
+              key={idx}
+              value={sel.value}
+              onChange={(e) => sel.onChange(e.target.value)}
+              style={{
+                flex: 1,
+                padding: '9px 12px',
+                borderRadius: 10,
+                border: '1.5px solid #e5e7eb',
+                fontSize: 13,
+                fontWeight: 500,
+                color: '#374151',
+                fontFamily: 'inherit',
+                background: 'white',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              {sel.options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          ))}
+        </div>
+
+        {/* ─ Cart items ─ */}
+        <div
+          className="no-scrollbar"
+          style={{ flex: 1, overflowY: 'auto', padding: '4px 20px' }}
+        >
+          {cart.length === 0 ? (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                color: '#d1d5db',
+                gap: 10,
+              }}
+            >
+              <ShoppingBag size={44} strokeWidth={1.2} />
+              <p style={{ fontSize: 13 }}>Belum ada item dipilih</p>
+            </div>
+          ) : (
+            cart.map((item) => (
+              <div
+                key={item.product.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '12px 0',
+                  borderBottom: '1px solid #f9fafb',
+                }}
+              >
+                {/* Thumbnail */}
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 12,
+                    background: item.product.bg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 26,
+                    flexShrink: 0,
+                  }}
+                >
+                  {item.product.emoji}
+                </div>
+
+                {/* Info block */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      justifyContent: 'space-between',
+                      gap: 4,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 13,
+                        color: '#111827',
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {item.product.name}
+                    </span>
+                    <button
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: '#d1d5db',
+                        flexShrink: 0,
+                        padding: 0,
+                        lineHeight: 1,
+                      }}
+                    >
+                      <Edit2 size={13} strokeWidth={1.8} />
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: '#9ca3af',
+                      marginTop: 2,
+                      marginBottom: 6,
+                    }}
+                  >
+                    {item.note}
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>
+                      {formatRp(item.product.price)}
+                    </span>
+
+                    {/* Quantity controls */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button
+                        onClick={() => updateQty(item.product.id, 1)}
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          border: '1.5px solid #d1d5db',
+                          background: 'white',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          color: '#374151',
+                          padding: 0,
+                        }}
+                      >
+                        <Plus size={11} strokeWidth={2.5} />
+                      </button>
+                      <span
+                        style={{
+                          fontWeight: 600,
+                          fontSize: 13,
+                          minWidth: 16,
+                          textAlign: 'center',
+                        }}
+                      >
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => updateQty(item.product.id, -1)}
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          border: '1.5px solid #d1d5db',
+                          background: 'white',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          color: '#374151',
+                          padding: 0,
+                        }}
+                      >
+                        <Minus size={11} strokeWidth={2.5} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* ─ Payment summary ─ */}
+        <div
+          style={{
+            padding: '16px 20px 20px',
+            borderTop: '1px solid #f3f4f6',
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>Pembayaran</div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Row label="Sub Total" value={formatRp(subTotal)} />
+            <Row label="Tax (12%)" value={`+${formatRp(tax)}`} valueColor="#059669" />
+            <Row label="Diskon" value="Rp0" valueColor="#059669" />
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: 14,
+              paddingTop: 14,
+              borderTop: '1px solid #f3f4f6',
+            }}
+          >
+            <span style={{ fontWeight: 700, fontSize: 15 }}>TOTAL</span>
+            <span style={{ fontWeight: 700, fontSize: 15 }}>{formatRp(total)}</span>
+          </div>
+
+          {/* Discount link */}
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginTop: 16,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              fontFamily: 'inherit',
+            }}
+          >
+            <AlertCircle size={16} color="#ef4444" strokeWidth={2} />
+            <span style={{ fontSize: 13, color: '#ef4444', fontWeight: 500 }}>
+              Cek Diskon disini!
+            </span>
+          </button>
+
+          {/* Place order button */}
+          <button
+            style={{
+              width: '100%',
+              marginTop: 14,
+              padding: '15px',
+              background: '#111827',
+              color: 'white',
+              border: 'none',
+              borderRadius: 14,
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = '#1f2937';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = '#111827';
+            }}
+          >
+            Buat Pesanan
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// ---- Main Page ----
-export default function CashierPage() {
-    const { admin, logout } = useAuthStore();
-    const router = useRouter();
+// ── Helpers ────────────────────────────────────────────────────────────────
 
-    const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-    const [selectedRestaurant, setSelectedRestaurant] = useState('');
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [payingId, setPayingId] = useState<string | null>(null);
-    const [paidCount, setPaidCount] = useState(0);
-
-    // Guard: only cashier/admin can access
-    useEffect(() => {
-        if (!admin) router.push('/login');
-    }, [admin, router]);
-
-    // Load restaurants
-    useEffect(() => {
-        getRestaurants().then(({ data }) => {
-            setRestaurants(data);
-            if (data.length > 0) setSelectedRestaurant(data[0].id);
-        });
-    }, []);
-
-    // Load served orders
-    const fetchOrders = useCallback(() => {
-        if (!selectedRestaurant) return;
-        setLoading(true);
-        getCashierOrders(selectedRestaurant)
-            .then(({ data }) => setOrders(data))
-            .catch(() => toast.error('ໂຫຼດ orders ບໍ່ສຳເລັດ'))
-            .finally(() => setLoading(false));
-    }, [selectedRestaurant]);
-
-    useEffect(() => {
-        fetchOrders();
-        // Poll every 15 seconds for new SERVED orders
-        const interval = setInterval(fetchOrders, 15000);
-        return () => clearInterval(interval);
-    }, [fetchOrders]);
-
-    const handlePay = async (order_id: string) => {
-        setPayingId(order_id);
-        try {
-            await payOrder(order_id);
-            setOrders((prev) => prev.filter((o) => o.id !== order_id));
-            setPaidCount((c) => c + 1);
-            toast.success('ຮັບເງິນສຳເລັດ ✓');
-        } catch {
-            toast.error('ຮັບເງິນບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່');
-        } finally {
-            setPayingId(null);
-        }
-    };
-
-    const handleLogout = () => {
-        logout();
-        router.push('/login');
-    };
-
-    const totalPending = orders.reduce(
-        (sum, o) => sum + Number(o.total_amount),
-        0,
-    );
-
-    return (
-        <div className="cashier-root">
-            {/* ── Header ── */}
-            <header className="cashier-header">
-                <div className="header-brand">
-                    <div className="header-logo">
-                        <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
-                            <rect width="28" height="28" rx="7" fill="white" fillOpacity="0.2" />
-                            <path d="M8 20 Q14 8 20 20" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                            <circle cx="14" cy="10" r="2" fill="white" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 className="header-title">Cashier</h1>
-                        <p className="header-sub">ໜ້າຮັບເງິນ</p>
-                    </div>
-                </div>
-
-                <div className="header-controls">
-                    <select
-                        className="restaurant-select"
-                        value={selectedRestaurant}
-                        onChange={(e) => setSelectedRestaurant(e.target.value)}
-                        id="restaurant-select"
-                    >
-                        {restaurants.map((r) => (
-                            <option key={r.id} value={r.id}>{r.name}</option>
-                        ))}
-                    </select>
-
-                    <div className="cashier-name">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                        </svg>
-                        {admin?.name}
-                    </div>
-
-                    <button className="logout-btn" onClick={handleLogout} id="cashier-logout-btn">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                            <polyline points="16 17 21 12 16 7" />
-                            <line x1="21" y1="12" x2="9" y2="12" />
-                        </svg>
-                        ອອກ
-                    </button>
-                </div>
-            </header>
-
-            {/* ── Stats Bar ── */}
-            <div className="stats-bar">
-                <div className="stat-card">
-                    <span className="stat-icon">🧾</span>
-                    <div>
-                        <p className="stat-value">{orders.length}</p>
-                        <p className="stat-label">ລໍຖ້າຊຳລະ</p>
-                    </div>
-                </div>
-                <div className="stat-card">
-                    <span className="stat-icon">💰</span>
-                    <div>
-                        <p className="stat-value">{formatCurrency(totalPending)}</p>
-                        <p className="stat-label">ຍອດຄ້າງຊຳລະ</p>
-                    </div>
-                </div>
-                <div className="stat-card stat-card-success">
-                    <span className="stat-icon">✅</span>
-                    <div>
-                        <p className="stat-value">{paidCount}</p>
-                        <p className="stat-label">ຊຳລະແລ້ວ (session)</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* ── Orders Grid ── */}
-            <main className="cashier-main">
-                {loading ? (
-                    <div className="empty-state">
-                        <div className="loading-ring" />
-                        <p>ກຳລັງໂຫຼດ...</p>
-                    </div>
-                ) : orders.length === 0 ? (
-                    <div className="empty-state">
-                        <div className="empty-icon">🍽️</div>
-                        <h2>ບໍ່ມີ order ລໍຖ້າຊຳລະ</h2>
-                        <p>ລູກຄ້າຍັງບໍ່ໄດ້ຮ້ອງຂໍ bill</p>
-                    </div>
-                ) : (
-                    <div className="orders-grid">
-                        {orders.map((order) => (
-                            <OrderCard
-                                key={order.id}
-                                order={order}
-                                onPay={handlePay}
-                                paying={payingId === order.id}
-                            />
-                        ))}
-                    </div>
-                )}
-            </main>
-
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-                * { box-sizing: border-box; margin: 0; padding: 0; }
-
-                .cashier-root {
-                    min-height: 100vh;
-                    background: #f4f7f4;
-                    font-family: 'Inter', sans-serif;
-                    color: #1a2e1d;
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                /* ── Header ── */
-                .cashier-header {
-                    background: linear-gradient(135deg, #3a5a40 0%, #2c4430 100%);
-                    color: white;
-                    padding: 0 1.5rem;
-                    height: 64px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    box-shadow: 0 2px 12px rgba(42,64,48,0.3);
-                    position: sticky;
-                    top: 0;
-                    z-index: 40;
-                }
-                .header-brand {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                }
-                .header-logo {
-                    width: 38px;
-                    height: 38px;
-                    background: rgba(255,255,255,0.15);
-                    border-radius: 10px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                .header-title {
-                    font-size: 1.125rem;
-                    font-weight: 700;
-                    letter-spacing: -0.02em;
-                    line-height: 1;
-                }
-                .header-sub {
-                    font-size: 0.75rem;
-                    opacity: 0.65;
-                    margin-top: 0.1rem;
-                }
-                .header-controls {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                }
-                .restaurant-select {
-                    background: rgba(255,255,255,0.15);
-                    border: 1px solid rgba(255,255,255,0.25);
-                    color: white;
-                    padding: 0.375rem 0.75rem;
-                    border-radius: 0.625rem;
-                    font-size: 0.8125rem;
-                    font-family: inherit;
-                    outline: none;
-                    cursor: pointer;
-                }
-                .restaurant-select option { color: #1a2e1d; background: white; }
-                .cashier-name {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.375rem;
-                    font-size: 0.8125rem;
-                    opacity: 0.85;
-                }
-                .logout-btn {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.375rem;
-                    background: rgba(255,255,255,0.15);
-                    border: 1px solid rgba(255,255,255,0.25);
-                    color: white;
-                    padding: 0.375rem 0.75rem;
-                    border-radius: 0.625rem;
-                    font-size: 0.8125rem;
-                    font-family: inherit;
-                    cursor: pointer;
-                    transition: background 0.2s;
-                }
-                .logout-btn:hover { background: rgba(255,255,255,0.25); }
-
-                /* ── Stats ── */
-                .stats-bar {
-                    display: flex;
-                    gap: 1rem;
-                    padding: 1.25rem 1.5rem;
-                    background: white;
-                    border-bottom: 1px solid #e5ede7;
-                    flex-wrap: wrap;
-                }
-                .stat-card {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.875rem;
-                    background: #f4f7f4;
-                    border: 1px solid #e0ebe2;
-                    border-radius: 1rem;
-                    padding: 0.875rem 1.25rem;
-                    flex: 1;
-                    min-width: 160px;
-                }
-                .stat-card-success {
-                    background: #f0f8f1;
-                    border-color: #b8dbbe;
-                }
-                .stat-icon { font-size: 1.5rem; }
-                .stat-value {
-                    font-size: 1.25rem;
-                    font-weight: 700;
-                    color: #1a2e1d;
-                    line-height: 1;
-                }
-                .stat-label {
-                    font-size: 0.75rem;
-                    color: #6a8a6f;
-                    margin-top: 0.2rem;
-                }
-
-                /* ── Main ── */
-                .cashier-main {
-                    flex: 1;
-                    padding: 1.5rem;
-                }
-
-                /* ── Grid ── */
-                .orders-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-                    gap: 1.25rem;
-                }
-
-                /* ── Order Card ── */
-                .order-card {
-                    background: white;
-                    border: 1px solid #e0ebe2;
-                    border-radius: 1.25rem;
-                    padding: 1.25rem;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1rem;
-                    box-shadow: 0 2px 8px rgba(42,64,48,0.06);
-                    transition: transform 0.2s, box-shadow 0.2s;
-                    animation: cardIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-                }
-                @keyframes cardIn {
-                    from { opacity: 0; transform: scale(0.96) translateY(8px); }
-                    to   { opacity: 1; transform: scale(1) translateY(0); }
-                }
-                .order-card:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba(42,64,48,0.1);
-                }
-
-                .order-card-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                }
-                .table-badge {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.375rem;
-                    background: #3a5a40;
-                    color: white;
-                    font-size: 0.8125rem;
-                    font-weight: 600;
-                    padding: 0.3125rem 0.75rem;
-                    border-radius: 100px;
-                }
-                .order-time {
-                    font-size: 0.75rem;
-                    color: #8aaa8e;
-                }
-
-                /* Items list */
-                .order-items {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.375rem;
-                    border-top: 1px solid #f0f4f1;
-                    border-bottom: 1px solid #f0f4f1;
-                    padding: 0.625rem 0;
-                }
-                .order-item-row {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    font-size: 0.875rem;
-                }
-                .item-qty {
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                    color: white;
-                    background: #b8d4ba;
-                    border-radius: 4px;
-                    padding: 0.1rem 0.375rem;
-                    min-width: 28px;
-                    text-align: center;
-                }
-                .item-name {
-                    flex: 1;
-                    color: #2a3e2d;
-                    font-weight: 500;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-                .item-subtotal {
-                    font-size: 0.8125rem;
-                    color: #5a7a5f;
-                    font-weight: 500;
-                    white-space: nowrap;
-                }
-
-                /* Special notes */
-                .special-notes {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.25rem;
-                }
-                .note-chip {
-                    font-size: 0.75rem;
-                    color: #6a7a4a;
-                    background: #f5f8e8;
-                    border: 1px solid #dde8b0;
-                    border-radius: 0.5rem;
-                    padding: 0.25rem 0.625rem;
-                }
-
-                /* Footer */
-                .order-card-footer {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 0.75rem;
-                }
-                .total-section {
-                    display: flex;
-                    flex-direction: column;
-                }
-                .total-label {
-                    font-size: 0.7rem;
-                    color: #8aaa8e;
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                }
-                .total-amount {
-                    font-size: 1.125rem;
-                    font-weight: 700;
-                    color: #1a2e1d;
-                }
-
-                .pay-btn {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.4rem;
-                    background: linear-gradient(135deg, #3a5a40 0%, #2c4430 100%);
-                    color: white;
-                    border: none;
-                    border-radius: 0.75rem;
-                    padding: 0.625rem 1.125rem;
-                    font-size: 0.875rem;
-                    font-weight: 600;
-                    font-family: inherit;
-                    cursor: pointer;
-                    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-                    box-shadow: 0 3px 10px rgba(58,90,64,0.35);
-                    white-space: nowrap;
-                }
-                .pay-btn:hover:not(:disabled) {
-                    transform: translateY(-1px);
-                    box-shadow: 0 5px 14px rgba(58,90,64,0.4);
-                }
-                .pay-btn:disabled {
-                    opacity: 0.7;
-                    cursor: not-allowed;
-                }
-
-                .btn-spinner {
-                    width: 15px;
-                    height: 15px;
-                    border: 2px solid rgba(255,255,255,0.35);
-                    border-top-color: white;
-                    border-radius: 50%;
-                    animation: spin 0.7s linear infinite;
-                    display: inline-block;
-                }
-                @keyframes spin { to { transform: rotate(360deg); } }
-
-                /* Empty / loading */
-                .empty-state {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.75rem;
-                    padding: 4rem 2rem;
-                    color: #6a8a6f;
-                    text-align: center;
-                }
-                .empty-icon { font-size: 3.5rem; }
-                .empty-state h2 { font-size: 1.125rem; font-weight: 600; color: #2c4430; }
-                .empty-state p { font-size: 0.875rem; }
-
-                .loading-ring {
-                    width: 44px;
-                    height: 44px;
-                    border: 3px solid #d4e8d6;
-                    border-top-color: #3a5a40;
-                    border-radius: 50%;
-                    animation: spin 0.9s linear infinite;
-                }
-
-                @media (max-width: 640px) {
-                    .cashier-header { padding: 0 1rem; }
-                    .stats-bar { padding: 1rem; }
-                    .cashier-main { padding: 1rem; }
-                    .cashier-name { display: none; }
-                }
-            `}</style>
-        </div>
-    );
+function Row({
+  label,
+  value,
+  valueColor = '#111827',
+}: {
+  label: string;
+  value: string;
+  valueColor?: string;
+}) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ fontSize: 13, color: '#6b7280' }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 500, color: valueColor }}>{value}</span>
+    </div>
+  );
 }

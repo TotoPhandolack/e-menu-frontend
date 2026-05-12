@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingBag, Plus, Minus, Edit2, Trash2, CreditCard } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Edit2, Trash2, UtensilsCrossed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -33,7 +33,6 @@ interface Props {
   onNoteChange: (itemId: string, note: string) => void;
   onRemove: (itemId: string) => void;
   onCreateOrder: () => void;
-  onOpenBill: (orderId: string) => void;
   creating: boolean;
 }
 
@@ -215,7 +214,7 @@ export function OrderPanel({
             onClick={onCreateOrder}
             disabled={!canOrder || creating}
           >
-            <CreditCard size={16} strokeWidth={2} />
+            <UtensilsCrossed size={16} strokeWidth={2} />
             {creating ? 'Processing...' : 'Place Order'}
           </Button>
 

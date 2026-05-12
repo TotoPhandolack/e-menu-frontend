@@ -13,7 +13,7 @@ interface Props {
 }
 
 function formatRp(n: number | string) {
-  return `₭${Number(n).toLocaleString('en-US')}`;
+  return `₭${Number(n).toLocaleString("en-US")}`;
 }
 
 export function MenuItemCard({ item, inCart, onAdd }: Props) {
@@ -23,7 +23,7 @@ export function MenuItemCard({ item, inCart, onAdd }: Props) {
     <div
       className={cn(
         "group relative bg-card rounded-2xl p-3.5 border transition-all duration-150",
-        "hover:-translate-y-0.5 hover:shadow-md",
+        "hover:-translate-y-0.5 hover:shadow-md ",
         !item.is_available && "opacity-60",
         inCart && "border-primary/40 ring-1 ring-primary/20",
       )}

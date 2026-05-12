@@ -129,8 +129,23 @@ export const getMe = (token: string) =>
 
 // ─── Public / Customer ───────────────────────────────────────────────────────
 
+export interface RestaurantScanResponse {
+  restaurant_id: string;
+  restaurant_name: string;
+  distance_meters: number;
+  categories: Array<{
+    id: string;
+    name: string;
+    sort_order: number;
+    menuItems: MenuItem[];
+  }>;
+}
+
 export const scanQRNoLocation = (token: string) =>
   api.get<TableInfo>(`/tables/scan/${token}`);
+
+export const scanRestaurant = (restaurant_id: string, latitude: number, longitude: number) =>
+  api.post<RestaurantScanResponse>(`/restaurants/${restaurant_id}/scan`, { latitude, longitude });
 
 export const scanQR = (token: string, latitude: number, longitude: number) =>
   api.post<TableInfo>(`/tables/scan/${token}`, { latitude, longitude });
@@ -198,6 +213,42 @@ export const cashierUpdateOrderItem = (
 
 export const cashierDeleteOrderItem = (order_id: string, item_id: string) =>
   api.delete<Order>(`/cashier/orders/${order_id}/items/${item_id}`);
+
+// ─── Cashier: Menu Item Management ──────────────────────────────────────────
+
+export const cashierGetMenuItems = () =>
+  api.get<MenuItem[]>('/cashier/menu-items');
+
+export interface CreateMenuItemPayload {
+  restaurant_id: string;
+  category_id: string;
+  name: string;
+  description: string;
+  price: number;
+  imge_url?: string;
+}
+
+export const createMenuItem = (data: CreateMenuItemPayload) =>
+  api.post<MenuItem>('/menu-items', data);
+
+export const updateMenuItem = (
+  id: string,
+  data: Partial<{ name: string; description: string; price: number; imge_url: string; is_available: boolean; category_id: string }>,
+) => api.put<MenuItem>(`/menu-items/${id}`, data);
+
+export const deleteMenuItem = (id: string) =>
+  api.delete(`/menu-items/${id}`);
+
+export const uploadMenuItemImage = (id: string, file: File) => {
+  const form = new FormData();
+  form.append('file', file);
+  return api.post<MenuItem>(`/menu-items/${id}/image`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export const getCategories = (restaurant_id: string) =>
+  api.get<Array<{ id: string; name: string; sort_order: number }>>(`/categories/restaurant/${restaurant_id}`);
 
 // ─── Cashier: Menu Availability ──────────────────────────────────────────────
 

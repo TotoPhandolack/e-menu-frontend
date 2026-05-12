@@ -17,9 +17,10 @@ interface Props {
   onClose: () => void;
   onOrder: () => void;
   ordering: boolean;
+  browseMode?: boolean;
 }
 
-export default function CartSheet({ open, onClose, onOrder, ordering }: Props) {
+export default function CartSheet({ open, onClose, onOrder, ordering, browseMode }: Props) {
   const { items, updateQuantity, totalPrice } = useCartStore();
 
   return (
@@ -103,13 +104,19 @@ export default function CartSheet({ open, onClose, onOrder, ordering }: Props) {
               ₭{totalPrice().toLocaleString()}
             </span>
           </div>
-          <Button
-            className="w-full h-12 bg-[#3a5a40] hover:bg-[#2c4430] active:bg-[#1e3022] text-white font-semibold text-base rounded-xl shadow-md shadow-[rgba(58,90,64,0.25)] transition-all"
-            disabled={items.length === 0 || ordering}
-            onClick={onOrder}
-          >
-            {ordering ? "ກຳລັງສັ່ງ..." : "ສັ່ງອາຫານ"}
-          </Button>
+          {browseMode ? (
+            <div className="w-full h-12 flex items-center justify-center rounded-xl bg-[#f0f5f1] text-[#3a5a40] text-sm font-semibold">
+              ແຈ້ງລາຍການນີ້ກັບພະນັກງານ
+            </div>
+          ) : (
+            <Button
+              className="w-full h-12 bg-[#3a5a40] hover:bg-[#2c4430] active:bg-[#1e3022] text-white font-semibold text-base rounded-xl shadow-md shadow-[rgba(58,90,64,0.25)] transition-all"
+              disabled={items.length === 0 || ordering}
+              onClick={onOrder}
+            >
+              {ordering ? "ກຳລັງສັ່ງ..." : "ສັ່ງອາຫານ"}
+            </Button>
+          )}
         </SheetFooter>
       </SheetContent>
     </Sheet>

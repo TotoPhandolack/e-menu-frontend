@@ -15,6 +15,7 @@ interface CartStore {
   session_id: string | null;
 
   setTableInfo: (table_id: string, restaurant_id: string) => void;
+  setRestaurantInfo: (restaurant_id: string) => void;
   addItem: (menuItem: MenuItem) => void;
   removeItem: (menu_item_id: string) => void;
   updateQuantity: (menu_item_id: string, quantity: number) => void;
@@ -34,7 +35,13 @@ export const useCartStore = create<CartStore>((set, get) => ({
     set({
       table_id,
       restaurant_id,
-      // generate session_id ครั้งเดียวตอน scan QR
+      session_id: `session-${Date.now()}`,
+    }),
+
+  setRestaurantInfo: (restaurant_id) =>
+    set({
+      table_id: null,
+      restaurant_id,
       session_id: `session-${Date.now()}`,
     }),
 

@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { scanQRNoLocation, getMenuItems, createOrder, MenuItem } from "@/lib/api";
+import { scanQRNoLocation, scanRestaurant, getMenuItems, createOrder, MenuItem } from "@/lib/api";
 
 import { useCartStore } from "@/stores/cart.store";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,12 +24,14 @@ function MenuPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
+  const restaurantIdParam = searchParams.get("restaurant_id");
 
-  const { setTableInfo, table_id, session_id, items, totalItems, totalPrice } =
+  const { setTableInfo, setRestaurantInfo, table_id, session_id, items, totalItems, totalPrice } =
     useCartStore();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [browseMode, setBrowseMode] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [cartOpen, setCartOpen] = useState(false);
   const [ordering, setOrdering] = useState(false);
@@ -45,17 +47,44 @@ function MenuPageContent() {
   }, []);
 
   const init = useCallback(async () => {
+    // ── Restaurant-level QR (browse mode) ──
+    if (restaurantIdParam) {
+      try {
+        const position = await new Promise<GeolocationPosition>((res, rej) =>
+          navigator.geolocation.getCurrentPosition(res, rej, { timeout: 10000 }),
+        ).catch(() => null);
+
+        const lat = position?.coords.latitude ?? 0;
+        const lon = position?.coords.longitude ?? 0;
+
+        const { data } = await scanRestaurant(restaurantIdParam, lat, lon);
+        setRestaurantInfo(data.restaurant_id);
+        setBrowseMode(true);
+
+        const flat = data.categories.flatMap((cat) =>
+          cat.menuItems.map((item) => ({ ...item, category: cat })),
+        );
+        setMenuItems(flat);
+      } catch (err: unknown) {
+        const error = err as { response?: { data?: { message?: string } } };
+        const msg = error.response?.data?.message || "Failed to load menu";
+        toast.error(msg);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // ── Table QR (normal ordering mode) ──
     if (!token) {
       toast.error("Invalid QR Code");
+      setLoading(false);
       return;
     }
 
     try {
-      // Load menu without requiring location — accessible from anywhere
       const { data: table } = await scanQRNoLocation(token);
-
       setTableInfo(table.id, table.restaurant_id);
-
       const { data: menuData } = await getMenuItems(table.restaurant_id);
       setMenuItems(menuData);
     } catch (err: unknown) {
@@ -65,7 +94,7 @@ function MenuPageContent() {
     } finally {
       setLoading(false);
     }
-  }, [token, setTableInfo]);
+  }, [token, restaurantIdParam, setTableInfo, setRestaurantInfo]);
 
 
   useEffect(() => {
@@ -418,6 +447,7 @@ function MenuPageContent() {
         onClose={() => setCartOpen(false)}
         onOrder={handleOrder}
         ordering={ordering}
+        browseMode={browseMode}
       />
 
       {/* ── Confirm Order Sheet ── */}

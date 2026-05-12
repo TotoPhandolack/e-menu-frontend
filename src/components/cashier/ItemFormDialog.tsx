@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ImagePlus, Link, Upload, Utensils, X } from "lucide-react";
+import { ImagePlus, Link, Trash2, Upload, Utensils, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -72,6 +72,7 @@ export function ItemFormDialog({
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState("");
   const [dragOver, setDragOver] = useState(false);
+  const [removeImage, setRemoveImage] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -92,6 +93,7 @@ export function ItemFormDialog({
       }
       setFile(null);
       setFilePreview(null);
+      setRemoveImage(false);
       setImgTab("upload");
     }
   }, [open, item, categories]);
@@ -111,6 +113,7 @@ export function ItemFormDialog({
     if (f.size > 5 * 1024 * 1024) { toast.error("File must be under 5 MB"); return; }
     setFile(f);
     setFilePreview(URL.createObjectURL(f));
+    setRemoveImage(false);
   }
 
   function validate() {
@@ -159,7 +162,11 @@ export function ItemFormDialog({
           description: form.description.trim(),
           price,
           category_id: form.category_id,
-          ...(newUrlImage ? { imge_url: newUrlImage } : {}),
+          ...(newUrlImage
+            ? { imge_url: newUrlImage }
+            : removeImage && imgTab === "upload" && !file
+            ? { imge_url: "" }
+            : {}),
         };
         const { data } = await updateMenuItem(item!.id, updates);
         saved = data;
@@ -182,7 +189,7 @@ export function ItemFormDialog({
   }
 
   const currentImage = resolveImageUrl(item?.imge_url ?? item?.image_url) ?? null;
-  const uploadPreview = filePreview ?? (imgTab === "upload" ? currentImage : null);
+  const uploadPreview = removeImage ? null : (filePreview ?? (imgTab === "upload" ? currentImage : null));
   const urlPreview = urlInput.trim() || (imgTab === "url" ? currentImage ?? "" : "");
 
   return (
@@ -290,15 +297,33 @@ export function ItemFormDialog({
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={uploadPreview} alt="preview" className="w-full h-full object-cover" />
-                      {file && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setFile(null); setFilePreview(null); }}
-                          className="absolute top-2 right-2 bg-background/80 rounded-full p-0.5 hover:bg-background"
-                        >
-                          <X size={13} />
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (file) {
+                            setFile(null);
+                            setFilePreview(null);
+                          } else {
+                            setRemoveImage(true);
+                          }
+                        }}
+                        className="absolute top-2 right-2 bg-background/80 rounded-full p-1 hover:bg-destructive hover:text-destructive-foreground shadow transition-colors"
+                        title={file ? "Clear selected file" : "Remove image"}
+                      >
+                        {file ? <X size={13} /> : <Trash2 size={13} />}
+                      </button>
                     </>
+                  ) : removeImage && currentImage ? (
+                    <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
+                      <Trash2 size={20} strokeWidth={1.4} className="text-destructive/60" />
+                      <p className="text-xs font-medium text-destructive/70">Image will be removed</p>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setRemoveImage(false); }}
+                        className="text-[11px] text-primary underline-offset-2 hover:underline"
+                      >
+                        Undo
+                      </button>
+                    </div>
                   ) : (
                     <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
                       <Utensils size={24} strokeWidth={1.2} />

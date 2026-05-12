@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Utensils, EyeOff, RefreshCw } from "lucide-react";
+import { Plus, Pencil, Trash2, Utensils, EyeOff, RefreshCw, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -39,10 +40,18 @@ export function MenuManageTab({
   onItemDeleted,
 }: Props) {
   const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [deletingItem, setDeletingItem] = useState<MenuItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const filtered = search.trim()
+    ? items.filter((i) =>
+        i.name.toLowerCase().includes(search.toLowerCase()) ||
+        i.category.name.toLowerCase().includes(search.toLowerCase()),
+      )
+    : items;
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -79,11 +88,8 @@ export function MenuManageTab({
   return (
     <div className="flex flex-col flex-1 overflow-hidden min-h-0">
       {/* toolbar */}
-      <div className="bg-background border-b px-7 py-3.5 flex items-center justify-between shrink-0">
-        <p className="text-sm font-semibold text-muted-foreground">
-          {items.length} items total
-        </p>
-        <div className="flex gap-2">
+      <div className="bg-background border-b px-7 py-3.5 flex items-center gap-3 shrink-0">
+        <div className="flex gap-2 shrink-0">
           <Button variant="outline" size="sm" onClick={onRefresh} className="gap-1.5">
             <RefreshCw size={13} />
             Refresh
@@ -92,6 +98,29 @@ export function MenuManageTab({
             <Plus size={13} />
             New Item
           </Button>
+        </div>
+
+        <p className="text-sm text-muted-foreground shrink-0">
+          {filtered.length}/{items.length}
+        </p>
+
+        {/* search */}
+        <div className="relative flex-1 max-w-xs ml-auto">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Search items…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8 pr-8 h-9 text-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X size={13} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -103,17 +132,28 @@ export function MenuManageTab({
                 <Skeleton key={i} className="h-60 rounded-2xl" />
               ))}
             </div>
-          ) : items.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
               <Utensils size={36} strokeWidth={1.2} />
-              <p className="text-sm">No menu items yet</p>
-              <Button size="sm" onClick={openCreate} className="gap-1.5">
-                <Plus size={13} /> Add first item
-              </Button>
+              {search.trim() ? (
+                <>
+                  <p className="text-sm">No items match &ldquo;{search}&rdquo;</p>
+                  <button onClick={() => setSearch("")} className="text-sm text-primary font-medium">
+                    Clear search
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm">No menu items yet</p>
+                  <Button size="sm" onClick={openCreate} className="gap-1.5">
+                    <Plus size={13} /> Add first item
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4">
-              {items.map((item) => (
+              {filtered.map((item) => (
                 <ManageItemCard
                   key={item.id}
                   item={item}

@@ -116,6 +116,14 @@ export interface AuthResponse {
 export const login = (email: string, password: string) =>
   api.post<AuthResponse>('/auth/login', { email, password });
 
+export const registerAdmin = (data: {
+  name: string;
+  email: string;
+  password: string;
+  restaurant_id: string;
+  role?: 'ADMIN' | 'CASHIER';
+}) => api.post<{ message: string; id: string }>('/auth/register', data);
+
 export const getMe = (token: string) =>
   api.get<Admin>('/auth/me', { headers: { Authorization: `Bearer ${token}` } });
 

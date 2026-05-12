@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { login } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -135,7 +136,11 @@ export default function LoginPage() {
                 </div>
 
                 <p className="login-hint">
-                    ລະບົບຈັດການຮ້ານອາຫານ · E-Menu
+                    Restaurant management system · E-Menu
+                </p>
+                <p className="login-hint" style={{ marginTop: '0.5rem' }}>
+                    New here?{' '}
+                    <Link href="/register" className="register-link">Create an account</Link>
                 </p>
             </div>
 
@@ -355,6 +360,13 @@ export default function LoginPage() {
                     margin-top: 1.5rem;
                     margin-bottom: 0;
                 }
+                .register-link {
+                    color: #3a5a40;
+                    font-weight: 600;
+                    text-decoration: underline;
+                    text-underline-offset: 2px;
+                }
+                .register-link:hover { color: #2c4430; }
             `}</style>
         </div>
     );

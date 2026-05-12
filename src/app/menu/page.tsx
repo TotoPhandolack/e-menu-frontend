@@ -54,7 +54,7 @@ function MenuPageContent() {
       // Load menu without requiring location — accessible from anywhere
       const { data: table } = await scanQRNoLocation(token);
 
-      setTableInfo(table.table_id, table.restaurant_id);
+      setTableInfo(table.id, table.restaurant_id);
 
       const { data: menuData } = await getMenuItems(table.restaurant_id);
       setMenuItems(menuData);

@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { NoteEditDialog } from './NoteEditDialog';
-import type { MenuItem, TableInfo, OrderType } from '@/lib/api';
+import { resolveImageUrl, type MenuItem, type TableInfo, type OrderType } from '@/lib/api';
 
 export interface CartItem {
   menuItem: MenuItem;
@@ -117,10 +117,10 @@ export function OrderPanel({
                 <div key={item.menuItem.id} className="flex items-start gap-3 py-3 border-b last:border-0">
                   {/* thumbnail */}
                   <div className="w-13 h-13 rounded-xl bg-muted flex items-center justify-center text-2xl shrink-0 overflow-hidden">
-                    {item.menuItem.image_url || item.menuItem.imge_url ? (
+                    {resolveImageUrl(item.menuItem.imge_url ?? item.menuItem.image_url) ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={item.menuItem.image_url ?? item.menuItem.imge_url}
+                        src={resolveImageUrl(item.menuItem.imge_url ?? item.menuItem.image_url)}
                         alt={item.menuItem.name}
                         className="w-full h-full object-cover rounded-xl"
                       />

@@ -1,7 +1,7 @@
 // src/components/menu/MenuItemCard.tsx
 "use client";
 
-import { MenuItem } from "@/lib/api";
+import { resolveImageUrl, MenuItem } from "@/lib/api";
 import { useCartStore } from "@/stores/cart.store";
 import { ChefHat, Plus, Minus } from "lucide-react";
 
@@ -21,10 +21,10 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
       <div className="flex flex-col">
         {/* Image — standalone with border radius */}
         <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-slate-100">
-          {item.image_url ? (
+          {resolveImageUrl(item.imge_url ?? item.image_url) ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={item.image_url}
+              src={resolveImageUrl(item.imge_url ?? item.image_url)}
               alt={item.name}
               className="w-full h-full object-cover"
             />
@@ -103,10 +103,10 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
     <div className="flex items-center gap-4 py-4 border-b border-slate-100 last:border-0">
       {/* Photo */}
       <div className="relative flex-shrink-0 w-[104px] h-[104px] rounded-2xl overflow-hidden bg-slate-100">
-        {item.image_url ? (
+        {resolveImageUrl(item.imge_url ?? item.image_url) ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={item.image_url}
+            src={resolveImageUrl(item.imge_url ?? item.image_url)}
             alt={item.name}
             className="w-full h-full object-cover"
           />

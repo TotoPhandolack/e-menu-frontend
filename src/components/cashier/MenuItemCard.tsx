@@ -4,7 +4,7 @@ import { Plus, Check, EyeOff, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { MenuItem } from "@/lib/api";
+import { resolveImageUrl, type MenuItem } from "@/lib/api";
 
 interface Props {
   item: MenuItem;
@@ -17,7 +17,7 @@ function formatRp(n: number | string) {
 }
 
 export function MenuItemCard({ item, inCart, onAdd }: Props) {
-  const imageUrl = item.image_url ?? item.imge_url;
+  const imageUrl = resolveImageUrl(item.imge_url ?? item.image_url);
 
   return (
     <div

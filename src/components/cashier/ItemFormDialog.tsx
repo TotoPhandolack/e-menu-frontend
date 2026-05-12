@@ -27,6 +27,7 @@ import {
   createMenuItem,
   updateMenuItem,
   uploadMenuItemImage,
+  resolveImageUrl,
   type MenuItem,
   type CreateMenuItemPayload,
 } from "@/lib/api";
@@ -180,7 +181,7 @@ export function ItemFormDialog({
     }
   }
 
-  const currentImage = item?.image_url ?? item?.imge_url ?? null;
+  const currentImage = resolveImageUrl(item?.imge_url ?? item?.image_url) ?? null;
   const uploadPreview = filePreview ?? (imgTab === "upload" ? currentImage : null);
   const urlPreview = urlInput.trim() || (imgTab === "url" ? currentImage ?? "" : "");
 

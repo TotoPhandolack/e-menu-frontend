@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { ItemFormDialog, type CategoryOption } from "./ItemFormDialog";
-import { getCategories, deleteMenuItem, type MenuItem } from "@/lib/api";
+import { getCategories, deleteMenuItem, resolveImageUrl, type MenuItem } from "@/lib/api";
 
 interface Props {
   items: MenuItem[];
@@ -175,7 +175,7 @@ function ManageItemCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const imageUrl = item.image_url ?? item.imge_url;
+  const imageUrl = resolveImageUrl(item.imge_url ?? item.image_url);
 
   return (
     <div

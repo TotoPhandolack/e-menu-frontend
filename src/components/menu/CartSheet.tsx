@@ -1,6 +1,7 @@
 // src/components/menu/CartSheet.tsx
 "use client";
 
+import { resolveImageUrl } from "@/lib/api";
 import { useCartStore } from "@/stores/cart.store";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,11 +47,11 @@ export default function CartSheet({ open, onClose, onOrder, ordering, browseMode
               {items.map(({ menuItem, quantity }) => (
                 <li key={menuItem.id} className="flex items-center gap-3 py-3 px-1">
                   {/* Thumbnail */}
-                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                    {menuItem.image_url ? (
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 shrink-0">
+                    {resolveImageUrl(menuItem.imge_url ?? menuItem.image_url) ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={menuItem.image_url}
+                        src={resolveImageUrl(menuItem.imge_url ?? menuItem.image_url)}
                         alt={menuItem.name}
                         className="w-full h-full object-cover"
                       />
@@ -72,7 +73,7 @@ export default function CartSheet({ open, onClose, onOrder, ordering, browseMode
                   </div>
 
                   {/* Controls */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       className="w-8 h-8 rounded-full border border-slate-200 text-slate-500 flex items-center justify-center active:bg-slate-50"
                       onClick={() => updateQuantity(menuItem.id, quantity - 1)}

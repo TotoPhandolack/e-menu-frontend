@@ -28,6 +28,20 @@ api.interceptors.response.use(
   },
 );
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+/**
+ * Uploaded images are stored as "/uploads/…" (relative to the API server).
+ * Prefix them with the API base URL so the browser fetches from the right origin.
+ */
+export function resolveImageUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  if (url.startsWith('/uploads/')) {
+    return `${process.env.NEXT_PUBLIC_API_URL}${url}`;
+  }
+  return url;
+}
+
 // ─── Shared Types ────────────────────────────────────────────────────────────
 
 export interface Restaurant {

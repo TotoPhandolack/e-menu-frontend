@@ -425,8 +425,8 @@ function MenuPageContent() {
         <SheetContent side="bottom" className="rounded-t-2xl px-6 pt-6 pb-8" aria-describedby={undefined}>
           <SheetHeader className="items-center pb-4">
             {/* Icon */}
-            <div className="w-16 h-16 rounded-full bg-[#f0f5f1] flex items-center justify-center text-3xl mb-2">
-              🛒
+            <div className="w-16 h-16 rounded-full bg-[#f0f5f1] flex items-center justify-center mb-2">
+              <ShoppingCart className="h-7 w-7 text-[#3a5a40]" />
             </div>
             <SheetTitle className="text-lg font-bold text-slate-800">
               ຢືນຢັນການສັ່ງ?

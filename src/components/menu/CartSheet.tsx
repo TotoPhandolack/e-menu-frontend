@@ -10,7 +10,7 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@/components/ui/sheet";
-import { Minus, Plus, ChefHat } from "lucide-react";
+import { Minus, Plus, ChefHat, ShoppingCart } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -26,8 +26,9 @@ export default function CartSheet({ open, onClose, onOrder, ordering }: Props) {
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent side="bottom" className="h-[80vh] flex flex-col rounded-t-2xl" aria-describedby={undefined}>
         <SheetHeader className="pb-2 border-b border-slate-100">
-          <SheetTitle className="text-base font-semibold text-slate-800">
-            🛒 ລາຍການອາຫານ
+          <SheetTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            Your Order
           </SheetTitle>
         </SheetHeader>
 

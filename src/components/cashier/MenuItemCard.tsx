@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Check, EyeOff } from "lucide-react";
+import { Plus, Check, EyeOff, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -48,7 +48,7 @@ export function MenuItemCard({ item, inCart, onAdd }: Props) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <span className="text-5xl select-none">🍽️</span>
+          <Utensils className="h-8 w-8 text-muted-foreground/40" />
         )}
       </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingBag, Plus, Minus, Edit2, Trash2, UtensilsCrossed } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Edit2, Trash2, UtensilsCrossed, Utensils } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -125,7 +125,7 @@ export function OrderPanel({
                         className="w-full h-full object-cover rounded-xl"
                       />
                     ) : (
-                      '🍽️'
+                      <Utensils className="h-5 w-5 text-muted-foreground/40" />
                     )}
                   </div>
 

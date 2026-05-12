@@ -4,6 +4,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useCartStore } from "@/stores/cart.store";
+import { ShoppingCart } from "lucide-react";
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
@@ -168,7 +169,8 @@ function OrderSuccessContent() {
                 fontWeight: 600,
               }}
             >
-              🛒 ສັ່ງແລ້ວ {qty} ລາຍການ
+              <ShoppingCart size={13} />
+              Ordered {qty} items
             </div>
           )}
 

@@ -19,11 +19,10 @@ export default function CategoryTabs({
           <button
             key={cat.id}
             onClick={() => onSelect(cat.id)}
-            className={`px-4 py-2 rounded-full text-sm whitespace-nowrap font-medium transition-all min-h-9 active:scale-95 ${
-              selected === cat.id
+            className={`px-4 py-2 rounded-full text-sm whitespace-nowrap font-medium transition-all min-h-9 active:scale-95 ${selected === cat.id
                 ? "bg-[#3a5a40] text-white shadow-sm shadow-[rgba(58,90,64,0.25)]"
                 : "bg-white text-slate-500 border border-[#d1ddd3] active:bg-[#f0f5f1]"
-            }`}
+              }`}
           >
             {cat.name}
           </button>

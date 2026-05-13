@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 
 import { MenuSection } from '@/components/cashier/MenuSection';
 import { MenuManageTab } from '@/components/cashier/MenuManageTab';
+import { TableManageTab } from '@/components/cashier/TableManageTab';
 import { OrderPanel, type CartItem } from '@/components/cashier/OrderPanel';
 import { LiveOrdersTab } from '@/components/cashier/LiveOrdersTab';
 
@@ -43,6 +44,10 @@ export default function CashierPage() {
 
   const [manageItems, setManageItems] = useState<MenuItem[]>([]);
   const [manageLoading, setManageLoading] = useState(false);
+
+  // Tables tab state (lazy-loaded)
+  const [manageTables, setManageTables] = useState<TableInfo[]>([]);
+  const [manageTablesLoading, setManageTablesLoading] = useState(false);
 
   useEffect(() => {
     if (!admin) return;
@@ -80,6 +85,19 @@ export default function CashierPage() {
       setManageLoading(false);
     }
   }, []);
+
+  const fetchManageTables = useCallback(async () => {
+    if (!admin) return;
+    setManageTablesLoading(true);
+    try {
+      const res = await getTables(admin.restaurant_id);
+      setManageTables(res.data);
+    } catch {
+      toast.error('Failed to load tables');
+    } finally {
+      setManageTablesLoading(false);
+    }
+  }, [admin]);
 
   const cartItemIds = useMemo(() => new Set(cart.map((c) => c.menuItem.id)), [cart]);
 
@@ -163,6 +181,7 @@ export default function CashierPage() {
           onValueChange={(v) => {
             if (v === 'activity') fetchLiveOrders();
             if (v === 'manage') fetchManageItems();
+            if (v === 'tables') fetchManageTables();
           }}
         >
           {/* header */}
@@ -189,6 +208,9 @@ export default function CashierPage() {
                 </TabsTrigger>
                 <TabsTrigger value="manage" className="text-sm font-semibold px-6">
                   Manage
+                </TabsTrigger>
+                <TabsTrigger value="tables" className="text-sm font-semibold px-6">
+                  Tables
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -239,6 +261,32 @@ export default function CashierPage() {
               onItemDeleted={(id) =>
                 setManageItems((prev) => prev.filter((i) => i.id !== id))
               }
+            />
+          </TabsContent>
+
+          <TabsContent value="tables" className="flex flex-col flex-1 overflow-hidden mt-0">
+            <TableManageTab
+              tables={manageTables}
+              loading={manageTablesLoading}
+              restaurantId={admin?.restaurant_id ?? ''}
+              onRefresh={fetchManageTables}
+              onTableCreated={(t) => {
+                setManageTables((prev) => [t, ...prev]);
+                // also keep the order-panel dropdown in sync
+                setTables((prev) => [t, ...prev]);
+              }}
+              onTableUpdated={(updated) => {
+                setManageTables((prev) =>
+                  prev.map((t) => (t.id === updated.id ? updated : t)),
+                );
+                setTables((prev) =>
+                  prev.map((t) => (t.id === updated.id ? updated : t)),
+                );
+              }}
+              onTableDeleted={(id) => {
+                setManageTables((prev) => prev.filter((t) => t.id !== id));
+                setTables((prev) => prev.filter((t) => t.id !== id));
+              }}
             />
           </TabsContent>
         </Tabs>

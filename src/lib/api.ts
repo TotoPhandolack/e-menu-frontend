@@ -200,6 +200,26 @@ export const cashierClearTable = (table_id: string) =>
 export const getTables = (restaurant_id: string) =>
   api.get<TableInfo[]>(`/tables/restaurant/${restaurant_id}`);
 
+export interface CreateTablePayload {
+  restaurant_id: string;
+  table_number: string;
+  capacity: number;
+}
+
+export const createTable = (data: CreateTablePayload) =>
+  api.post<TableInfo & { qr_image: string }>('/tables', data);
+
+export interface UpdateTablePayload {
+  table_number?: string;
+  capacity?: number;
+}
+
+export const updateTable = (id: string, data: UpdateTablePayload) =>
+  api.put<TableInfo>(`/tables/${id}`, data);
+
+export const deleteTable = (id: string) =>
+  api.delete<TableInfo>(`/tables/${id}`);
+
 // ─── Cashier: Order Management ───────────────────────────────────────────────
 
 export interface CreateCashierOrderPayload {

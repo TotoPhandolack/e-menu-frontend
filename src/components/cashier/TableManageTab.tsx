@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import QRCode from "react-qr-code";
 import {
   Plus,
   Pencil,
   Trash2,
+  Eye,
   RefreshCw,
   Search,
   X,
@@ -13,6 +14,7 @@ import {
   QrCode,
   Download,
   Users,
+  ArrowUpDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,6 +31,13 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
   type TableInfo,
@@ -40,13 +49,39 @@ import {
 
 // ── QR URL helper ────────────────────────────────────────────────────────────
 function buildQrUrl(token: string): string {
-  // Use explicit env var when set, otherwise fall back to current origin
   const base =
     process.env.NEXT_PUBLIC_FRONTEND_URL ??
     (typeof window !== "undefined" ? window.location.origin : "");
   return `${base}/menu?token=${token}`;
 }
 
+// ── Sort options ─────────────────────────────────────────────────────────────
+type SortOption = "number-asc" | "number-desc" | "alpha-asc" | "alpha-desc";
+
+function sortTables(tables: TableInfo[], sort: SortOption): TableInfo[] {
+  return [...tables].sort((a, b) => {
+    switch (sort) {
+      case "number-asc": {
+        const na = parseInt(a.table_number) || 0;
+        const nb = parseInt(b.table_number) || 0;
+        return na !== nb ? na - nb : a.table_number.localeCompare(b.table_number);
+      }
+      case "number-desc": {
+        const na = parseInt(a.table_number) || 0;
+        const nb = parseInt(b.table_number) || 0;
+        return na !== nb ? nb - na : b.table_number.localeCompare(a.table_number);
+      }
+      case "alpha-asc":
+        return a.table_number.localeCompare(b.table_number, undefined, { numeric: true });
+      case "alpha-desc":
+        return b.table_number.localeCompare(a.table_number, undefined, { numeric: true });
+      default:
+        return 0;
+    }
+  });
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 interface Props {
   tables: TableInfo[];
   loading: boolean;
@@ -74,6 +109,7 @@ export function TableManageTab({
   onTableDeleted,
 }: Props) {
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortOption>("number-asc");
 
   // Form dialog (create / edit)
   const [formOpen, setFormOpen] = useState(false);
@@ -85,14 +121,18 @@ export function TableManageTab({
   const [deletingTable, setDeletingTable] = useState<TableInfo | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // QR preview dialog (shown after create)
+  // QR view/preview dialog
   const [qrPreview, setQrPreview] = useState<{ token: string; tableNumber: string } | null>(null);
 
-  const filtered = search.trim()
-    ? tables.filter((t) =>
-        t.table_number.toLowerCase().includes(search.toLowerCase()),
-      )
-    : tables;
+  // Filtered + sorted list
+  const displayed = useMemo(() => {
+    const base = search.trim()
+      ? tables.filter((t) =>
+          t.table_number.toLowerCase().includes(search.toLowerCase()),
+        )
+      : tables;
+    return sortTables(base, sort);
+  }, [tables, search, sort]);
 
   // ── open helpers ──────────────────────────────────────────────────────────
   function openCreate() {
@@ -103,74 +143,52 @@ export function TableManageTab({
 
   function openEdit(table: TableInfo) {
     setEditingTable(table);
-    setForm({
-      table_number: table.table_number,
-      capacity: String(table.capacity),
-    });
+    setForm({ table_number: table.table_number, capacity: String(table.capacity) });
     setFormOpen(true);
   }
 
-  // ── duplicate check ───────────────────────────────────────────────────────
-  function isDuplicateTableNumber(number: string, excludeId?: string): boolean {
-    const norm = number.trim().toLowerCase();
-    return tables.some(
-      (t) => t.table_number.toLowerCase() === norm && t.id !== excludeId,
-    );
+  function openView(table: TableInfo) {
+    setQrPreview({ token: table.qr_code_token, tableNumber: table.table_number });
   }
 
-  // ── submit (create or update) ─────────────────────────────────────────────
+  // ── duplicate check ───────────────────────────────────────────────────────
+  function isDuplicate(number: string, excludeId?: string): boolean {
+    const norm = number.trim().toLowerCase();
+    return tables.some((t) => t.table_number.toLowerCase() === norm && t.id !== excludeId);
+  }
+
+  // ── submit ────────────────────────────────────────────────────────────────
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const tableNumber = form.table_number.trim();
     const cap = parseInt(form.capacity, 10);
 
-    if (!tableNumber) {
-      toast.error("Table number is required");
-      return;
-    }
-    if (isNaN(cap) || cap < 1) {
-      toast.error("Capacity must be at least 1");
-      return;
-    }
-
-    // ── duplicate table number guard ─────────────────────────────────────
-    if (isDuplicateTableNumber(tableNumber, editingTable?.id)) {
-      toast.warning(`Table number "${tableNumber}" already exists. Please use a different number.`);
+    if (!tableNumber) { toast.error("Table number is required"); return; }
+    if (isNaN(cap) || cap < 1) { toast.error("Capacity must be at least 1"); return; }
+    if (isDuplicate(tableNumber, editingTable?.id)) {
+      toast.warning(`Table number "${tableNumber}" already exists. Use a different number.`);
       return;
     }
 
     setSubmitting(true);
     try {
       if (editingTable) {
-        // UPDATE
-        const res = await updateTable(editingTable.id, {
-          table_number: tableNumber,
-          capacity: cap,
-        });
+        const res = await updateTable(editingTable.id, { table_number: tableNumber, capacity: cap });
         onTableUpdated(res.data);
         toast.success(`Table "${res.data.table_number}" updated`);
         setFormOpen(false);
       } else {
-        // CREATE
-        const payload: CreateTablePayload = {
-          restaurant_id: restaurantId,
-          table_number: tableNumber,
-          capacity: cap,
-        };
+        const payload: CreateTablePayload = { restaurant_id: restaurantId, table_number: tableNumber, capacity: cap };
         const res = await createTable(payload);
         onTableCreated(res.data);
         toast.success(`Table "${res.data.table_number}" created`);
         setFormOpen(false);
-        // Show QR preview using token from response
-        setQrPreview({
-          token: res.data.qr_code_token,
-          tableNumber: res.data.table_number,
-        });
+        setQrPreview({ token: res.data.qr_code_token, tableNumber: res.data.table_number });
       }
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed to save table";
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        "Failed to save table";
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -198,21 +216,18 @@ export function TableManageTab({
     }
   }
 
-  // ── QR download (SVG → PNG via canvas) ───────────────────────────────────
+  // ── QR download (SVG → PNG) ───────────────────────────────────────────────
   const downloadQR = useCallback((token: string, tableNumber: string) => {
     const svg = document.getElementById(`qr-svg-${token}`);
     if (!svg) return;
-
     const serializer = new XMLSerializer();
     const svgStr = serializer.serializeToString(svg);
     const img = new Image();
-    const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(svgBlob);
-
+    const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      canvas.width = 512;
-      canvas.height = 512;
+      canvas.width = 512; canvas.height = 512;
       const ctx = canvas.getContext("2d")!;
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, 512, 512);
@@ -231,6 +246,7 @@ export function TableManageTab({
     <div className="flex flex-col flex-1 overflow-hidden min-h-0">
       {/* ── Toolbar ── */}
       <div className="bg-background border-b px-7 py-3.5 flex items-center gap-3 shrink-0">
+        {/* Actions */}
         <div className="flex gap-2 shrink-0">
           <Button variant="outline" size="sm" onClick={onRefresh} className="gap-1.5">
             <RefreshCw size={13} />
@@ -243,15 +259,28 @@ export function TableManageTab({
         </div>
 
         <p className="text-sm text-muted-foreground shrink-0">
-          {filtered.length}/{tables.length}
+          {displayed.length}/{tables.length}
         </p>
 
-        {/* search */}
+        {/* Sort */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <ArrowUpDown size={13} className="text-muted-foreground" />
+          <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
+            <SelectTrigger className="h-9 text-sm w-44 gap-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="number-asc">Number: Low → High</SelectItem>
+              <SelectItem value="number-desc">Number: High → Low</SelectItem>
+              <SelectItem value="alpha-asc">Name: A → Z</SelectItem>
+              <SelectItem value="alpha-desc">Name: Z → A</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Search */}
         <div className="relative flex-1 max-w-xs ml-auto">
-          <Search
-            size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-          />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Search tables…"
             value={search}
@@ -278,16 +307,13 @@ export function TableManageTab({
                 <Skeleton key={i} className="h-56 rounded-2xl" />
               ))}
             </div>
-          ) : filtered.length === 0 ? (
+          ) : displayed.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
               <LayoutGrid size={36} strokeWidth={1.2} />
               {search.trim() ? (
                 <>
                   <p className="text-sm">No tables match &ldquo;{search}&rdquo;</p>
-                  <button
-                    onClick={() => setSearch("")}
-                    className="text-sm text-primary font-medium"
-                  >
+                  <button onClick={() => setSearch("")} className="text-sm text-primary font-medium">
                     Clear search
                   </button>
                 </>
@@ -302,10 +328,11 @@ export function TableManageTab({
             </div>
           ) : (
             <div className="grid grid-cols-5 gap-5">
-              {filtered.map((table) => (
+              {displayed.map((table) => (
                 <TableCard
                   key={table.id}
                   table={table}
+                  onView={() => openView(table)}
                   onEdit={() => openEdit(table)}
                   onDelete={() => setDeletingTable(table)}
                 />
@@ -317,15 +344,10 @@ export function TableManageTab({
 
       {/* ── Add / Edit dialog ── */}
       <Dialog open={formOpen} onOpenChange={(v) => !submitting && setFormOpen(v)}>
-        <DialogContent
-          aria-describedby="table-form-desc"
-          className={cn(editingTable && "sm:max-w-md")}
-        >
+        <DialogContent aria-describedby="table-form-desc" className={cn(editingTable && "sm:max-w-md")}>
           <DialogHeader>
             <DialogTitle>
-              {editingTable
-                ? `Edit Table "${editingTable.table_number}"`
-                : "Add New Table"}
+              {editingTable ? `Edit Table "${editingTable.table_number}"` : "Add New Table"}
             </DialogTitle>
             <DialogDescription id="table-form-desc">
               {editingTable
@@ -335,7 +357,7 @@ export function TableManageTab({
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-            {/* QR code section — only shown in edit mode */}
+            {/* QR section — edit mode only */}
             {editingTable && (
               <div className="flex flex-col items-center gap-3 py-3 border rounded-xl bg-muted/30">
                 <div className="p-3 bg-white rounded-lg shadow-sm">
@@ -348,8 +370,7 @@ export function TableManageTab({
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 justify-center">
-                    <QrCode size={11} />
-                    Scan to open table menu
+                    <QrCode size={11} /> Scan to open table menu
                   </p>
                   <p className="text-[10px] text-muted-foreground/60 font-mono break-all px-4">
                     {buildQrUrl(editingTable.qr_code_token)}
@@ -360,12 +381,9 @@ export function TableManageTab({
                   variant="outline"
                   size="sm"
                   className="gap-1.5 h-7 text-xs"
-                  onClick={() =>
-                    downloadQR(editingTable.qr_code_token, editingTable.table_number)
-                  }
+                  onClick={() => downloadQR(editingTable.qr_code_token, editingTable.table_number)}
                 >
-                  <Download size={12} />
-                  Download QR
+                  <Download size={12} /> Download QR
                 </Button>
               </div>
             )}
@@ -396,22 +414,13 @@ export function TableManageTab({
             </div>
 
             <DialogFooter className="pt-2 gap-2 sm:gap-0">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setFormOpen(false)}
-                disabled={submitting}
-              >
+              <Button type="button" variant="outline" onClick={() => setFormOpen(false)} disabled={submitting}>
                 Cancel
               </Button>
               <Button type="submit" disabled={submitting}>
                 {submitting
-                  ? editingTable
-                    ? "Saving…"
-                    : "Creating…"
-                  : editingTable
-                    ? "Save Changes"
-                    : "Create Table"}
+                  ? editingTable ? "Saving…" : "Creating…"
+                  : editingTable ? "Save Changes" : "Create Table"}
               </Button>
             </DialogFooter>
           </form>
@@ -419,15 +428,10 @@ export function TableManageTab({
       </Dialog>
 
       {/* ── Delete confirm dialog ── */}
-      <Dialog
-        open={!!deletingTable}
-        onOpenChange={(v) => !deleting && !v && setDeletingTable(null)}
-      >
+      <Dialog open={!!deletingTable} onOpenChange={(v) => !deleting && !v && setDeletingTable(null)}>
         <DialogContent aria-describedby="del-table-desc">
           <DialogHeader>
-            <DialogTitle>
-              Remove Table &ldquo;{deletingTable?.table_number}&rdquo;?
-            </DialogTitle>
+            <DialogTitle>Remove Table &ldquo;{deletingTable?.table_number}&rdquo;?</DialogTitle>
             <DialogDescription id="del-table-desc">
               {deletingTable?.status === "OCCUPIED"
                 ? "⚠️ This table is currently OCCUPIED. Clear it before deleting."
@@ -435,11 +439,7 @@ export function TableManageTab({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setDeletingTable(null)}
-              disabled={deleting}
-            >
+            <Button variant="outline" onClick={() => setDeletingTable(null)} disabled={deleting}>
               Cancel
             </Button>
             <Button
@@ -453,18 +453,15 @@ export function TableManageTab({
         </DialogContent>
       </Dialog>
 
-      {/* ── QR preview dialog (after create) ── */}
+      {/* ── QR view dialog (view button + after create) ── */}
       <Dialog open={!!qrPreview} onOpenChange={(v) => !v && setQrPreview(null)}>
-        <DialogContent
-          aria-describedby="qr-preview-desc"
-          className="sm:max-w-sm text-center"
-        >
+        <DialogContent aria-describedby="qr-view-desc" className="sm:max-w-sm text-center">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-center gap-2">
               <QrCode size={18} />
               Table &ldquo;{qrPreview?.tableNumber}&rdquo; QR Code
             </DialogTitle>
-            <DialogDescription id="qr-preview-desc">
+            <DialogDescription id="qr-view-desc">
               Print or download this QR code and place it on the table.
             </DialogDescription>
           </DialogHeader>
@@ -494,8 +491,7 @@ export function TableManageTab({
                 onClick={() => downloadQR(qrPreview.token, qrPreview.tableNumber)}
                 className="gap-1.5"
               >
-                <Download size={14} />
-                Download
+                <Download size={14} /> Download
               </Button>
             )}
           </DialogFooter>
@@ -508,10 +504,12 @@ export function TableManageTab({
 // ── TableCard ────────────────────────────────────────────────────────────────
 function TableCard({
   table,
+  onView,
   onEdit,
   onDelete,
 }: {
   table: TableInfo;
+  onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -525,20 +523,12 @@ function TableCard({
       )}
     >
       {/* Status bar */}
-      <div
-        className={cn(
-          "h-1.5 w-full shrink-0",
-          occupied ? "bg-amber-400" : "bg-emerald-500",
-        )}
-      />
+      <div className={cn("h-1.5 w-full shrink-0", occupied ? "bg-amber-400" : "bg-emerald-500")} />
 
       {/* Body */}
       <div className="p-5 flex flex-col gap-4 flex-1">
-        {/* Table number */}
         <div className="flex items-start justify-between gap-2">
-          <p className="font-bold text-3xl leading-none tracking-tight">
-            {table.table_number}
-          </p>
+          <p className="font-bold text-3xl leading-none tracking-tight">{table.table_number}</p>
           <Badge
             variant={occupied ? "default" : "secondary"}
             className={cn(
@@ -552,15 +542,21 @@ function TableCard({
           </Badge>
         </div>
 
-        {/* Capacity */}
         <div className="flex items-center gap-2 text-muted-foreground">
           <Users size={15} />
           <span className="text-sm">{table.capacity} seats</span>
         </div>
       </div>
 
-      {/* Hover action overlay */}
+      {/* Hover action overlay — View, Edit, Delete */}
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all rounded-2xl">
+        <button
+          onClick={onView}
+          className="bg-background/90 rounded-full p-2 shadow hover:bg-background"
+          title="View QR code"
+        >
+          <Eye size={13} />
+        </button>
         <button
           onClick={onEdit}
           className="bg-background/90 rounded-full p-2 shadow hover:bg-background"

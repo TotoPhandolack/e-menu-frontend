@@ -45,7 +45,7 @@ export default function CashierPage() {
   const [manageItems, setManageItems] = useState<MenuItem[]>([]);
   const [manageLoading, setManageLoading] = useState(false);
 
-  // Tables tab state (lazy-loaded)
+  // Tables sub-tab state (lazy-loaded when user switches to Table sub-tab)
   const [manageTables, setManageTables] = useState<TableInfo[]>([]);
   const [manageTablesLoading, setManageTablesLoading] = useState(false);
 
@@ -145,11 +145,10 @@ export default function CashierPage() {
         })),
       });
       toast.success('Order placed!');
-      // Auto-send kitchen ticket immediately
       try {
         await cashierPrintKitchen(res.data.id);
       } catch {
-        // non-critical, don't block
+        // non-critical
       }
       setCart([]);
       setSelectedTableId('');
@@ -164,12 +163,13 @@ export default function CashierPage() {
     }
   };
 
-  const initials = admin?.name
-    ?.split(' ')
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() ?? 'K';
+  const initials =
+    admin?.name
+      ?.split(' ')
+      .map((w) => w[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() ?? 'K';
 
   return (
     <div className="flex h-screen overflow-hidden bg-muted/30">
@@ -181,7 +181,6 @@ export default function CashierPage() {
           onValueChange={(v) => {
             if (v === 'activity') fetchLiveOrders();
             if (v === 'manage') fetchManageItems();
-            if (v === 'tables') fetchManageTables();
           }}
         >
           {/* header */}
@@ -208,9 +207,6 @@ export default function CashierPage() {
                 </TabsTrigger>
                 <TabsTrigger value="manage" className="text-sm font-semibold px-6">
                   Manage
-                </TabsTrigger>
-                <TabsTrigger value="tables" className="text-sm font-semibold px-6">
-                  Tables
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -246,48 +242,71 @@ export default function CashierPage() {
             />
           </TabsContent>
 
+          {/* ── Manage tab: inner Food / Table sub-tabs ── */}
           <TabsContent value="manage" className="flex flex-col flex-1 overflow-hidden mt-0">
-            <MenuManageTab
-              items={manageItems}
-              loading={manageLoading}
-              restaurantId={admin?.restaurant_id ?? ''}
-              onRefresh={fetchManageItems}
-              onItemCreated={(item) => setManageItems((prev) => [item, ...prev])}
-              onItemUpdated={(updated) =>
-                setManageItems((prev) =>
-                  prev.map((i) => (i.id === updated.id ? updated : i)),
-                )
-              }
-              onItemDeleted={(id) =>
-                setManageItems((prev) => prev.filter((i) => i.id !== id))
-              }
-            />
-          </TabsContent>
+            <Tabs
+              defaultValue="food"
+              className="flex flex-col flex-1 overflow-hidden"
+              onValueChange={(v) => {
+                if (v === 'food') fetchManageItems();
+                if (v === 'table') fetchManageTables();
+              }}
+            >
+              {/* Sub-tab bar */}
+              <div className="bg-background border-b px-7 py-2 shrink-0 flex items-center gap-3">
+                <TabsList className="h-8 bg-muted/40">
+                  <TabsTrigger value="food" className="text-xs font-semibold px-5">
+                    Food
+                  </TabsTrigger>
+                  <TabsTrigger value="table" className="text-xs font-semibold px-5">
+                    Table
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
-          <TabsContent value="tables" className="flex flex-col flex-1 overflow-hidden mt-0">
-            <TableManageTab
-              tables={manageTables}
-              loading={manageTablesLoading}
-              restaurantId={admin?.restaurant_id ?? ''}
-              onRefresh={fetchManageTables}
-              onTableCreated={(t) => {
-                setManageTables((prev) => [t, ...prev]);
-                // also keep the order-panel dropdown in sync
-                setTables((prev) => [t, ...prev]);
-              }}
-              onTableUpdated={(updated) => {
-                setManageTables((prev) =>
-                  prev.map((t) => (t.id === updated.id ? updated : t)),
-                );
-                setTables((prev) =>
-                  prev.map((t) => (t.id === updated.id ? updated : t)),
-                );
-              }}
-              onTableDeleted={(id) => {
-                setManageTables((prev) => prev.filter((t) => t.id !== id));
-                setTables((prev) => prev.filter((t) => t.id !== id));
-              }}
-            />
+              <TabsContent value="food" className="flex flex-col flex-1 overflow-hidden mt-0">
+                <MenuManageTab
+                  items={manageItems}
+                  loading={manageLoading}
+                  restaurantId={admin?.restaurant_id ?? ''}
+                  onRefresh={fetchManageItems}
+                  onItemCreated={(item) => setManageItems((prev) => [item, ...prev])}
+                  onItemUpdated={(updated) =>
+                    setManageItems((prev) =>
+                      prev.map((i) => (i.id === updated.id ? updated : i)),
+                    )
+                  }
+                  onItemDeleted={(id) =>
+                    setManageItems((prev) => prev.filter((i) => i.id !== id))
+                  }
+                />
+              </TabsContent>
+
+              <TabsContent value="table" className="flex flex-col flex-1 overflow-hidden mt-0">
+                <TableManageTab
+                  tables={manageTables}
+                  loading={manageTablesLoading}
+                  restaurantId={admin?.restaurant_id ?? ''}
+                  onRefresh={fetchManageTables}
+                  onTableCreated={(t) => {
+                    setManageTables((prev) => [t, ...prev]);
+                    setTables((prev) => [t, ...prev]);
+                  }}
+                  onTableUpdated={(updated) => {
+                    setManageTables((prev) =>
+                      prev.map((t) => (t.id === updated.id ? updated : t)),
+                    );
+                    setTables((prev) =>
+                      prev.map((t) => (t.id === updated.id ? updated : t)),
+                    );
+                  }}
+                  onTableDeleted={(id) => {
+                    setManageTables((prev) => prev.filter((t) => t.id !== id));
+                    setTables((prev) => prev.filter((t) => t.id !== id));
+                  }}
+                />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>

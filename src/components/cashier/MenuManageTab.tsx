@@ -48,9 +48,9 @@ export function MenuManageTab({
 
   const filtered = search.trim()
     ? items.filter((i) =>
-        i.name.toLowerCase().includes(search.toLowerCase()) ||
-        i.category.name.toLowerCase().includes(search.toLowerCase()),
-      )
+      i.name.toLowerCase().includes(search.toLowerCase()) ||
+      i.category.name.toLowerCase().includes(search.toLowerCase()),
+    )
     : items;
 
   useEffect(() => {

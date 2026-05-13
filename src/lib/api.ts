@@ -183,6 +183,17 @@ export const getOrdersByRestaurant = (restaurant_id: string) =>
 
 export const getRestaurants = () => api.get<Restaurant[]>('/restaurants');
 
+export interface CreateRestaurantPayload {
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  radius_meters: number;
+}
+
+export const createRestaurant = (data: CreateRestaurantPayload) =>
+  api.post<Restaurant>('/restaurants', data);
+
 export const updateOrderStatus = (order_id: string, status: OrderStatus) =>
   api.put<Order>(`/orders/${order_id}/status`, { status });
 

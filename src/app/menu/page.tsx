@@ -394,7 +394,9 @@ function MenuPageContent() {
                   </h2>
                   <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
                     {recommended.map((item) => (
-                      <MenuItemCard key={item.id} item={item} viewMode="grid" />
+                      <div key={item.id} className="shrink-0 w-[calc(50%-6px)]">
+                        <MenuItemCard item={item} viewMode="grid" />
+                      </div>
                     ))}
                   </div>
                 </div>

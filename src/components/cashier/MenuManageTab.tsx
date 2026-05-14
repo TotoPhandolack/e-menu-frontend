@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { ItemFormDialog, type CategoryOption } from "./ItemFormDialog";
-import { getCategories, deleteMenuItem, resolveImageUrl, type MenuItem } from "@/lib/api";
+import { getCategories, deleteMenuItem, resolveImageUrl, createCategory, cashierToggleMenuItemAvailability, cashierToggleMenuItemRecommended, type MenuItem } from "@/lib/api";
 
 interface Props {
   items: MenuItem[];
@@ -45,6 +45,9 @@ export function MenuManageTab({
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [deletingItem, setDeletingItem] = useState<MenuItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [categoryFormOpen, setCategoryFormOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [savingCategory, setSavingCategory] = useState(false);
 
   const filtered = search.trim()
     ? items.filter((i) =>
@@ -85,6 +88,51 @@ export function MenuManageTab({
     }
   }
 
+  async function handleCreateCategory() {
+    if (!newCategoryName.trim()) {
+      toast.error("Category name is required");
+      return;
+    }
+    setSavingCategory(true);
+    try {
+      await createCategory({
+        restaurant_id: restaurantId,
+        name: newCategoryName.trim(),
+        sort_order: categories.length + 1,
+      });
+      setNewCategoryName("");
+      setCategoryFormOpen(false);
+      // Refresh categories
+      const { data: cats } = await getCategories(restaurantId);
+      setCategories(cats.map((c) => ({ id: c.id, name: c.name })));
+      toast.success("Category created");
+    } catch {
+      toast.error("Failed to create category");
+    } finally {
+      setSavingCategory(false);
+    }
+  }
+
+  async function handleToggleItemAvailability(item: MenuItem) {
+    try {
+      await cashierToggleMenuItemAvailability(item.id, !item.is_available);
+      onItemUpdated({ ...item, is_available: !item.is_available });
+      toast.success(item.is_available ? "Item disabled" : "Item enabled");
+    } catch {
+      toast.error("Failed to update item");
+    }
+  }
+
+  async function handleToggleItemRecommended(item: MenuItem) {
+    try {
+      await cashierToggleMenuItemRecommended(item.id, !item.is_recommended);
+      onItemUpdated({ ...item, is_recommended: !item.is_recommended });
+      toast.success(item.is_recommended ? "Removed from recommended" : "Added to recommended");
+    } catch {
+      toast.error("Failed to update item");
+    }
+  }
+
   return (
     <div className="flex flex-col flex-1 overflow-hidden min-h-0">
       {/* toolbar */}
@@ -93,6 +141,10 @@ export function MenuManageTab({
           <Button variant="outline" size="sm" onClick={onRefresh} className="gap-1.5">
             <RefreshCw size={13} />
             Refresh
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setCategoryFormOpen(true)} className="gap-1.5">
+            <Plus size={13} />
+            New Category
           </Button>
           <Button size="sm" onClick={openCreate} className="gap-1.5">
             <Plus size={13} />
@@ -159,6 +211,8 @@ export function MenuManageTab({
                   item={item}
                   onEdit={() => openEdit(item)}
                   onDelete={() => setDeletingItem(item)}
+                  onToggleAvailability={() => handleToggleItemAvailability(item)}
+                  onToggleRecommended={() => handleToggleItemRecommended(item)}
                 />
               ))}
             </div>
@@ -178,6 +232,40 @@ export function MenuManageTab({
           else onItemUpdated(saved);
         }}
       />
+
+      {/* New Category Dialog */}
+      <Dialog open={categoryFormOpen} onOpenChange={setCategoryFormOpen}>
+        <DialogContent aria-describedby="category-desc">
+          <DialogHeader>
+            <DialogTitle>New Category</DialogTitle>
+            <DialogDescription id="category-desc">
+              Add a new food category to your menu.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <label htmlFor="cat-name" className="text-sm font-medium">
+                Category Name *
+              </label>
+              <Input
+                id="cat-name"
+                placeholder="e.g. Desserts"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreateCategory()}
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setCategoryFormOpen(false)} disabled={savingCategory}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateCategory} disabled={savingCategory}>
+              {savingCategory ? "Creating…" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirmation */}
       <Dialog open={!!deletingItem} onOpenChange={(v) => !v && setDeletingItem(null)}>
@@ -210,10 +298,14 @@ function ManageItemCard({
   item,
   onEdit,
   onDelete,
+  onToggleAvailability,
+  onToggleRecommended,
 }: {
   item: MenuItem;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleAvailability: () => void;
+  onToggleRecommended: () => void;
 }) {
   const imageUrl = resolveImageUrl(item.imge_url ?? item.image_url);
 
@@ -233,6 +325,10 @@ function ManageItemCard({
           <Utensils className="h-8 w-8 text-muted-foreground/30" />
         )}
 
+        {item.is_recommended && (
+          <div className="absolute top-2 right-2 text-yellow-400 text-lg">⭐</div>
+        )}
+
         {/* action buttons overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
           <button
@@ -241,6 +337,30 @@ function ManageItemCard({
             title="Edit item"
           >
             <Pencil size={13} />
+          </button>
+          <button
+            onClick={onToggleAvailability}
+            className={cn(
+              "bg-background/90 rounded-full p-2 shadow transition-colors",
+              item.is_available
+                ? "hover:bg-orange-500 hover:text-white"
+                : "hover:bg-green-500 hover:text-white",
+            )}
+            title={item.is_available ? "Disable item" : "Enable item"}
+          >
+            <EyeOff size={13} />
+          </button>
+          <button
+            onClick={onToggleRecommended}
+            className={cn(
+              "bg-background/90 rounded-full p-2 shadow transition-colors",
+              item.is_recommended
+                ? "hover:bg-yellow-500 hover:text-white"
+                : "hover:bg-gray-500 hover:text-white",
+            )}
+            title={item.is_recommended ? "Unmark as recommended" : "Mark as recommended"}
+          >
+            {item.is_recommended ? "⭐" : "☆"}
           </button>
           <button
             onClick={onDelete}

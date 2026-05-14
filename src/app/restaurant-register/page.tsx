@@ -1,27 +1,20 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createRestaurant } from '@/lib/api';
-import { toast } from 'sonner';
-import {
-  Store,
-  MapPin,
-  Compass,
-  Loader2,
-  ArrowLeft,
-  Map,
-} from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createRestaurant } from "@/lib/api";
+import { toast } from "sonner";
+import { Store, MapPin, Compass, Loader2, ArrowLeft, Map } from "lucide-react";
 
 const DEFAULT_RADIUS = 1000;
 
 export default function RestaurantRegisterPage() {
   const router = useRouter();
 
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
   const [radius, setRadius] = useState(DEFAULT_RADIUS.toString());
   const [loading, setLoading] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
@@ -29,32 +22,34 @@ export default function RestaurantRegisterPage() {
   const handleGetLocation = async () => {
     setGeoLoading(true);
     try {
-      const position = await new Promise<GeolocationCoordinates>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve(pos.coords),
-          reject,
-          { enableHighAccuracy: true, timeout: 10000 }
-        );
-      });
+      const position = await new Promise<GeolocationCoordinates>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => resolve(pos.coords),
+            reject,
+            { enableHighAccuracy: true, timeout: 10000 },
+          );
+        },
+      );
       setLatitude(position.latitude.toFixed(6));
       setLongitude(position.longitude.toFixed(6));
-      toast.success('Location fetched successfully');
+      toast.success("Location fetched successfully");
     } catch (err) {
-      toast.error('Failed to get location. Please enable location access.');
+      toast.error("Failed to get location. Please enable location access.");
     } finally {
       setGeoLoading(false);
     }
   };
 
   const handleMockLocation = () => {
-    setLatitude('13.736666');
-    setLongitude('100.523333');
-    toast.success('Mock location set (Bangkok, Thailand)');
+    setLatitude("13.736666");
+    setLongitude("100.523333");
+    toast.success("Mock location set (Bangkok, Thailand)");
   };
 
   const handleSubmit = async () => {
     if (!name.trim() || !address.trim() || !latitude || !longitude) {
-      toast.error('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -63,22 +58,22 @@ export default function RestaurantRegisterPage() {
     const rad = parseInt(radius, 10);
 
     if (isNaN(lat) || isNaN(lng) || isNaN(rad)) {
-      toast.error('Invalid coordinate or radius values');
+      toast.error("Invalid coordinate or radius values");
       return;
     }
 
     if (lat < -90 || lat > 90) {
-      toast.error('Latitude must be between -90 and 90');
+      toast.error("Latitude must be between -90 and 90");
       return;
     }
 
     if (lng < -180 || lng > 180) {
-      toast.error('Longitude must be between -180 and 180');
+      toast.error("Longitude must be between -180 and 180");
       return;
     }
 
     if (rad < 10) {
-      toast.error('Radius must be at least 10 meters');
+      toast.error("Radius must be at least 10 meters");
       return;
     }
 
@@ -91,76 +86,124 @@ export default function RestaurantRegisterPage() {
         longitude: lng,
         radius_meters: rad,
       });
-      toast.success(`Restaurant "${response.data.name}" registered successfully!`);
-      router.push('/register');
+      toast.success(
+        `Restaurant "${response.data.name}" registered successfully!`,
+      );
+      router.push("/register");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      toast.error(error.response?.data?.message ?? 'Registration failed');
+      toast.error(error.response?.data?.message ?? "Registration failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="register-bg">
-      <div className="blob blob-1" />
-      <div className="blob blob-2" />
-      <div className="blob blob-3" />
+    <div className="min-h-screen bg-gradient-to-br from-[#f0f5f1] via-[#e8f0ea] to-[#dce8df] flex items-center justify-center p-6 md:p-8 relative overflow-hidden">
+      {/* Blob backgrounds */}
+      <div className="absolute w-[420px] h-[420px] bg-gradient-to-br from-[#3a5a40] to-transparent rounded-full blur-[80px] opacity-30 pointer-events-none -top-[120px] -right-20 animate-float1" />
+      <div className="absolute w-[300px] h-[300px] bg-gradient-to-br from-[#5a8a62] to-transparent rounded-full blur-[80px] opacity-30 pointer-events-none -bottom-20 -left-16 animate-float2" />
+      <div className="absolute w-[200px] h-[200px] bg-gradient-to-br from-[#a3c4a8] to-transparent rounded-full blur-[80px] opacity-30 pointer-events-none top-1/2 left-1/10 animate-float1-reverse" />
 
-      <div className="register-card">
-        <button onClick={() => router.back()} className="back-btn">
+      <div className="bg-white/88 backdrop-blur-xl rounded-3xl p-8 md:p-10 w-full max-w-md shadow-lg relative z-10 animate-slideUp border border-[#3a5a40]/10">
+        <button
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-[#5a7a5f] hover:text-[#3a5a40] transition-colors mb-5"
+        >
           <ArrowLeft size={14} />
           Back
         </button>
 
-        <div className="register-logo">
-          <svg width="32" height="32" viewBox="0 0 28 28" fill="none">
+        <div className="flex justify-center mb-4">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 28 28"
+            fill="none"
+            className="drop-shadow-[0_4px_12px_rgba(58,90,64,0.3)]"
+          >
             <rect width="28" height="28" rx="8" fill="#3a5a40" />
-            <path d="M8 20 Q14 8 20 20" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+            <path
+              d="M8 20 Q14 8 20 20"
+              stroke="white"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              fill="none"
+            />
             <circle cx="14" cy="10" r="2" fill="white" />
           </svg>
         </div>
 
-        <div className="register-header">
-          <h1>Register Restaurant</h1>
-          <p>Set up your restaurant details and location</p>
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-[#1a2e1d] tracking-tight mb-1">
+            Register Restaurant
+          </h1>
+          <p className="text-xs text-[#5a7a5f] leading-relaxed">
+            Set up your restaurant details and location
+          </p>
         </div>
 
-        <div className="register-form">
-          <div className="field-group">
-            <label htmlFor="name">Restaurant Name *</label>
-            <div className="input-wrapper">
-              <Store size={15} className="input-icon" />
+        <div className="space-y-3.5">
+          <div className="space-y-1">
+            <label
+              htmlFor="name"
+              className="block text-xs font-medium text-[#2c4430]"
+            >
+              Restaurant Name *
+            </label>
+            <div className="relative flex items-center">
+              <Store
+                size={15}
+                className="absolute left-3.5 text-[#7a9a7f] pointer-events-none"
+              />
               <input
                 id="name"
                 type="text"
                 placeholder="e.g., The Italian Corner"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                className="w-full pl-10 pr-3.5 py-2.5 border-2 border-[#c3d6c7] rounded-xl text-sm bg-[#fafcfa] text-[#1a2e1d] placeholder-[#a8c0ac] focus:outline-none focus:border-[#3a5a40] focus:bg-white focus:shadow-[0_0_0_3px_rgba(58,90,64,0.12)] transition-all"
               />
             </div>
           </div>
 
-          <div className="field-group">
-            <label htmlFor="address">Address *</label>
-            <div className="input-wrapper">
-              <MapPin size={15} className="input-icon" />
+          <div className="space-y-1">
+            <label
+              htmlFor="address"
+              className="block text-xs font-medium text-[#2c4430]"
+            >
+              Address *
+            </label>
+            <div className="relative flex items-center">
+              <MapPin
+                size={15}
+                className="absolute left-3.5 text-[#7a9a7f] pointer-events-none"
+              />
               <input
                 id="address"
                 type="text"
                 placeholder="123 Main St, City, Country"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
+                className="w-full pl-10 pr-3.5 py-2.5 border-2 border-[#c3d6c7] rounded-xl text-sm bg-[#fafcfa] text-[#1a2e1d] placeholder-[#a8c0ac] focus:outline-none focus:border-[#3a5a40] focus:bg-white focus:shadow-[0_0_0_3px_rgba(58,90,64,0.12)] transition-all"
               />
             </div>
           </div>
 
-          <div className="coords-section">
-            <div style={{ display: 'flex', gap: '0.875rem' }}>
-              <div className="field-group" style={{ flex: 1 }}>
-                <label htmlFor="latitude">Latitude *</label>
-                <div className="input-wrapper">
-                  <Compass size={15} className="input-icon" />
+          <div className="space-y-2">
+            <div className="flex gap-3.5">
+              <div className="space-y-1 flex-1">
+                <label
+                  htmlFor="latitude"
+                  className="block text-xs font-medium text-[#2c4430]"
+                >
+                  Latitude *
+                </label>
+                <div className="relative flex items-center">
+                  <Compass
+                    size={15}
+                    className="absolute left-3.5 text-[#7a9a7f] pointer-events-none"
+                  />
                   <input
                     id="latitude"
                     type="number"
@@ -168,14 +211,23 @@ export default function RestaurantRegisterPage() {
                     placeholder="e.g., 13.7563"
                     value={latitude}
                     onChange={(e) => setLatitude(e.target.value)}
+                    className="w-full pl-10 pr-3.5 py-2.5 border-2 border-[#c3d6c7] rounded-xl text-sm bg-[#fafcfa] text-[#1a2e1d] placeholder-[#a8c0ac] focus:outline-none focus:border-[#3a5a40] focus:bg-white focus:shadow-[0_0_0_3px_rgba(58,90,64,0.12)] transition-all"
                   />
                 </div>
               </div>
 
-              <div className="field-group" style={{ flex: 1 }}>
-                <label htmlFor="longitude">Longitude *</label>
-                <div className="input-wrapper">
-                  <Compass size={15} className="input-icon" />
+              <div className="space-y-1 flex-1">
+                <label
+                  htmlFor="longitude"
+                  className="block text-xs font-medium text-[#2c4430]"
+                >
+                  Longitude *
+                </label>
+                <div className="relative flex items-center">
+                  <Compass
+                    size={15}
+                    className="absolute left-3.5 text-[#7a9a7f] pointer-events-none"
+                  />
                   <input
                     id="longitude"
                     type="number"
@@ -183,6 +235,7 @@ export default function RestaurantRegisterPage() {
                     placeholder="e.g., 100.5018"
                     value={longitude}
                     onChange={(e) => setLongitude(e.target.value)}
+                    className="w-full pl-10 pr-3.5 py-2.5 border-2 border-[#c3d6c7] rounded-xl text-sm bg-[#fafcfa] text-[#1a2e1d] placeholder-[#a8c0ac] focus:outline-none focus:border-[#3a5a40] focus:bg-white focus:shadow-[0_0_0_3px_rgba(58,90,64,0.12)] transition-all"
                   />
                 </div>
               </div>
@@ -190,34 +243,42 @@ export default function RestaurantRegisterPage() {
 
             <button
               type="button"
-              className="geo-btn"
               onClick={handleGetLocation}
               disabled={geoLoading || loading}
+              className="w-full px-3.5 py-2.5 text-sm font-medium bg-[#3a5a40]/8 text-[#3a5a40] border-2 border-[#c3d6c7] rounded-xl hover:enabled:bg-[#3a5a40]/12 hover:enabled:border-[#3a5a40] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {geoLoading ? (
-                <Loader2 size={14} className="spin-icon" />
+                <Loader2 size={14} className="animate-spin-custom" />
               ) : (
                 <Map size={14} />
               )}
-              {geoLoading ? 'Getting location...' : 'Use current location'}
+              {geoLoading ? "Getting location..." : "Use current location"}
             </button>
 
             <button
               type="button"
-              className="geo-btn mock-btn"
               onClick={handleMockLocation}
               disabled={loading}
               title="Bangkok, Thailand test location"
+              className="w-full px-3.5 py-2.5 text-xs font-medium bg-purple-500/8 text-purple-700 border-2 border-purple-200 rounded-xl hover:enabled:bg-purple-500/12 hover:enabled:border-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               <Map size={14} />
               Use Mock Location (Testing)
             </button>
           </div>
 
-          <div className="field-group">
-            <label htmlFor="radius">Service Radius (meters) *</label>
-            <div className="input-wrapper">
-              <MapPin size={15} className="input-icon" />
+          <div className="space-y-1">
+            <label
+              htmlFor="radius"
+              className="block text-xs font-medium text-[#2c4430]"
+            >
+              Service Radius (meters) *
+            </label>
+            <div className="relative flex items-center">
+              <MapPin
+                size={15}
+                className="absolute left-3.5 text-[#7a9a7f] pointer-events-none"
+              />
               <input
                 id="radius"
                 type="number"
@@ -226,358 +287,37 @@ export default function RestaurantRegisterPage() {
                 placeholder="e.g., 1000"
                 value={radius}
                 onChange={(e) => setRadius(e.target.value)}
+                className="w-full pl-10 pr-3.5 py-2.5 border-2 border-[#c3d6c7] rounded-xl text-sm bg-[#fafcfa] text-[#1a2e1d] placeholder-[#a8c0ac] focus:outline-none focus:border-[#3a5a40] focus:bg-white focus:shadow-[0_0_0_3px_rgba(58,90,64,0.12)] transition-all"
               />
             </div>
-            <p className="field-hint">Minimum 10 meters. Default is 1000 meters.</p>
+            <p className="text-xs text-[#7a9a7f] mt-1">
+              Minimum 10 meters. Default is 1000 meters.
+            </p>
           </div>
 
           <button
-            className={`register-btn${loading ? ' loading' : ''}`}
             onClick={handleSubmit}
             disabled={loading}
+            className="w-full mt-1.5 px-3.5 py-3.5 text-sm font-semibold text-white bg-gradient-to-br from-[#3a5a40] to-[#2c4430] border-none rounded-xl hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_20px_rgba(58,90,64,0.4)] enabled:shadow-[0_4px_14px_rgba(58,90,64,0.35)] active:enabled:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 min-h-12"
           >
             {loading ? (
-              <Loader2 size={18} className="spin-icon" />
+              <Loader2 size={18} className="animate-spin-custom" />
             ) : (
-              'Register Restaurant'
+              "Register Restaurant"
             )}
           </button>
         </div>
 
-        <p className="register-hint">
-          Created a restaurant?{' '}
-          <button onClick={() => router.push('/register')} className="hint-link">
+        <p className="text-center text-xs text-[#7a9a7f] mt-5">
+          Created a restaurant?{" "}
+          <button
+            onClick={() => router.push("/register")}
+            className="text-[#3a5a40] font-semibold underline underline-offset-2 hover:text-[#2c4430] transition-colors"
+          >
             Register an admin account
           </button>
         </p>
       </div>
-
-      <style>{`
-        .register-bg {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #f0f5f1 0%, #e8f0ea 50%, #dce8df 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 2rem 1.5rem;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .blob {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-          opacity: 0.3;
-          pointer-events: none;
-        }
-        .blob-1 {
-          width: 420px;
-          height: 420px;
-          background: radial-gradient(circle, #3a5a40 0%, transparent 70%);
-          top: -120px;
-          right: -80px;
-          animation: float1 9s ease-in-out infinite;
-        }
-        .blob-2 {
-          width: 300px;
-          height: 300px;
-          background: radial-gradient(circle, #5a8a62 0%, transparent 70%);
-          bottom: -80px;
-          left: -60px;
-          animation: float2 11s ease-in-out infinite;
-        }
-        .blob-3 {
-          width: 200px;
-          height: 200px;
-          background: radial-gradient(circle, #a3c4a8 0%, transparent 70%);
-          top: 50%;
-          left: 10%;
-          animation: float1 13s ease-in-out infinite reverse;
-        }
-
-        @keyframes float1 {
-          0%, 100% {
-            transform: translate(0, 0) scale(1);
-          }
-          50% {
-            transform: translate(-20px, 30px) scale(1.05);
-          }
-        }
-
-        @keyframes float2 {
-          0%, 100% {
-            transform: translate(0, 0) scale(1);
-          }
-          50% {
-            transform: translate(20px, -20px) scale(1.08);
-          }
-        }
-
-        .register-card {
-          background: rgba(255, 255, 255, 0.88);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(58, 90, 64, 0.12);
-          border-radius: 1.5rem;
-          padding: 2rem 2.5rem 2.25rem;
-          width: 100%;
-          max-width: 500px;
-          box-shadow: 0 4px 6px -1px rgba(58, 90, 64, 0.06),
-            0 20px 60px -12px rgba(58, 90, 64, 0.18);
-          position: relative;
-          z-index: 10;
-          animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(24px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .back-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.8125rem;
-          color: #5a7a5f;
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 0;
-          margin-bottom: 1.25rem;
-          transition: color 0.15s;
-          font-family: inherit;
-        }
-
-        .back-btn:hover {
-          color: #3a5a40;
-        }
-
-        .register-logo {
-          display: flex;
-          justify-content: center;
-          margin-bottom: 1rem;
-        }
-
-        .register-logo svg {
-          filter: drop-shadow(0 4px 12px rgba(58, 90, 64, 0.3));
-        }
-
-        .register-header {
-          text-align: center;
-          margin-bottom: 1.5rem;
-        }
-
-        .register-header h1 {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #1a2e1d;
-          letter-spacing: -0.025em;
-          margin: 0 0 0.25rem;
-        }
-
-        .register-header p {
-          font-size: 0.8125rem;
-          color: #5a7a5f;
-          margin: 0;
-          line-height: 1.5;
-        }
-
-        .register-form {
-          display: flex;
-          flex-direction: column;
-          gap: 0.875rem;
-        }
-
-        .field-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.3125rem;
-        }
-
-        .field-group label {
-          font-size: 0.8125rem;
-          font-weight: 500;
-          color: #2c4430;
-        }
-
-        .field-hint {
-          font-size: 0.75rem;
-          color: #7a9a7f;
-          margin: 0.25rem 0 0;
-        }
-
-        .input-wrapper {
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-
-        .input-icon {
-          position: absolute;
-          left: 0.875rem;
-          color: #7a9a7f;
-          pointer-events: none;
-          flex-shrink: 0;
-        }
-
-        .input-wrapper input {
-          width: 100%;
-          padding: 0.625rem 0.875rem 0.625rem 2.5rem;
-          border: 1.5px solid #c3d6c7;
-          border-radius: 0.75rem;
-          font-size: 0.9rem;
-          font-family: inherit;
-          background: #fafcfa;
-          color: #1a2e1d;
-          outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-        }
-
-        .input-wrapper input::placeholder {
-          color: #a8c0ac;
-        }
-
-        .input-wrapper input:focus {
-          border-color: #3a5a40;
-          background: #ffffff;
-          box-shadow: 0 0 0 3px rgba(58, 90, 64, 0.12);
-        }
-
-        .input-wrapper input::-webkit-outer-spin-button,
-        .input-wrapper input::-webkit-inner-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
-        }
-
-        .input-wrapper input[type='number'] {
-          -moz-appearance: textfield;
-        }
-
-        .coords-section {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .geo-btn {
-          width: 100%;
-          padding: 0.625rem 0.875rem;
-          background: rgba(58, 90, 64, 0.08);
-          border: 1.5px solid #c3d6c7;
-          border-radius: 0.75rem;
-          font-size: 0.85rem;
-          font-weight: 500;
-          color: #3a5a40;
-          font-family: inherit;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-        }
-
-        .geo-btn:hover:not(:disabled) {
-          background: rgba(58, 90, 64, 0.12);
-          border-color: #3a5a40;
-        }
-
-        .geo-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .mock-btn {
-          background: rgba(168, 85, 247, 0.08);
-          border-color: #ddd6fe;
-          color: #7c3aed;
-          font-size: 0.8rem;
-        }
-
-        .mock-btn:hover:not(:disabled) {
-          background: rgba(168, 85, 247, 0.12);
-          border-color: #7c3aed;
-        }
-
-        .register-btn {
-          margin-top: 0.375rem;
-          width: 100%;
-          padding: 0.8125rem;
-          background: linear-gradient(135deg, #3a5a40 0%, #2c4430 100%);
-          color: white;
-          border: none;
-          border-radius: 0.75rem;
-          font-size: 0.9375rem;
-          font-weight: 600;
-          font-family: inherit;
-          cursor: pointer;
-          transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-          box-shadow: 0 4px 14px rgba(58, 90, 64, 0.35);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          min-height: 48px;
-        }
-
-        .register-btn:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(58, 90, 64, 0.4);
-        }
-
-        .register-btn:active:not(:disabled) {
-          transform: translateY(0);
-        }
-
-        .register-btn:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-
-        .spin-icon {
-          animation: spin 0.7s linear infinite;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .register-hint {
-          text-align: center;
-          font-size: 0.8125rem;
-          color: #7a9a7f;
-          margin-top: 1.25rem;
-          margin-bottom: 0;
-        }
-
-        .hint-link {
-          background: none;
-          border: none;
-          color: #3a5a40;
-          font-weight: 600;
-          cursor: pointer;
-          padding: 0;
-          font-family: inherit;
-          font-size: inherit;
-          text-decoration: underline;
-          text-underline-offset: 2px;
-          transition: color 0.15s;
-        }
-
-        .hint-link:hover {
-          color: #2c4430;
-        }
-      `}</style>
     </div>
   );
 }

@@ -368,7 +368,7 @@ function MenuPageContent() {
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <Search className="h-12 w-12 text-slate-200" />
             <p className="text-slate-400 text-sm">
-              {searchQuery ? `ບໍ່ພົບ "${searchQuery}"` : "ບໍ່ມີລາຍການ"}
+              {searchQuery ? `ບໍ່ພົວ "${searchQuery}"` : "ບໍ່ມີລາຍການ"}
             </p>
             {searchQuery && (
               <button
@@ -380,39 +380,62 @@ function MenuPageContent() {
             )}
           </div>
         ) : (
-          visibleGroups.map((group) => (
-            <section
-              key={group.category.id}
-              data-category-id={group.category.id}
-              ref={(el) => {
-                if (el) sectionRefs.current.set(group.category.id, el);
-                else sectionRefs.current.delete(group.category.id);
-              }}
-            >
-              {/* Category heading — handwriting-style */}
-              <h2
-                className="text-2xl text-slate-700 mb-3 pb-1"
-                style={{ fontFamily: "'Caveat', cursive" }}
-              >
-                {group.category.name}
-              </h2>
+          <>
+            {/* Recommended Section */}
+            {!searchQuery && (() => {
+              const recommended = menuItems.filter(m => m.is_recommended && m.is_available);
+              return recommended.length > 0 ? (
+                <div className="pb-4 mb-2">
+                  <h2
+                    className="text-2xl text-slate-700 mb-3 pb-1"
+                    style={{ fontFamily: "'Caveat', cursive" }}
+                  >
+                    ⭐ ແນະນຳ
+                  </h2>
+                  <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+                    {recommended.map((item) => (
+                      <MenuItemCard key={item.id} item={item} viewMode="grid" />
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
 
-              {/* Items — grid or list */}
-              {viewMode === "grid" ? (
-                <div className="grid grid-cols-2 gap-3">
-                  {group.items.map((item) => (
-                    <MenuItemCard key={item.id} item={item} viewMode="grid" />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-2xl px-4 shadow-sm border border-slate-100">
-                  {group.items.map((item) => (
-                    <MenuItemCard key={item.id} item={item} viewMode="list" />
-                  ))}
-                </div>
-              )}
-            </section>
-          ))
+            {/* Category Sections */}
+            {visibleGroups.map((group) => (
+              <section
+                key={group.category.id}
+                data-category-id={group.category.id}
+                ref={(el) => {
+                  if (el) sectionRefs.current.set(group.category.id, el);
+                  else sectionRefs.current.delete(group.category.id);
+                }}
+              >
+                {/* Category heading — handwriting-style */}
+                <h2
+                  className="text-2xl text-slate-700 mb-3 pb-1"
+                  style={{ fontFamily: "'Caveat', cursive" }}
+                >
+                  {group.category.name}
+                </h2>
+
+                {/* Items — grid or list */}
+                {viewMode === "grid" ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {group.items.map((item) => (
+                      <MenuItemCard key={item.id} item={item} viewMode="grid" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-2xl px-4 shadow-sm border border-slate-100">
+                    {group.items.map((item) => (
+                      <MenuItemCard key={item.id} item={item} viewMode="list" />
+                    ))}
+                  </div>
+                )}
+              </section>
+            ))}
+          </>
         )}
       </div>
 

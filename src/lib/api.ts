@@ -78,6 +78,7 @@ export interface MenuItem {
   image_url?: string;
   imge_url?: string; // backend typo
   is_available: boolean;
+  is_recommended?: boolean;
   category: Category;
 }
 
@@ -295,6 +296,15 @@ export const uploadMenuItemImage = (id: string, file: File) => {
 export const getCategories = (restaurant_id: string) =>
   api.get<Array<{ id: string; name: string; sort_order: number }>>(`/categories/restaurant/${restaurant_id}`);
 
+export interface CreateCategoryPayload {
+  restaurant_id: string;
+  name: string;
+  sort_order: number;
+}
+
+export const createCategory = (data: CreateCategoryPayload) =>
+  api.post<{ id: string; name: string; sort_order: number }>('/categories', data);
+
 // ─── Cashier: Menu Availability ──────────────────────────────────────────────
 
 export const cashierToggleMenuItemAvailability = (
@@ -304,6 +314,15 @@ export const cashierToggleMenuItemAvailability = (
   api.patch<{ id: string; name: string; is_available: boolean }>(
     `/cashier/menu-items/${item_id}/availability`,
     { is_available },
+  );
+
+export const cashierToggleMenuItemRecommended = (
+  item_id: string,
+  is_recommended: boolean,
+) =>
+  api.patch<{ id: string; name: string; is_recommended: boolean }>(
+    `/cashier/menu-items/${item_id}/recommended`,
+    { is_available: is_recommended },
   );
 
 // ─── Cashier: Printing ───────────────────────────────────────────────────────

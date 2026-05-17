@@ -26,7 +26,7 @@ function MenuPageContent() {
   const token = searchParams.get("token");
   const restaurantIdParam = searchParams.get("restaurant_id");
 
-  const { setTableInfo, setRestaurantInfo, table_id, session_id, items, totalItems, totalPrice } =
+  const { setTableInfo, setRestaurantInfo, table_id, session_id, items, totalItems, totalPrice, clearCart } =
     useCartStore();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -178,7 +178,11 @@ function MenuPageContent() {
 
   // Switch from cart sheet to confirm sheet
   const handleOrder = () => {
-    if (!table_id || !session_id || items.length === 0) return;
+    if (items.length === 0) return;
+    if (!table_id || !session_id) {
+      toast.error("ບໍ່ພົບຂໍ້ມູນໂຕະ. ກະລຸນາ scan QR code ໃໝ່.");
+      return;
+    }
     setCartOpen(false);
     setConfirmOpen(true);
   };
@@ -220,6 +224,7 @@ function MenuPageContent() {
         latitude: 0, // position.coords.latitude,
         longitude: 0, // position.coords.longitude,
       });
+      clearCart();
       setCartOpen(false);
       // Pass token so success page can navigate back to the same table
       router.push(

@@ -14,6 +14,7 @@ import { OrderPanel, type CartItem } from '@/components/cashier/OrderPanel';
 import { LiveOrdersTab } from '@/components/cashier/LiveOrdersTab';
 
 import { useAuthStore } from '@/stores/auth.store';
+import { useSocket } from '@/hooks/useSocket';
 import {
   getMenuItems,
   cashierGetMenuItems,
@@ -98,6 +99,25 @@ export default function CashierPage() {
       setManageTablesLoading(false);
     }
   }, [admin]);
+
+  // Real-time: customer orders arrive as PENDING, status changes update the list
+  useSocket(
+    admin?.restaurant_id ?? null,
+    (newOrder) => {
+      setLiveOrders((prev) =>
+        prev.find((o) => o.id === newOrder.id) ? prev : [newOrder, ...prev],
+      );
+      toast.info(`Order ໃໝ່! ໂຕະ ${newOrder.table?.table_number ?? 'Takeaway'}`);
+    },
+    (updatedOrder) => {
+      setLiveOrders((prev) => {
+        if (updatedOrder.status === 'PAID' || updatedOrder.status === 'CANCELLED') {
+          return prev.filter((o) => o.id !== updatedOrder.id);
+        }
+        return prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o));
+      });
+    },
+  );
 
   const cartItemIds = useMemo(() => new Set(cart.map((c) => c.menuItem.id)), [cart]);
 

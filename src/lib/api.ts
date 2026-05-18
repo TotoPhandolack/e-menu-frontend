@@ -82,7 +82,7 @@ export interface MenuItem {
   category: Category;
 }
 
-export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PREPARING' | 'SERVED' | 'PAID' | 'CANCELLED';
+export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED';
 export type OrderType = 'TABLE' | 'TAKEAWAY';
 
 export interface OrderItem {

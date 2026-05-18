@@ -1,112 +1,51 @@
 "use client";
 
 import { Order } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { updateOrderStatus } from "@/lib/api";
-import { toast } from "sonner";
-
-const NEXT_STATUS: Record<string, Order["status"] | null> = {
-  PENDING: "CONFIRMED",
-  CONFIRMED: "PREPARING",
-  PREPARING: "SERVED",
-  SERVED: "PAID",
-  PAID: null,
-  CANCELLED: null,
-};
-
-const NEXT_LABEL: Record<string, string> = {
-  PENDING: "ຢືນຢັນ Order",
-  CONFIRMED: "ເລີ່ມປຸງ",
-  PREPARING: "ເສີບແລ້ວ",
-  SERVED: "ຮັບເງິນ",
-};
 
 interface Props {
   order: Order;
-  onUpdated: (order: Order) => void;
 }
 
-export default function OrderCard({ order, onUpdated }: Props) {
-  const nextStatus = NEXT_STATUS[order.status];
-
-  const handleUpdate = async () => {
-    if (!nextStatus) return;
-    try {
-      const { data } = await updateOrderStatus(order.id, nextStatus);
-      onUpdated(data);
-      toast.success(
-        `Order #${order.id.slice(-6).toUpperCase()} → ${nextStatus}`,
-      );
-    } catch {
-      toast.error("Failed to update order");
-    }
-  };
-
-  const handleCancel = async () => {
-    try {
-      const { data } = await updateOrderStatus(order.id, "CANCELLED");
-      onUpdated(data);
-      toast.success("Order cancelled");
-    } catch {
-      toast.error("Failed to cancel order");
-    }
-  };
+export default function OrderCard({ order }: Props) {
+  const minutesAgo = Math.floor(
+    (Date.now() - new Date(order.created_at).getTime()) / 60000,
+  );
+  const timeLabel = minutesAgo < 1 ? "Just now" : `${minutesAgo}m ago`;
 
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 space-y-3">
+    <div className="bg-white rounded-xl p-4 shadow-sm border-2 border-blue-200 space-y-3">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <span className="font-semibold text-slate-900">
-          #{order.id.slice(-6).toUpperCase()}
+        <span className="font-bold text-slate-900 text-base">
+          {order.order_type === "TAKEAWAY"
+            ? `Takeaway #${order.queue_number}`
+            : `ໂຕະ ${order.table?.table_number ?? "-"}`}
         </span>
-        <span className="text-xs text-slate-400">
-          โต๊ะ {order.table?.table_number ?? "-"}
-        </span>
+        <span className="text-xs text-slate-400">{timeLabel}</span>
       </div>
 
       {/* Items */}
-      <div className="space-y-1 border-t pt-2">
+      <div className="space-y-1.5 border-t pt-2">
         {order.orderItems.map((item) => (
-          <div key={item.id} className="flex justify-between text-sm">
-            <span>
-              {item.menuItem.name} × {item.quantity}
-            </span>
-            {item.special_note && (
-              <span className="text-xs text-orange-500 italic">
-                {item.special_note}
+          <div key={item.id} className="text-sm">
+            <div className="flex justify-between">
+              <span className="font-medium">
+                {item.menuItem.name} × {item.quantity}
               </span>
+            </div>
+            {item.special_note && (
+              <p className="text-xs text-orange-500 italic mt-0.5">
+                ⚠ {item.special_note}
+              </p>
             )}
           </div>
         ))}
       </div>
 
-      {/* Total */}
-      <div className="flex justify-between text-sm font-medium border-t pt-2">
-        <span>ລວມ</span>
-        <span>₭{Number(order.total_amount).toLocaleString()}</span>
-      </div>
-
-      {/* Time */}
-      <p className="text-xs text-slate-400">
-        {new Date(order.created_at).toLocaleTimeString("lo-LA")}
-      </p>
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        {nextStatus && (
-          <Button className="flex-1 text-sm" onClick={handleUpdate}>
-            {NEXT_LABEL[order.status]}
-          </Button>
-        )}
-        {order.status === "PENDING" && (
-          <Button
-            variant="outline"
-            className="text-sm text-red-500 border-red-200 hover:bg-red-50"
-            onClick={handleCancel}
-          >
-            ຍົກເລີກ
-          </Button>
-        )}
+      {/* Footer */}
+      <div className="flex justify-between items-center text-xs text-slate-400 border-t pt-2">
+        <span>#{order.id.slice(-6).toUpperCase()}</span>
+        <span>{new Date(order.created_at).toLocaleTimeString("lo-LA")}</span>
       </div>
     </div>
   );

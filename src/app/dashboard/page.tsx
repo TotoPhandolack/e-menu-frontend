@@ -8,18 +8,12 @@ import {
   Restaurant,
 } from "@/lib/api";
 import { useSocket } from "@/hooks/useSocket";
-import StatusColumn from "@/components/dashboard/StatusColumn";
+import OrderCard from "@/components/dashboard/OrderCard";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/auth.store";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-
-const ACTIVE_STATUSES = [
-  "PENDING",
-  "CONFIRMED",
-  "PREPARING",
-  "SERVED",
-] as const;
+import { ChefHat } from "lucide-react";
 
 export default function DashboardPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -35,7 +29,6 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
-  // โหลด restaurant list
   useEffect(() => {
     getRestaurants().then(({ data }) => {
       setRestaurants(data);
@@ -43,42 +36,53 @@ export default function DashboardPage() {
     });
   }, []);
 
-  // โหลด orders เมื่อเลือกร้าน
   useEffect(() => {
     if (!selectedRestaurant) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
+    // Backend now returns only CONFIRMED orders for the kitchen
     getOrdersByRestaurant(selectedRestaurant)
       .then(({ data }) => setOrders(data))
       .finally(() => setLoading(false));
   }, [selectedRestaurant]);
 
-  // WebSocket — รับ order ใหม่ real-time
+  // WebSocket — real-time updates
   useSocket(
     selectedRestaurant,
+    // new_order: cashier created directly (already CONFIRMED), show it
     (newOrder) => {
-      setOrders((prev) => [newOrder, ...prev]);
-      toast.success(`Order ໃໝ່! โต๊ะ ${newOrder.table?.table_number}`);
+      if (newOrder.status === 'CONFIRMED') {
+        setOrders((prev) => [...prev, newOrder]);
+        toast.success(`ສັ່ງໃໝ່! ໂຕະ ${newOrder.table?.table_number ?? 'Takeaway'}`);
+      }
     },
+    // order_status_changed: cashier confirmed a customer order, or marked PAID/CANCELLED
     (updatedOrder) => {
-      setOrders((prev) =>
-        prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)),
-      );
+      if (updatedOrder.status === 'CONFIRMED') {
+        // Add to kitchen view if not already there
+        setOrders((prev) =>
+          prev.find((o) => o.id === updatedOrder.id)
+            ? prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
+            : [...prev, updatedOrder],
+        );
+        toast.success(`Order ຢືນຢັນແລ້ວ! ໂຕະ ${updatedOrder.table?.table_number ?? 'Takeaway'}`);
+      } else {
+        // PAID or CANCELLED — remove from kitchen view
+        setOrders((prev) => prev.filter((o) => o.id !== updatedOrder.id));
+      }
     },
   );
-
-  // อัปเดต order ใน state
-  const handleUpdated = (updatedOrder: Order) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)),
-    );
-  };
 
   return (
     <div className="min-h-screen bg-slate-100">
       {/* Header */}
       <div className="bg-white border-b px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-semibold">Kitchen Dashboard</h1>
+        <div className="flex items-center gap-2">
+          <ChefHat className="h-5 w-5 text-slate-600" />
+          <h1 className="text-xl font-semibold">Kitchen Display</h1>
+          <span className="ml-2 bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">
+            {orders.length} in kitchen
+          </span>
+        </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-500">{admin?.name}</span>
           <select
@@ -96,20 +100,20 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Kanban Board */}
+      {/* Kitchen order grid */}
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <p className="text-slate-500">ກຳລັງໂຫຼດ...</p>
         </div>
+      ) : orders.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-64 gap-3 text-slate-400">
+          <ChefHat className="h-12 w-12" />
+          <p className="text-sm">ບໍ່ມີ order ໃນຄົວ</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-4 gap-4 p-6">
-          {ACTIVE_STATUSES.map((status) => (
-            <StatusColumn
-              key={status}
-              status={status}
-              orders={orders.filter((o) => o.status === status)}
-              onUpdated={handleUpdated}
-            />
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 p-6">
+          {orders.map((order) => (
+            <OrderCard key={order.id} order={order} />
           ))}
         </div>
       )}

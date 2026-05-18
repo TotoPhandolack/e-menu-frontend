@@ -132,6 +132,19 @@ function ConfirmedCard({ order, onDone }: { order: Order; onDone: () => void }) 
     }
   };
 
+  const handleCancel = async () => {
+    setBusy(true);
+    try {
+      await updateOrderStatus(order.id, 'CANCELLED');
+      toast.success('Order cancelled');
+      onDone();
+    } catch {
+      toast.error('Failed to cancel order');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl border-2 border-blue-300 p-4 space-y-3 shadow-sm">
       <div className="flex justify-between items-start">
@@ -166,14 +179,25 @@ function ConfirmedCard({ order, onDone }: { order: Order; onDone: () => void }) 
         <span className="font-semibold text-slate-800">{formatKip(order.total_amount)}</span>
       </div>
 
-      <Button
-        size="sm"
-        className="w-full bg-slate-800 hover:bg-slate-900 text-white text-xs h-8 mt-1"
-        disabled={busy}
-        onClick={handlePaid}
-      >
-        ຮັບເງິນ / Mark Paid
-      </Button>
+      <div className="flex gap-2 mt-1">
+        <Button
+          size="sm"
+          className="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs h-8"
+          disabled={busy}
+          onClick={handlePaid}
+        >
+          ຮັບເງິນ / Mark Paid
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-red-500 border-red-200 hover:bg-red-50 text-xs h-8"
+          disabled={busy}
+          onClick={handleCancel}
+        >
+          ຍົກເລີກ
+        </Button>
+      </div>
     </div>
   );
 }

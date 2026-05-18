@@ -198,6 +198,9 @@ export const createRestaurant = (data: CreateRestaurantPayload) =>
 export const updateOrderStatus = (order_id: string, status: OrderStatus) =>
   api.put<Order>(`/orders/${order_id}/status`, { status });
 
+export const cancelOrder = (order_id: string) =>
+  api.put<Order>(`/orders/${order_id}/cancel`);
+
 // ─── Cashier: Table Management ───────────────────────────────────────────────
 
 export const cashierOpenTable = (table_id: string) =>

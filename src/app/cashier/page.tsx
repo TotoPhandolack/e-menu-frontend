@@ -116,11 +116,14 @@ export default function CashierPage() {
       setLiveOrders((prev) =>
         prev.find((o) => o.id === newOrder.id) ? prev : [newOrder, ...prev],
       );
-      playDing();
-      rtToast.info(
-        `🔔 Order ໃໝ່! ໂຕະ ${newOrder.table?.table_number ?? 'Takeaway'}`,
-        { position: 'top-right', autoClose: 6000, theme: 'colored' },
-      );
+      // Only notify for customer QR orders — cashier-created orders need no alert
+      if (!newOrder.session_id?.startsWith('cashier-')) {
+        playDing();
+        rtToast.info(
+          `🔔 Order ໃໝ່! ໂຕະ ${newOrder.table?.table_number ?? 'Takeaway'}`,
+          { position: 'top-right', autoClose: 6000, theme: 'colored' },
+        );
+      }
     },
     (updatedOrder) => {
       setLiveOrders((prev) => {

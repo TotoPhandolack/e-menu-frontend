@@ -3,8 +3,18 @@
 
 import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { scanQRNoLocation, scanRestaurant, getMenuItems, createOrder, MenuItem } from "@/lib/api";
+import {
+  scanQRNoLocation,
+  scanRestaurant,
+  getMenuItems,
+  getOrdersByTable,
+  createOrder,
+  MenuItem,
+  Order,
+} from "@/lib/api";
 import { playDing } from "@/lib/sound";
+import { useSocket } from "@/hooks/useSocket";
+import OrderListSheet from "@/components/menu/OrderListSheet";
 
 import { useCartStore } from "@/stores/cart.store";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,7 +28,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { ShoppingCart, UtensilsCrossed, Search, X, LayoutGrid, LayoutList } from "lucide-react";
+import {
+  ShoppingCart,
+  Search,
+  X,
+  LayoutGrid,
+  LayoutList,
+  ClipboardList,
+} from "lucide-react";
 import Image from "next/image";
 
 function MenuPageContent() {
@@ -27,8 +44,17 @@ function MenuPageContent() {
   const token = searchParams.get("token");
   const restaurantIdParam = searchParams.get("restaurant_id");
 
-  const { setTableInfo, setRestaurantInfo, table_id, session_id, items, totalItems, totalPrice, clearCart } =
-    useCartStore();
+  const {
+    setTableInfo,
+    setRestaurantInfo,
+    table_id,
+    restaurant_id,
+    session_id,
+    items,
+    totalItems,
+    totalPrice,
+    clearCart,
+  } = useCartStore();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,11 +66,14 @@ function MenuPageContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [tableOrders, setTableOrders] = useState<Order[]>([]);
+  const [ordersOpen, setOrdersOpen] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll); ``
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const init = useCallback(async () => {
@@ -52,7 +81,9 @@ function MenuPageContent() {
     if (restaurantIdParam) {
       try {
         const position = await new Promise<GeolocationPosition>((res, rej) =>
-          navigator.geolocation.getCurrentPosition(res, rej, { timeout: 10000 }),
+          navigator.geolocation.getCurrentPosition(res, rej, {
+            timeout: 10000,
+          }),
         ).catch(() => null);
 
         const lat = position?.coords.latitude ?? 0;
@@ -97,10 +128,54 @@ function MenuPageContent() {
     }
   }, [token, restaurantIdParam, setTableInfo, setRestaurantInfo]);
 
-
   useEffect(() => {
     init();
   }, [init]);
+
+  const fetchTableOrders = useCallback(async () => {
+    if (!table_id) return;
+    setOrdersLoading(true);
+    try {
+      const res = await getOrdersByTable(table_id);
+      setTableOrders(res.data);
+    } catch {
+      // non-critical
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [table_id]);
+
+  // Eagerly load orders whenever table_id is known (also re-loads on return from order-status)
+  useEffect(() => {
+    if (table_id && !browseMode) fetchTableOrders();
+  }, [table_id, browseMode, fetchTableOrders]);
+
+  useEffect(() => {
+    if (ordersOpen) fetchTableOrders();
+  }, [ordersOpen, fetchTableOrders]);
+
+  const handleOrderCancelled = (orderId: string) => {
+    setTableOrders((prev) => prev.filter((o) => o.id !== orderId));
+  };
+
+  // Keep order list in sync with real-time status changes
+  useSocket(
+    restaurant_id,
+    () => {},
+    (updatedOrder: Order) => {
+      setTableOrders((prev) => {
+        if (
+          updatedOrder.status === "CANCELLED" ||
+          updatedOrder.status === "PAID"
+        ) {
+          return prev.filter((o) => o.id !== updatedOrder.id);
+        }
+        return prev.map((o) =>
+          o.id === updatedOrder.id ? updatedOrder : o,
+        );
+      });
+    },
+  );
 
   // Build category list
   const categories = [
@@ -121,14 +196,17 @@ function MenuPageContent() {
   // Always show all category groups; only filter by search query
   const visibleGroups = searchQuery.trim()
     ? categoryGroups
-      .map((g) => ({
-        ...g,
-        items: g.items.filter((item) =>
-          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (item.description ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
-        ),
-      }))
-      .filter((g) => g.items.length > 0)
+        .map((g) => ({
+          ...g,
+          items: g.items.filter(
+            (item) =>
+              item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              (item.description ?? "")
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase()),
+          ),
+        }))
+        .filter((g) => g.items.length > 0)
     : categoryGroups;
 
   // ── Scroll spy refs ────────────────────────────────────────────
@@ -155,7 +233,6 @@ function MenuPageContent() {
     );
     sectionRefs.current.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleGroups.length]);
 
   // Tab click: scroll to section (or top for "all")
@@ -234,13 +311,13 @@ function MenuPageContent() {
       );
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      const msg = error.response?.data?.message || "Order failed. Please try again.";
+      const msg =
+        error.response?.data?.message || "Order failed. Please try again.";
       toast.error(msg);
     } finally {
       setOrdering(false);
     }
   };
-
 
   // ── Loading State ──────────────────────────────────────────────
   if (loading)
@@ -299,16 +376,37 @@ function MenuPageContent() {
         >
           <div className="px-4 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {/* <UtensilsCrossed className="h-5 w-5 text-amber-500" /> */}
               <Image src="/somsa-cafe.png" alt="Logo" width={35} height={35} />
               <h1 className="text-base font-bold text-slate-800 tracking-tight">
                 Somsa cafe & Bar
               </h1>
             </div>
-            {table_id && (
-              <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
-                Table #{table_id.slice(-4)}
-              </span>
+            {table_id && !browseMode && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+                  Table #{table_id.slice(-4)}
+                </span>
+                {/* Orders icon — opens order list sheet */}
+                <button
+                  onClick={() => setOrdersOpen(true)}
+                  className="relative p-1.5 rounded-xl bg-[#f0f5f1] text-[#3a5a40] active:bg-[#dceade] transition-colors"
+                  aria-label="ລາຍການສັ່ງຂອງທ່ານ"
+                >
+                  <ClipboardList className="h-5 w-5" />
+                  {tableOrders.filter(
+                    (o) => o.status === "PENDING" || o.status === "CONFIRMED",
+                  ).length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#3a5a40] text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-1 leading-none pointer-events-none">
+                      {
+                        tableOrders.filter(
+                          (o) =>
+                            o.status === "PENDING" || o.status === "CONFIRMED",
+                        ).length
+                      }
+                    </span>
+                  )}
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -350,20 +448,22 @@ function MenuPageContent() {
           <div className="flex items-center bg-[#f0f5f1] rounded-xl p-1 gap-0.5">
             <button
               onClick={() => setViewMode("grid")}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === "grid"
-                ? "bg-[#3a5a40] text-white shadow-sm"
-                : "text-[#3a5a40] hover:text-[#2c4430]"
-                }`}
+              className={`p-1.5 rounded-lg transition-all ${
+                viewMode === "grid"
+                  ? "bg-[#3a5a40] text-white shadow-sm"
+                  : "text-[#3a5a40] hover:text-[#2c4430]"
+              }`}
               aria-label="Grid view"
             >
               <LayoutGrid className="h-6 w-6" />
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === "list"
-                ? "bg-[#3a5a40] text-white shadow-sm"
-                : "text-[#3a5a40] hover:text-[#2c4430]"
-                }`}
+              className={`p-1.5 rounded-lg transition-all ${
+                viewMode === "list"
+                  ? "bg-[#3a5a40] text-white shadow-sm"
+                  : "text-[#3a5a40] hover:text-[#2c4430]"
+              }`}
               aria-label="List view"
             >
               <LayoutList className="h-6 w-6" />
@@ -389,26 +489,32 @@ function MenuPageContent() {
         ) : (
           <>
             {/* Recommended Section */}
-            {!searchQuery && (() => {
-              const recommended = menuItems.filter(m => m.is_recommended && m.is_available);
-              return recommended.length > 0 ? (
-                <div className="pb-4 mb-2">
-                  <h2
-                    className="text-2xl text-slate-700 mb-3 pb-1"
-                    style={{ fontFamily: "'Caveat', cursive" }}
-                  >
-                    ⭐ ແນະນຳ
-                  </h2>
-                  <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-                    {recommended.map((item) => (
-                      <div key={item.id} className="shrink-0 w-[calc(50%-6px)]">
-                        <MenuItemCard item={item} viewMode="grid" />
-                      </div>
-                    ))}
+            {!searchQuery &&
+              (() => {
+                const recommended = menuItems.filter(
+                  (m) => m.is_recommended && m.is_available,
+                );
+                return recommended.length > 0 ? (
+                  <div className="pb-4 mb-2">
+                    <h2
+                      className="text-2xl text-slate-700 mb-3 pb-1"
+                      style={{ fontFamily: "'Caveat', cursive" }}
+                    >
+                      ⭐ ແນະນຳ
+                    </h2>
+                    <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+                      {recommended.map((item) => (
+                        <div
+                          key={item.id}
+                          className="shrink-0 w-[calc(50%-6px)]"
+                        >
+                          <MenuItemCard item={item} viewMode="grid" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ) : null;
-            })()}
+                ) : null;
+              })()}
 
             {/* Category Sections */}
             {visibleGroups.map((group) => (
@@ -482,9 +588,25 @@ function MenuPageContent() {
         browseMode={browseMode}
       />
 
+      {/* ── Order List Sheet ── */}
+      {table_id && !browseMode && (
+        <OrderListSheet
+          open={ordersOpen}
+          onClose={() => setOrdersOpen(false)}
+          orders={tableOrders}
+          loading={ordersLoading}
+          onRefresh={fetchTableOrders}
+          onOrderCancelled={handleOrderCancelled}
+        />
+      )}
+
       {/* ── Confirm Order Sheet ── */}
       <Sheet open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl px-6 pt-6 pb-8" aria-describedby={undefined}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-2xl px-6 pt-6 pb-8"
+          aria-describedby={undefined}
+        >
           <SheetHeader className="items-center pb-4">
             {/* Icon */}
             <div className="w-16 h-16 rounded-full bg-[#f0f5f1] flex items-center justify-center mb-2">
@@ -530,11 +652,13 @@ function MenuPageContent() {
 
 export default function MenuPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
-        <div className="text-slate-400 text-sm">Loading menu…</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+          <div className="text-slate-400 text-sm">Loading menu…</div>
+        </div>
+      }
+    >
       <MenuPageContent />
     </Suspense>
   );

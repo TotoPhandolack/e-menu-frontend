@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Bell, X } from 'lucide-react';
-import { toast } from 'sonner';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { updateOrderStatus, cashierPrintKitchen, type Order } from '@/lib/api';
+import { useState, useRef, useEffect } from "react";
+import { Bell, X } from "lucide-react";
+import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { updateOrderStatus, cashierPrintKitchen, type Order } from "@/lib/api";
 
 interface Props {
   pendingOrders: Order[];
@@ -14,7 +14,7 @@ interface Props {
 
 function timeAgo(dateStr: string) {
   const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
-  if (mins < 1) return 'Just now';
+  if (mins < 1) return "Just now";
   if (mins < 60) return `${mins}m ago`;
   return `${Math.floor(mins / 60)}h ago`;
 }
@@ -32,19 +32,21 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
         setOpen(false);
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const handleConfirm = async (order: Order) => {
     setBusyId(order.id);
     try {
-      await updateOrderStatus(order.id, 'CONFIRMED');
+      await updateOrderStatus(order.id, "CONFIRMED");
       cashierPrintKitchen(order.id).catch(() => null);
-      toast.success(`ຢືນຢັນ Order ໂຕະ ${order.table?.table_number ?? 'Takeaway'} ແລ້ວ`);
+      toast.success(
+        `ຢືນຢັນ Order ໂຕະ ${order.table?.table_number ?? "Takeaway"} ແລ້ວ`,
+      );
       onRefresh();
     } catch {
-      toast.error('Failed to confirm order');
+      toast.error("Failed to confirm order");
     } finally {
       setBusyId(null);
     }
@@ -53,11 +55,11 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
   const handleCancel = async (order: Order) => {
     setBusyId(order.id);
     try {
-      await updateOrderStatus(order.id, 'CANCELLED');
-      toast.success('Order cancelled');
+      await updateOrderStatus(order.id, "CANCELLED");
+      toast.success("Order cancelled");
       onRefresh();
     } catch {
-      toast.error('Failed to cancel order');
+      toast.error("Failed to cancel order");
     } finally {
       setBusyId(null);
     }
@@ -70,14 +72,14 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
         onClick={() => setOpen((v) => !v)}
         className={`relative p-2 rounded-xl transition-colors ${
           open
-            ? 'bg-slate-100 text-slate-700'
+            ? "bg-slate-100 text-slate-700"
             : count > 0
-              ? 'hover:bg-red-50 text-red-500'
-              : 'hover:bg-slate-100 text-muted-foreground'
+              ? "hover:bg-red-50 text-red-500"
+              : "hover:bg-slate-100 text-muted-foreground"
         }`}
         aria-label="Order notifications"
       >
-        <Bell size={20} className={count > 0 ? 'animate-bell-ring' : ''} />
+        <Bell size={20} className={count > 0 ? "animate-bell-ring" : ""} />
         {count > 0 && (
           <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-1 leading-none pointer-events-none">
             {count}
@@ -88,11 +90,13 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
       {/* ── Dropdown panel ── */}
       {open && (
         <div className="absolute left-0 top-full mt-2 w-[340px] bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
-          {/* Panel header */}
+          {/* Panel header 1*/}
           <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100 shrink-0">
             <div className="flex items-center gap-2">
               <Bell size={13} className="text-slate-500" />
-              <span className="text-sm font-bold text-slate-700">ລໍຖ້າການຢືນຢັນ</span>
+              <span className="text-sm font-bold text-slate-700">
+                ລໍຖ້າການຢືນຢັນ
+              </span>
             </div>
             <div className="flex items-center gap-2">
               {count > 0 && (
@@ -126,9 +130,9 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                     {/* Order identity + time */}
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-sm text-slate-800">
-                        {order.order_type === 'TAKEAWAY'
+                        {order.order_type === "TAKEAWAY"
                           ? `Takeaway #${order.queue_number}`
-                          : `ໂຕະ ${order.table?.table_number ?? '-'}`}
+                          : `ໂຕະ ${order.table?.table_number ?? "-"}`}
                       </span>
                       <span className="text-[11px] text-slate-400 tabular-nums">
                         {timeAgo(order.created_at)}
@@ -138,11 +142,16 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                     {/* Items list */}
                     <ul className="space-y-1">
                       {order.orderItems.map((item) => (
-                        <li key={item.id} className="flex items-start gap-1.5 text-xs">
+                        <li
+                          key={item.id}
+                          className="flex items-start gap-1.5 text-xs"
+                        >
                           <span className="shrink-0 font-bold text-slate-400 w-5 text-right">
                             {item.quantity}×
                           </span>
-                          <span className="font-medium text-slate-700">{item.menuItem.name}</span>
+                          <span className="font-medium text-slate-700">
+                            {item.menuItem.name}
+                          </span>
                           {item.special_note && (
                             <span className="text-orange-500 italic truncate">
                               — {item.special_note}

@@ -4,6 +4,7 @@
 import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { scanQRNoLocation, scanRestaurant, getMenuItems, createOrder, MenuItem } from "@/lib/api";
+import { playDing } from "@/lib/sound";
 
 import { useCartStore } from "@/stores/cart.store";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -224,6 +225,7 @@ function MenuPageContent() {
         latitude: 0, // position.coords.latitude,
         longitude: 0, // position.coords.longitude,
       });
+      playDing();
       clearCart();
       setCartOpen(false);
       // Pass token so success page can navigate back to the same table

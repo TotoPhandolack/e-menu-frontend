@@ -6,12 +6,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { toast as rtToast, ToastContainer } from 'react-toastify';
+import { playDing } from '@/lib/sound';
 
 import { MenuSection } from '@/components/cashier/MenuSection';
 import { MenuManageTab } from '@/components/cashier/MenuManageTab';
 import { TableManageTab } from '@/components/cashier/TableManageTab';
 import { OrderPanel, type CartItem } from '@/components/cashier/OrderPanel';
 import { LiveOrdersTab } from '@/components/cashier/LiveOrdersTab';
+import { NotificationBell } from '@/components/cashier/NotificationBell';
 
 import { useAuthStore } from '@/stores/auth.store';
 import { useSocket } from '@/hooks/useSocket';
@@ -63,6 +66,12 @@ export default function CashierPage() {
       .finally(() => setMenuLoading(false));
   }, [admin]);
 
+  // Eagerly load live orders on mount so the badge count is correct immediately
+  useEffect(() => {
+    if (admin) fetchLiveOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [admin?.restaurant_id]);
+
   const fetchLiveOrders = useCallback(async () => {
     setLiveLoading(true);
     try {
@@ -107,7 +116,11 @@ export default function CashierPage() {
       setLiveOrders((prev) =>
         prev.find((o) => o.id === newOrder.id) ? prev : [newOrder, ...prev],
       );
-      toast.info(`Order ໃໝ່! ໂຕະ ${newOrder.table?.table_number ?? 'Takeaway'}`);
+      playDing();
+      rtToast.info(
+        `🔔 Order ໃໝ່! ໂຕະ ${newOrder.table?.table_number ?? 'Takeaway'}`,
+        { position: 'top-right', autoClose: 6000, theme: 'colored' },
+      );
     },
     (updatedOrder) => {
       setLiveOrders((prev) => {
@@ -120,6 +133,10 @@ export default function CashierPage() {
   );
 
   const cartItemIds = useMemo(() => new Set(cart.map((c) => c.menuItem.id)), [cart]);
+  const pendingOrders = useMemo(
+    () => liveOrders.filter((o) => o.status === 'PENDING'),
+    [liveOrders],
+  );
 
   const addToCart = useCallback((item: MenuItem) => {
     setCart((prev) => {
@@ -215,6 +232,10 @@ export default function CashierPage() {
                 <p className="font-bold text-sm leading-tight">{admin?.name ?? 'Cashier'}</p>
                 <p className="text-xs text-muted-foreground">{admin?.restaurant?.name ?? ''}</p>
               </div>
+              <NotificationBell
+                pendingOrders={pendingOrders}
+                onRefresh={fetchLiveOrders}
+              />
             </div>
 
             <div className="flex-1 flex justify-center">
@@ -222,8 +243,13 @@ export default function CashierPage() {
                 <TabsTrigger value="order" className="text-sm font-semibold px-6">
                   Order
                 </TabsTrigger>
-                <TabsTrigger value="activity" className="text-sm font-semibold px-6">
+                <TabsTrigger value="activity" className="relative text-sm font-semibold px-6">
                   Activity
+                  {pendingOrders.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-1 leading-none">
+                      {pendingOrders.length}
+                    </span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger value="manage" className="text-sm font-semibold px-6">
                   Manage
@@ -345,6 +371,9 @@ export default function CashierPage() {
         onCreateOrder={handleCreateOrder}
         creating={creating}
       />
+
+      {/* react-toastify container — order alerts only */}
+      <ToastContainer limit={5} />
     </div>
   );
 }

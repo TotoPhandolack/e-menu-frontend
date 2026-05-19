@@ -1,12 +1,20 @@
 "use client";
 
-import { Order } from "@/lib/api";
+import { useState } from "react";
+import { Order, updateOrderStatus, OrderStatus } from "@/lib/api";
 
 interface Props {
   order: Order;
+  onUpdated: (order: Order) => void;
 }
 
-export default function OrderCard({ order }: Props) {
+const NEXT_STATUS: Partial<Record<OrderStatus, { next: OrderStatus; label: string }>> = {
+  PENDING: { next: "CONFIRMED", label: "ຢືນຢັນ" },
+  CONFIRMED: { next: "PAID", label: "ຊຳລະແລ້ວ" },
+};
+
+export default function OrderCard({ order, onUpdated }: Props) {
+  const [loading, setLoading] = useState(false);
   const minutesAgo = Math.floor(
     (Date.now() - new Date(order.created_at).getTime()) / 60000,
   );
@@ -47,6 +55,24 @@ export default function OrderCard({ order }: Props) {
         <span>#{order.id.slice(-6).toUpperCase()}</span>
         <span>{new Date(order.created_at).toLocaleTimeString("lo-LA")}</span>
       </div>
+
+      {NEXT_STATUS[order.status] && (
+        <button
+          disabled={loading}
+          onClick={async () => {
+            setLoading(true);
+            try {
+              const { data } = await updateOrderStatus(order.id, NEXT_STATUS[order.status]!.next);
+              onUpdated(data);
+            } finally {
+              setLoading(false);
+            }
+          }}
+          className="w-full text-sm font-medium py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        >
+          {loading ? "..." : NEXT_STATUS[order.status]!.label}
+        </button>
+      )}
     </div>
   );
 }

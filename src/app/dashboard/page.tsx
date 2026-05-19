@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   Order,
   getOrdersByRestaurant,
@@ -19,7 +19,7 @@ export default function DashboardPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>("");
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const { admin, logout } = useAuthStore();
   const router = useRouter();
@@ -38,11 +38,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!selectedRestaurant) return;
-    setLoading(true);
-    // Backend now returns only CONFIRMED orders for the kitchen
-    getOrdersByRestaurant(selectedRestaurant)
-      .then(({ data }) => setOrders(data))
-      .finally(() => setLoading(false));
+    startTransition(async () => {
+      const { data } = await getOrdersByRestaurant(selectedRestaurant);
+      setOrders(data);
+    });
   }, [selectedRestaurant]);
 
   // WebSocket — real-time updates
@@ -101,7 +100,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Kitchen order grid */}
-      {loading ? (
+      {isPending ? (
         <div className="flex items-center justify-center h-64">
           <p className="text-slate-500">ກຳລັງໂຫຼດ...</p>
         </div>
@@ -113,7 +112,17 @@ export default function DashboardPage() {
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 p-6">
           {orders.map((order) => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard
+              key={order.id}
+              order={order}
+              onUpdated={(updated) =>
+                setOrders((prev) =>
+                  updated.status === "PAID" || updated.status === "CANCELLED"
+                    ? prev.filter((o) => o.id !== updated.id)
+                    : prev.map((o) => (o.id === updated.id ? updated : o)),
+                )
+              }
+            />
           ))}
         </div>
       )}

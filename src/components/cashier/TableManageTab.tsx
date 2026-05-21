@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MdOutlineTableBar } from "react-icons/md";
 import { cn } from "@/lib/utils";
 import {
   type TableInfo,
@@ -528,7 +529,10 @@ function TableCard({
       {/* Body */}
       <div className="p-5 flex flex-col gap-4 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <p className="font-bold text-3xl leading-none tracking-tight">{table.table_number}</p>
+          <div className="flex flex-col gap-1.5">
+            <MdOutlineTableBar size={22} className="text-muted-foreground" />
+            <p className="font-bold text-3xl leading-none tracking-tight">{table.table_number}</p>
+          </div>
           <Badge
             variant={occupied ? "default" : "secondary"}
             className={cn(

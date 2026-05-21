@@ -376,7 +376,7 @@ function MenuPageContent() {
         >
           <div className="px-4 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Image src="/somsa-cafe.png" alt="Logo" width={35} height={35} />
+              <Image src="/somsa-cafe.png" alt="Logo" width={35} height={35} style={{ width: 35, height: 35 }} />
               <h1 className="text-base font-bold text-slate-800 tracking-tight">
                 Somsa cafe & Bar
               </h1>

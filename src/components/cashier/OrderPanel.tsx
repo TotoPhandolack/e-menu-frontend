@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingBag, Plus, Minus, Edit2, Trash2, UtensilsCrossed, Utensils } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Edit2, Trash2, UtensilsCrossed, Utensils, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import { NoteEditDialog } from './NoteEditDialog';
 import { resolveImageUrl, type MenuItem, type TableInfo, type OrderType } from '@/lib/api';
 
@@ -34,6 +35,8 @@ interface Props {
   onRemove: (itemId: string) => void;
   onCreateOrder: () => void;
   creating: boolean;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 function formatRp(n: number | string) {
@@ -52,6 +55,8 @@ export function OrderPanel({
   onRemove,
   onCreateOrder,
   creating,
+  mobileOpen = false,
+  onMobileClose,
 }: Props) {
   const [editingNote, setEditingNote] = useState<{ itemId: string; name: string; note: string } | null>(null);
 
@@ -62,18 +67,45 @@ export function OrderPanel({
 
   return (
     <>
-      <div className="w-92.5 shrink-0 bg-background border-l flex flex-col overflow-hidden">
+      <div
+        className={cn(
+          'bg-background flex flex-col overflow-hidden',
+          // Mobile: fixed bottom sheet that slides up/down
+          'fixed inset-x-0 bottom-0 z-50 h-[88vh] rounded-t-2xl border-t shadow-2xl',
+          'transition-transform duration-300 ease-in-out',
+          mobileOpen ? 'translate-y-0' : 'translate-y-full',
+          // md+: static right sidebar (overrides all mobile positioning)
+          'md:relative md:inset-x-auto md:bottom-auto md:z-auto',
+          'md:translate-y-0 md:h-full md:rounded-none md:border-t-0',
+          'md:border-l md:shadow-none md:w-92.5 md:shrink-0',
+        )}
+      >
+        {/* Drag handle — mobile only */}
+        <div className="md:hidden flex justify-center pt-2.5 pb-1 shrink-0">
+          <div className="w-9 h-1 rounded-full bg-muted-foreground/30" />
+        </div>
+
         {/* header */}
         <div className="px-5 py-4 border-b flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <ShoppingBag size={20} strokeWidth={1.8} />
             <span className="font-bold text-base">Order List</span>
           </div>
-          {cart.length > 0 && (
-            <Badge variant="secondary" className="font-semibold">
-              {cart.reduce((s, i) => s + i.quantity, 0)} items
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {cart.length > 0 && (
+              <Badge variant="secondary" className="font-semibold">
+                {cart.reduce((s, i) => s + i.quantity, 0)} items
+              </Badge>
+            )}
+            {/* Close button — mobile only */}
+            <button
+              onClick={onMobileClose}
+              className="md:hidden p-1.5 rounded-full hover:bg-muted transition-colors"
+              aria-label="Close order panel"
+            >
+              <X size={18} strokeWidth={2} />
+            </button>
+          </div>
         </div>
 
         {/* order type + table */}

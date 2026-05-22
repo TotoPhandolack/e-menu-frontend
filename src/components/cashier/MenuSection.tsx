@@ -52,13 +52,11 @@ export function MenuSection({
   }, [items, activeCategory, search]);
 
   return (
-    <div
-      className="flex flex-col flex-1 overflow-hidden min-w-0 min-h-0"
-    >
-      {/* category tabs + search */}
-      <div className="bg-background border-b px-7 py-3.5 flex items-center gap-3 shrink-0">
+    <div className="flex flex-col flex-1 overflow-hidden min-w-0 min-h-0">
+      {/* category tabs + search — stacked on mobile, side-by-side on md+ */}
+      <div className="bg-background border-b px-4 md:px-7 py-3 md:py-3.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3 shrink-0">
         {/* scrollable category pills */}
-        <div className="flex gap-3 overflow-x-auto scrollbar-none flex-1">
+        <div className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-none flex-1">
           {categories.map(({ id, name, count }) => {
             const active = activeCategory === id;
             return (
@@ -66,26 +64,26 @@ export function MenuSection({
                 key={id}
                 onClick={() => setActiveCategory(id)}
                 className={cn(
-                  "shrink-0 flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 transition-all duration-150 text-left",
+                  "shrink-0 flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 rounded-xl border-2 transition-all duration-150 text-left",
                   active
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-background text-foreground hover:border-primary/40",
                 )}
               >
-                <LayoutGrid size={16} strokeWidth={1.8} />
+                <LayoutGrid size={14} strokeWidth={1.8} className="shrink-0" />
                 <div>
-                  <p className="font-semibold text-[13px] leading-none">
+                  <p className="font-semibold text-[12px] md:text-[13px] leading-none">
                     {name}
                   </p>
-                  <p className="text-[11px] opacity-70 mt-0.5">{count} items</p>
+                  <p className="text-[10px] md:text-[11px] opacity-70 mt-0.5">{count} items</p>
                 </div>
               </button>
             );
           })}
         </div>
 
-        {/* search — fixed on the right */}
-        <div className="relative shrink-0">
+        {/* search — full width on mobile, fixed width on md+ */}
+        <div className="relative">
           <Search
             size={14}
             strokeWidth={2}
@@ -95,18 +93,18 @@ export function MenuSection({
             placeholder="Search items..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 h-9 w-48 text-sm"
+            className="pl-8 h-9 w-full md:w-48 text-sm"
           />
         </div>
       </div>
 
       {/* product grid — scrollable */}
       <ScrollArea className="flex-1 min-h-0">
-        <div className="p-7">
+        <div className="p-4 md:p-7">
           {loading ? (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 md:gap-4">
               {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="h-52 rounded-2xl" />
+                <Skeleton key={i} className="h-44 md:h-52 rounded-2xl" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
@@ -119,7 +117,7 @@ export function MenuSection({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 md:gap-4">
               {filtered.map((item) => (
                 <MenuItemCard
                   key={item.id}

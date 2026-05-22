@@ -66,9 +66,13 @@ export default function CashierPage() {
       .finally(() => setMenuLoading(false));
   }, [admin]);
 
-  // Eagerly load live orders on mount so the badge count is correct immediately
+  // Eagerly load live orders on mount so the badge count is correct immediately.
+  // Also poll every 10 s as a fallback — WebSocket doesn't work on serverless hosts.
   useEffect(() => {
-    if (admin) fetchLiveOrders();
+    if (!admin) return;
+    fetchLiveOrders();
+    const interval = setInterval(fetchLiveOrders, 10_000);
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admin?.restaurant_id]);
 

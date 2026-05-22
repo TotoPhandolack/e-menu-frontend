@@ -14,11 +14,14 @@ export function useSocket(
   useEffect(() => {
     if (!restaurant_id) return;
 
-    // connect ไป Backend
-    socketRef.current = io(process.env.NEXT_PUBLIC_API_URL!);
+    socketRef.current = io(process.env.NEXT_PUBLIC_API_URL!, {
+      transports: ["websocket", "polling"],
+      reconnectionAttempts: 5,
+    });
 
-    // join room ของร้าน
-    socketRef.current.emit("join_restaurant", restaurant_id);
+    socketRef.current.on("connect", () => {
+      socketRef.current?.emit("join_restaurant", restaurant_id);
+    });
 
     // รับ event จาก Backend
     socketRef.current.on(`restaurant_${restaurant_id}`, (data) => {

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Noto+Sans+Lao:wght@100..900&family=Phetsarath:wght@400;700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Noto+Sans+Lao:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -8,9 +8,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-outfit), 'Noto Sans Lao', sans-serif;
+  --font-sans: var(--font-outfit), var(--font-phetsarath), 'Noto Sans Lao', sans-serif;
   --font-mono: 'Roboto Mono', monospace;
-  --font-heading: var(--font-outfit), 'Noto Sans Lao', sans-serif;
+  --font-heading: var(--font-outfit), var(--font-phetsarath), 'Noto Sans Lao', sans-serif;
+  --font-phetsarath: var(--font-phetsarath);
   --font-caveat: 'Caveat', cursive;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);

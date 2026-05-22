@@ -40,11 +40,14 @@ import {
 } from "@/components/ui/select";
 import { MdOutlineTableBar } from "react-icons/md";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 import {
   type TableInfo,
   createTable,
   updateTable,
   deleteTable,
+  cashierOpenTable,
+  cashierSetTableAvailable,
   type CreateTablePayload,
 } from "@/lib/api";
 
@@ -93,6 +96,8 @@ interface Props {
   onTableDeleted: (id: string) => void;
 }
 
+type TogglingMap = Record<string, boolean>;
+
 interface TableFormState {
   table_number: string;
   capacity: string;
@@ -111,6 +116,7 @@ export function TableManageTab({
 }: Props) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("number-asc");
+  const [toggling, setToggling] = useState<TogglingMap>({});
 
   // Form dialog (create / edit)
   const [formOpen, setFormOpen] = useState(false);
@@ -150,6 +156,26 @@ export function TableManageTab({
 
   function openView(table: TableInfo) {
     setQrPreview({ token: table.qr_code_token, tableNumber: table.table_number });
+  }
+
+  // ── status toggle ─────────────────────────────────────────────────────────
+  async function handleToggleStatus(table: TableInfo) {
+    if (toggling[table.id]) return;
+    setToggling((prev) => ({ ...prev, [table.id]: true }));
+    try {
+      const isOccupied = table.status === "OCCUPIED";
+      const res = isOccupied
+        ? await cashierSetTableAvailable(table.id)
+        : await cashierOpenTable(table.id);
+      onTableUpdated(res.data);
+      toast.success(
+        `Table "${table.table_number}" marked as ${isOccupied ? "available" : "not available"}`,
+      );
+    } catch {
+      toast.error("Failed to update table status");
+    } finally {
+      setToggling((prev) => ({ ...prev, [table.id]: false }));
+    }
   }
 
   // ── duplicate check ───────────────────────────────────────────────────────
@@ -333,9 +359,11 @@ export function TableManageTab({
                 <TableCard
                   key={table.id}
                   table={table}
+                  toggling={toggling[table.id] ?? false}
                   onView={() => openView(table)}
                   onEdit={() => openEdit(table)}
                   onDelete={() => setDeletingTable(table)}
+                  onToggleStatus={() => handleToggleStatus(table)}
                 />
               ))}
             </div>
@@ -505,29 +533,33 @@ export function TableManageTab({
 // ── TableCard ────────────────────────────────────────────────────────────────
 function TableCard({
   table,
+  toggling,
   onView,
   onEdit,
   onDelete,
+  onToggleStatus,
 }: {
   table: TableInfo;
+  toggling: boolean;
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleStatus: () => void;
 }) {
   const occupied = table.status === "OCCUPIED";
 
   return (
     <div
       className={cn(
-        "group relative bg-card rounded-2xl border flex flex-col overflow-hidden transition-all hover:shadow-md",
+        "group bg-card rounded-2xl border flex flex-col overflow-hidden transition-all hover:shadow-md",
         occupied && "border-amber-400/60 bg-amber-50/30 dark:bg-amber-950/20",
       )}
     >
       {/* Status bar */}
       <div className={cn("h-1.5 w-full shrink-0", occupied ? "bg-amber-400" : "bg-emerald-500")} />
 
-      {/* Body */}
-      <div className="p-5 flex flex-col gap-4 flex-1">
+      {/* Body (hoverable area with overlay) */}
+      <div className="relative p-5 flex flex-col gap-4 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-col gap-1.5">
             <MdOutlineTableBar size={22} className="text-muted-foreground" />
@@ -542,7 +574,7 @@ function TableCard({
                 : "bg-emerald-500/15 text-emerald-700 border-emerald-400/30 dark:text-emerald-400",
             )}
           >
-            {occupied ? "Occupied" : "Available"}
+            {occupied ? "Not Available" : "Available"}
           </Badge>
         </div>
 
@@ -550,31 +582,44 @@ function TableCard({
           <Users size={15} />
           <span className="text-sm">{table.capacity} seats</span>
         </div>
+
+        {/* Hover action overlay — View, Edit, Delete */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all rounded-t-2xl">
+          <button
+            onClick={onView}
+            className="bg-background/90 rounded-full p-2 shadow hover:bg-background"
+            title="View QR code"
+          >
+            <Eye size={13} />
+          </button>
+          <button
+            onClick={onEdit}
+            className="bg-background/90 rounded-full p-2 shadow hover:bg-background"
+            title="Edit table"
+          >
+            <Pencil size={13} />
+          </button>
+          <button
+            onClick={onDelete}
+            className="bg-background/90 rounded-full p-2 shadow hover:bg-destructive hover:text-destructive-foreground"
+            title="Remove table"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
       </div>
 
-      {/* Hover action overlay — View, Edit, Delete */}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all rounded-2xl">
-        <button
-          onClick={onView}
-          className="bg-background/90 rounded-full p-2 shadow hover:bg-background"
-          title="View QR code"
-        >
-          <Eye size={13} />
-        </button>
-        <button
-          onClick={onEdit}
-          className="bg-background/90 rounded-full p-2 shadow hover:bg-background"
-          title="Edit table"
-        >
-          <Pencil size={13} />
-        </button>
-        <button
-          onClick={onDelete}
-          className="bg-background/90 rounded-full p-2 shadow hover:bg-destructive hover:text-destructive-foreground"
-          title="Remove table"
-        >
-          <Trash2 size={13} />
-        </button>
+      {/* Toggle footer — always visible, not covered by overlay */}
+      <div className="border-t px-4 py-2.5 flex items-center justify-between bg-card rounded-b-2xl">
+        <span className="text-xs text-muted-foreground">
+          {occupied ? "Not Available" : "Available"}
+        </span>
+        <Switch
+          checked={!occupied}
+          onCheckedChange={onToggleStatus}
+          disabled={toggling}
+          title={occupied ? "Mark as available" : "Mark as not available"}
+        />
       </div>
     </div>
   );

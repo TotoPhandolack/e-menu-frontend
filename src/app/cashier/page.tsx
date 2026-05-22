@@ -23,6 +23,7 @@ import {
   cashierGetMenuItems,
   getTables,
   cashierCreateOrder,
+  cashierOpenTable,
   cashierGetLiveOrders,
   cashierPrintKitchen,
   type MenuItem,
@@ -208,6 +209,23 @@ export default function CashierPage() {
         await cashierPrintKitchen(res.data.id);
       } catch {
         // non-critical
+      }
+      // Mark the table as occupied after a dine-in order
+      if (orderType === "TABLE" && selectedTableId) {
+        try {
+          const tableRes = await cashierOpenTable(selectedTableId);
+          const updated = tableRes.data;
+          setTables((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+          setManageTables((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+        } catch {
+          // table may already be occupied; refresh to sync
+          if (admin) {
+            getTables(admin.restaurant_id).then((r) => {
+              setTables(r.data);
+              setManageTables(r.data);
+            });
+          }
+        }
       }
       setCart([]);
       setSelectedTableId("");

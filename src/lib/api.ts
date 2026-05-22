@@ -206,6 +206,9 @@ export const cancelOrder = (order_id: string) =>
 export const cashierOpenTable = (table_id: string) =>
   api.patch<TableInfo>(`/cashier/tables/${table_id}/open`);
 
+export const cashierSetTableAvailable = (table_id: string) =>
+  api.patch<TableInfo>(`/cashier/tables/${table_id}/available`);
+
 export const cashierMoveTable = (table_id: string, target_table_id: string) =>
   api.patch<TableInfo>(`/cashier/tables/${table_id}/move`, { target_table_id });
 

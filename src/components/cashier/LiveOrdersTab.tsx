@@ -7,6 +7,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { updateOrderStatus, cashierPrintKitchen, type Order } from '@/lib/api';
+import { useAuthStore } from '@/stores/auth.store';
+import { printBill } from '@/lib/printBill';
 
 interface Props {
   orders: Order[];
@@ -116,7 +118,7 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
   );
 }
 
-function ConfirmedCard({ order, onDone }: { order: Order; onDone: () => void }) {
+function ConfirmedCard({ order, onDone, restaurantName }: { order: Order; onDone: () => void; restaurantName: string }) {
   const [busy, setBusy] = useState(false);
 
   const handlePaid = async () => {
@@ -124,6 +126,7 @@ function ConfirmedCard({ order, onDone }: { order: Order; onDone: () => void }) 
     try {
       await updateOrderStatus(order.id, 'PAID');
       toast.success(`Order ຮັບເງິນແລ້ວ`);
+      printBill(order, restaurantName);
       onDone();
     } catch {
       toast.error('Failed to mark as paid');
@@ -205,6 +208,8 @@ function ConfirmedCard({ order, onDone }: { order: Order; onDone: () => void }) 
 // ─── Main tab component ───────────────────────────────────────────────────────
 
 export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
+  const restaurantName = useAuthStore((s) => s.admin?.restaurant?.name ?? '');
+
   if (loading) {
     return (
       <div className="p-6 grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
@@ -276,7 +281,7 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
                   </h3>
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                     {confirmed.map((order) => (
-                      <ConfirmedCard key={order.id} order={order} onDone={onRefresh} />
+                      <ConfirmedCard key={order.id} order={order} onDone={onRefresh} restaurantName={restaurantName} />
                     ))}
                   </div>
                 </section>

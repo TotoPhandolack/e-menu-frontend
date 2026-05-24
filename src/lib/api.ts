@@ -252,6 +252,9 @@ export const cashierCreateOrder = (data: CreateCashierOrderPayload) =>
 export const cashierGetLiveOrders = () =>
   api.get<Order[]>('/cashier/orders/live');
 
+export const cashierGetOrderHistory = () =>
+  api.get<Order[]>('/cashier/orders/history');
+
 export const cashierAddOrderItems = (
   order_id: string,
   items: { menu_item_id: string; quantity: number; special_note?: string }[],

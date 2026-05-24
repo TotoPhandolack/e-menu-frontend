@@ -14,6 +14,7 @@ import { MenuManageTab } from "@/components/cashier/MenuManageTab";
 import { TableManageTab } from "@/components/cashier/TableManageTab";
 import { OrderPanel, type CartItem } from "@/components/cashier/OrderPanel";
 import { LiveOrdersTab } from "@/components/cashier/LiveOrdersTab";
+import { OrderHistoryTab } from "@/components/cashier/OrderHistoryTab";
 import { NotificationBell } from "@/components/cashier/NotificationBell";
 
 import { useAuthStore } from "@/stores/auth.store";
@@ -25,6 +26,7 @@ import {
   cashierCreateOrder,
   cashierOpenTable,
   cashierGetLiveOrders,
+  cashierGetOrderHistory,
   cashierPrintKitchen,
   type MenuItem,
   type TableInfo,
@@ -46,6 +48,9 @@ export default function CashierPage() {
 
   const [liveOrders, setLiveOrders] = useState<Order[]>([]);
   const [liveLoading, setLiveLoading] = useState(false);
+
+  const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const [manageItems, setManageItems] = useState<MenuItem[]>([]);
   const [manageLoading, setManageLoading] = useState(false);
@@ -89,6 +94,18 @@ export default function CashierPage() {
       toast.error("Failed to load active orders");
     } finally {
       setLiveLoading(false);
+    }
+  }, []);
+
+  const fetchHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      const res = await cashierGetOrderHistory();
+      setHistoryOrders(res.data);
+    } catch {
+      toast.error("Failed to load order history");
+    } finally {
+      setHistoryLoading(false);
     }
   }, []);
 
@@ -266,6 +283,7 @@ export default function CashierPage() {
           className="flex flex-col flex-1 overflow-hidden"
           onValueChange={(v) => {
             if (v === "activity") fetchLiveOrders();
+            if (v === "history") fetchHistory();
             if (v === "manage") fetchManageItems();
           }}
         >
@@ -328,6 +346,12 @@ export default function CashierPage() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger
+                  value="history"
+                  className="flex-1 md:flex-none text-sm font-semibold md:px-6"
+                >
+                  History
+                </TabsTrigger>
+                <TabsTrigger
                   value="manage"
                   className="flex-1 md:flex-none text-sm font-semibold md:px-6"
                 >
@@ -354,6 +378,14 @@ export default function CashierPage() {
               orders={liveOrders}
               loading={liveLoading}
               onRefresh={fetchLiveOrders}
+            />
+          </TabsContent>
+
+          <TabsContent value="history" className="flex flex-col flex-1 overflow-hidden mt-0">
+            <OrderHistoryTab
+              orders={historyOrders}
+              loading={historyLoading}
+              onRefresh={fetchHistory}
             />
           </TabsContent>
 

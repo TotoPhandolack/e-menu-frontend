@@ -283,7 +283,6 @@ export default function CashierPage() {
           className="flex flex-col flex-1 overflow-hidden"
           onValueChange={(v) => {
             if (v === "activity") fetchLiveOrders();
-            if (v === "history") fetchHistory();
             if (v === "manage") fetchManageItems();
           }}
         >
@@ -346,12 +345,6 @@ export default function CashierPage() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger
-                  value="history"
-                  className="flex-1 md:flex-none text-sm font-semibold md:px-6"
-                >
-                  History
-                </TabsTrigger>
-                <TabsTrigger
                   value="manage"
                   className="flex-1 md:flex-none text-sm font-semibold md:px-6"
                 >
@@ -373,20 +366,43 @@ export default function CashierPage() {
             />
           </TabsContent>
 
-          <TabsContent value="activity" className="flex-1 overflow-hidden mt-0">
-            <LiveOrdersTab
-              orders={liveOrders}
-              loading={liveLoading}
-              onRefresh={fetchLiveOrders}
-            />
-          </TabsContent>
+          <TabsContent value="activity" className="flex flex-col flex-1 overflow-hidden mt-0">
+            <Tabs
+              defaultValue="live"
+              className="flex flex-col flex-1 overflow-hidden"
+              onValueChange={(v) => {
+                if (v === "live") fetchLiveOrders();
+                if (v === "history") fetchHistory();
+              }}
+            >
+              {/* Sub-tab bar */}
+              <div className="bg-background border-b px-4 md:px-7 py-2 shrink-0 flex items-center gap-3">
+                <TabsList className="h-8 bg-muted/40">
+                  <TabsTrigger value="live" className="text-xs font-semibold px-5">
+                    Live
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="text-xs font-semibold px-5">
+                    History
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
-          <TabsContent value="history" className="flex flex-col flex-1 overflow-hidden mt-0">
-            <OrderHistoryTab
-              orders={historyOrders}
-              loading={historyLoading}
-              onRefresh={fetchHistory}
-            />
+              <TabsContent value="live" className="flex-1 overflow-hidden mt-0">
+                <LiveOrdersTab
+                  orders={liveOrders}
+                  loading={liveLoading}
+                  onRefresh={fetchLiveOrders}
+                />
+              </TabsContent>
+
+              <TabsContent value="history" className="flex flex-col flex-1 overflow-hidden mt-0">
+                <OrderHistoryTab
+                  orders={historyOrders}
+                  loading={historyLoading}
+                  onRefresh={fetchHistory}
+                />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           {/* ── Manage tab: inner Food / Table sub-tabs ── */}

@@ -5,9 +5,12 @@ import { LogOut, ShoppingBag } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { toast as rtToast, ToastContainer } from "react-toastify";
 import { playDing } from "@/lib/sound";
+import { printBill } from "@/lib/printBill";
+import { cn } from "@/lib/utils";
 
 import { MenuSection } from "@/components/cashier/MenuSection";
 import { MenuManageTab } from "@/components/cashier/MenuManageTab";
@@ -28,6 +31,7 @@ import {
   cashierGetLiveOrders,
   cashierGetOrderHistory,
   cashierPrintKitchen,
+  updateOrderStatus,
   type MenuItem,
   type TableInfo,
   type Order,
@@ -61,6 +65,11 @@ export default function CashierPage() {
 
   // Mobile order panel visibility
   const [mobileOrderOpen, setMobileOrderOpen] = useState(false);
+
+  // Takeaway: holds created order while cashier selects payment method / decides to print
+  const [pendingTakeawayOrder, setPendingTakeawayOrder] = useState<Order | null>(null);
+  const [showPrintConfirm, setShowPrintConfirm] = useState(false);
+  const [takeawayPayment, setTakeawayPayment] = useState<'CASH' | 'QR'>('CASH');
 
   useEffect(() => {
     if (!admin) return;
@@ -222,6 +231,9 @@ export default function CashierPage() {
         })),
       });
       toast.success("Order placed!");
+      if (orderType === "TAKEAWAY") {
+        setPendingTakeawayOrder(res.data);
+      }
       try {
         await cashierPrintKitchen(res.data.id);
       } catch {
@@ -256,6 +268,32 @@ export default function CashierPage() {
     } finally {
       setCreating(false);
     }
+  };
+
+  const closeTakeawayDialogs = () => {
+    setPendingTakeawayOrder(null);
+    setShowPrintConfirm(false);
+    setTakeawayPayment('CASH');
+  };
+
+  // Dialog 1 → "Print" button clicked: show second confirm
+  const handleTakeawayRequestPrint = () => setShowPrintConfirm(true);
+
+  // Dialog 2 → "Yes, Print": open browser dialog then mark PAID
+  const handleTakeawayDoPrint = async () => {
+    if (!pendingTakeawayOrder) return;
+    const order = pendingTakeawayOrder;
+    closeTakeawayDialogs();
+    printBill(order, admin?.restaurant?.name ?? "");
+    try { await updateOrderStatus(order.id, "PAID"); } catch { /* non-critical */ }
+  };
+
+  // Dialog 2 → "No": cancel the order so it doesn't appear in history
+  const handleTakeawayNoPrint = async () => {
+    if (!pendingTakeawayOrder) return;
+    const id = pendingTakeawayOrder.id;
+    closeTakeawayDialogs();
+    try { await updateOrderStatus(id, "CANCELLED"); } catch { /* non-critical */ }
   };
 
   const initials =
@@ -524,6 +562,72 @@ export default function CashierPage() {
 
       {/* react-toastify container — order alerts only */}
       <ToastContainer limit={5} />
+
+      {/* Dialog 1: Payment method selection */}
+      <Dialog open={!!pendingTakeawayOrder && !showPrintConfirm} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg">ຊຳລະເງິນ / Payment</DialogTitle>
+            <DialogDescription>
+              Takeaway #{pendingTakeawayOrder?.queue_number}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex gap-4 my-4">
+            <button
+              onClick={() => setTakeawayPayment('CASH')}
+              className={cn(
+                'flex-1 py-8 rounded-2xl border-2 font-bold text-base transition-colors flex flex-col items-center gap-2',
+                takeawayPayment === 'CASH'
+                  ? 'border-slate-800 bg-slate-800 text-white'
+                  : 'border-muted text-muted-foreground hover:border-slate-400'
+              )}
+            >
+              <span className="text-3xl">💵</span>
+              Cash
+            </button>
+            <button
+              onClick={() => setTakeawayPayment('QR')}
+              className={cn(
+                'flex-1 py-8 rounded-2xl border-2 font-bold text-base transition-colors flex flex-col items-center gap-2',
+                takeawayPayment === 'QR'
+                  ? 'border-slate-800 bg-slate-800 text-white'
+                  : 'border-muted text-muted-foreground hover:border-slate-400'
+              )}
+            >
+              <span className="text-3xl">📱</span>
+              QR Code
+            </button>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" className="text-red-500 border-red-200 hover:bg-red-50" onClick={handleTakeawayNoPrint}>
+              ຍົກເລີກ / Cancel
+            </Button>
+            <Button onClick={handleTakeawayRequestPrint}>
+              ພິມໃບບິນ / Print
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog 2: Confirm print */}
+      <Dialog open={showPrintConfirm} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg">ຕ້ອງການພິມໃບບິນ? / Print the bill?</DialogTitle>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleTakeawayNoPrint}>
+              ບໍ່ / No
+            </Button>
+            <Button onClick={handleTakeawayDoPrint}>
+              ພິມ / Yes, Print
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

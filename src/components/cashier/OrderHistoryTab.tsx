@@ -199,6 +199,7 @@ export function OrderHistoryTab({ orders, loading, onRefresh }: Props) {
         const t = new Date(o.created_at);
         if (t < range.start || t >= range.end) return false;
       }
+      if (o.order_type === 'TAKEAWAY' && o.status === 'CANCELLED') return false;
       if (typeFilter !== 'all' && o.order_type !== typeFilter) return false;
       if (sourceFilter === 'cashier' && !o.session_id?.startsWith('cashier-'))
         return false;

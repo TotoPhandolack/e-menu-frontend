@@ -1,29 +1,30 @@
 import type { Order } from './api';
 
-export function printBill(order: Order, restaurantName: string) {
-  const date = new Date(order.created_at);
-  const dateStr = date.toLocaleDateString('en-GB');
-  const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+export function printBill(order: Order, restaurantName: string): Promise<void> {
+  return new Promise((resolve) => {
+    const date = new Date(order.created_at);
+    const dateStr = date.toLocaleDateString('en-GB');
+    const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-  const title =
-    order.order_type === 'TAKEAWAY'
-      ? `Takeaway #${order.queue_number}`
-      : `ໂຕະ ${order.table?.table_number ?? '-'}`;
+    const title =
+      order.order_type === 'TAKEAWAY'
+        ? `Takeaway #${order.queue_number}`
+        : `ໂຕະ ${order.table?.table_number ?? '-'}`;
 
-  const rows = order.orderItems
-    .map((oi) => {
-      const subtotal = oi.quantity * Number(oi.unit_price);
-      return `
+    const rows = order.orderItems
+      .map((oi) => {
+        const subtotal = oi.quantity * Number(oi.unit_price);
+        return `
         <tr>
           <td>${oi.menuItem.name}${oi.special_note ? `<br/><span class="note">(${oi.special_note})</span>` : ''}</td>
           <td class="center">${oi.quantity}</td>
           <td class="right">₭${Number(oi.unit_price).toLocaleString('en-US')}</td>
           <td class="right">₭${subtotal.toLocaleString('en-US')}</td>
         </tr>`;
-    })
-    .join('');
+      })
+      .join('');
 
-  const html = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="lo">
 <head>
   <meta charset="UTF-8"/>
@@ -87,11 +88,23 @@ export function printBill(order: Order, restaurantName: string) {
 </body>
 </html>`;
 
-  const win = window.open('', '_blank', 'width=400,height=600');
-  if (!win) return;
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  win.print();
-  win.onafterprint = () => win.close();
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;border:none;visibility:hidden;';
+    document.body.appendChild(iframe);
+
+    const iframeDoc = iframe.contentDocument ?? iframe.contentWindow?.document;
+    if (!iframeDoc) { document.body.removeChild(iframe); resolve(); return; }
+
+    iframeDoc.open();
+    iframeDoc.write(html);
+    iframeDoc.close();
+
+    const iframeWin = iframe.contentWindow!;
+    iframeWin.onafterprint = () => {
+      document.body.removeChild(iframe);
+      resolve();
+    };
+
+    setTimeout(() => iframeWin.print(), 100);
+  });
 }

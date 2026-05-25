@@ -125,7 +125,7 @@ function ConfirmedCard({ order, onDone, restaurantName }: { order: Order; onDone
     setBusy(true);
     try {
       await updateOrderStatus(order.id, 'PAID');
-      toast.success(`Order ຮັບເງິນແລ້ວ`);
+      toast.success('Order ຮັບເງິນແລ້ວ');
       printBill(order, restaurantName);
       onDone();
     } catch {
@@ -201,6 +201,7 @@ function ConfirmedCard({ order, onDone, restaurantName }: { order: Order; onDone
           ຍົກເລີກ
         </Button>
       </div>
+
     </div>
   );
 }
@@ -220,8 +221,8 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
     );
   }
 
-  const pending = orders.filter((o) => o.status === 'PENDING');
-  const confirmed = orders.filter((o) => o.status === 'CONFIRMED');
+  const pending = orders.filter((o) => o.status === 'PENDING' && o.order_type !== 'TAKEAWAY');
+  const confirmed = orders.filter((o) => o.status === 'CONFIRMED' && o.order_type !== 'TAKEAWAY');
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">

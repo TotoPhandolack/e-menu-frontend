@@ -68,7 +68,6 @@ export default function CashierPage() {
 
   // Takeaway: holds created order while cashier selects payment method / decides to print
   const [pendingTakeawayOrder, setPendingTakeawayOrder] = useState<Order | null>(null);
-  const [showPrintConfirm, setShowPrintConfirm] = useState(false);
   const [takeawayPayment, setTakeawayPayment] = useState<'CASH' | 'QR'>('CASH');
 
   useEffect(() => {
@@ -230,9 +229,10 @@ export default function CashierPage() {
           special_note: c.note || undefined,
         })),
       });
-      toast.success("Order placed!");
       if (orderType === "TAKEAWAY") {
         setPendingTakeawayOrder(res.data);
+      } else {
+        toast.success("Order placed!");
       }
       try {
         await cashierPrintKitchen(res.data.id);
@@ -272,23 +272,20 @@ export default function CashierPage() {
 
   const closeTakeawayDialogs = () => {
     setPendingTakeawayOrder(null);
-    setShowPrintConfirm(false);
     setTakeawayPayment('CASH');
   };
 
-  // Dialog 1 → "Print": just open the print confirm dialog
-  const handleTakeawayRequestPrint = () => setShowPrintConfirm(true);
-
-  // Dialog 2 → "Yes, Print": print then mark PAID
-  const handleTakeawayDoPrint = async () => {
+  // Dialog 1 → "Print": print immediately, show toast, mark PAID
+  const handleTakeawayRequestPrint = async () => {
     if (!pendingTakeawayOrder) return;
     const order = pendingTakeawayOrder;
     closeTakeawayDialogs();
     printBill(order, admin?.restaurant?.name ?? "");
+    toast.success(`ພິມໃບບິນສຳເລັດ! / Bill printed — #${order.queue_number}`);
     try { await updateOrderStatus(order.id, "PAID"); } catch { /* non-critical */ }
   };
 
-  // Dialog 1 → "Cancel" / Dialog 2 → "No": just close, send nothing
+  // Dialog 1 → "Cancel": just close, send nothing
   const handleTakeawayClose = () => closeTakeawayDialogs();
 
   const initials =
@@ -559,7 +556,7 @@ export default function CashierPage() {
       <ToastContainer limit={5} />
 
       {/* Dialog 1: Payment method selection */}
-      <Dialog open={!!pendingTakeawayOrder && !showPrintConfirm} onOpenChange={() => {}}>
+      <Dialog open={!!pendingTakeawayOrder} onOpenChange={() => {}}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-lg">ຊຳລະເງິນ / Payment</DialogTitle>
@@ -606,22 +603,6 @@ export default function CashierPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog 2: Confirm print */}
-      <Dialog open={showPrintConfirm} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-lg">ຕ້ອງການພິມໃບບິນ? / Print the bill?</DialogTitle>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleTakeawayClose}>
-              ບໍ່ / No
-            </Button>
-            <Button onClick={handleTakeawayDoPrint}>
-              ພິມ / Yes, Print
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
     </div>
   );

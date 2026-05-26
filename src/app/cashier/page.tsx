@@ -89,20 +89,20 @@ export default function CashierPage() {
   useEffect(() => {
     if (!admin) return;
     fetchLiveOrders();
-    const interval = setInterval(fetchLiveOrders, 10_000);
+    const interval = setInterval(() => fetchLiveOrders(true), 10_000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admin?.restaurant_id]);
 
-  const fetchLiveOrders = useCallback(async () => {
-    setLiveLoading(true);
+  const fetchLiveOrders = useCallback(async (silent = false) => {
+    if (!silent) setLiveLoading(true);
     try {
       const res = await cashierGetLiveOrders();
       setLiveOrders(res.data);
     } catch {
       toast.error("Failed to load active orders");
     } finally {
-      setLiveLoading(false);
+      if (!silent) setLiveLoading(false);
     }
   }, []);
 
@@ -276,10 +276,10 @@ export default function CashierPage() {
     setTakeawayPayment('CASH');
   };
 
-  // Dialog 1 → "Print" button clicked: show second confirm
+  // Dialog 1 → "Print": just open the print confirm dialog
   const handleTakeawayRequestPrint = () => setShowPrintConfirm(true);
 
-  // Dialog 2 → "Yes, Print": open browser dialog then mark PAID
+  // Dialog 2 → "Yes, Print": print then mark PAID
   const handleTakeawayDoPrint = async () => {
     if (!pendingTakeawayOrder) return;
     const order = pendingTakeawayOrder;
@@ -288,13 +288,8 @@ export default function CashierPage() {
     try { await updateOrderStatus(order.id, "PAID"); } catch { /* non-critical */ }
   };
 
-  // Dialog 2 → "No": cancel the order so it doesn't appear in history
-  const handleTakeawayNoPrint = async () => {
-    if (!pendingTakeawayOrder) return;
-    const id = pendingTakeawayOrder.id;
-    closeTakeawayDialogs();
-    try { await updateOrderStatus(id, "CANCELLED"); } catch { /* non-critical */ }
-  };
+  // Dialog 1 → "Cancel" / Dialog 2 → "No": just close, send nothing
+  const handleTakeawayClose = () => closeTakeawayDialogs();
 
   const initials =
     admin?.name
@@ -601,7 +596,7 @@ export default function CashierPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" className="text-red-500 border-red-200 hover:bg-red-50" onClick={handleTakeawayNoPrint}>
+            <Button variant="outline" className="text-red-500 border-red-200 hover:bg-red-50" onClick={handleTakeawayClose}>
               ຍົກເລີກ / Cancel
             </Button>
             <Button onClick={handleTakeawayRequestPrint}>
@@ -618,7 +613,7 @@ export default function CashierPage() {
             <DialogTitle className="text-lg">ຕ້ອງການພິມໃບບິນ? / Print the bill?</DialogTitle>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={handleTakeawayNoPrint}>
+            <Button variant="outline" onClick={handleTakeawayClose}>
               ບໍ່ / No
             </Button>
             <Button onClick={handleTakeawayDoPrint}>

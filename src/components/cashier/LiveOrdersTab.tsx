@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { RefreshCw, ClipboardList, Clock, ChefHat } from 'lucide-react';
+import { RefreshCw, ClipboardList, Clock, ChefHat, Banknote, QrCode, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,6 +9,14 @@ import { toast } from 'sonner';
 import { updateOrderStatus, cashierPrintKitchen, type Order } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
 import { printBill } from '@/lib/printBill';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 interface Props {
   orders: Order[];
@@ -118,21 +126,36 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
   );
 }
 
-function ConfirmedCard({ order, onDone, restaurantName }: { order: Order; onDone: () => void; restaurantName: string }) {
+function ConfirmedCard({
+  order,
+  onDone,
+}: {
+  order: Order;
+  onDone: () => void;
+}) {
+  const restaurantName = useAuthStore((s) => s.admin?.restaurant?.name ?? '');
   const [busy, setBusy] = useState(false);
+  const [paymentDialog, setPaymentDialog] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<'CASH' | 'QR' | null>(null);
+  const [printDialog, setPrintDialog] = useState(false);
 
-  const handlePaid = async () => {
+  const handlePrint = async () => {
+    setPrintDialog(false);
     setBusy(true);
     try {
       await updateOrderStatus(order.id, 'PAID');
       toast.success('Order ຮັບເງິນແລ້ວ');
       printBill(order, restaurantName);
-      onDone();
+      onDone(); // refresh parent — card unmounts after this
     } catch {
       toast.error('Failed to mark as paid');
-    } finally {
       setBusy(false);
     }
+  };
+
+  const handleSkipPrint = () => {
+    setPrintDialog(false);
+    // no API call, no refresh — order stays CONFIRMED
   };
 
   const handleCancel = async () => {
@@ -149,68 +172,141 @@ function ConfirmedCard({ order, onDone, restaurantName }: { order: Order; onDone
   };
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-blue-300 p-4 space-y-3 shadow-sm">
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="font-bold text-sm text-slate-800">
-            {order.order_type === 'TAKEAWAY'
-              ? `Takeaway #${order.queue_number}`
-              : `ໂຕະ ${order.table?.table_number ?? '-'}`}
-          </p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
-            {timeAgo(order.created_at)}
-          </p>
-        </div>
-        <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
-          IN KITCHEN
-        </span>
-      </div>
-
-      <div className="space-y-1 border-t pt-2">
-        {order.orderItems.map((oi) => (
-          <div key={oi.id} className="text-[12px] text-slate-700">
-            <span className="font-medium">{oi.quantity}× {oi.menuItem.name}</span>
-            {oi.special_note && (
-              <span className="ml-1 text-orange-500 italic">({oi.special_note})</span>
-            )}
+    <>
+      <div className="bg-white rounded-2xl border-2 border-blue-300 p-4 space-y-3 shadow-sm">
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="font-bold text-sm text-slate-800">
+              {order.order_type === 'TAKEAWAY'
+                ? `Takeaway #${order.queue_number}`
+                : `ໂຕະ ${order.table?.table_number ?? '-'}`}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              {timeAgo(order.created_at)}
+            </p>
           </div>
-        ))}
+          <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+            IN KITCHEN
+          </span>
+        </div>
+
+        <div className="space-y-1 border-t pt-2">
+          {order.orderItems.map((oi) => (
+            <div key={oi.id} className="text-[12px] text-slate-700">
+              <span className="font-medium">{oi.quantity}× {oi.menuItem.name}</span>
+              {oi.special_note && (
+                <span className="ml-1 text-orange-500 italic">({oi.special_note})</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-between text-xs text-muted-foreground border-t pt-2">
+          <span>Total</span>
+          <span className="font-semibold text-slate-800">{formatKip(order.total_amount)}</span>
+        </div>
+
+        <div className="flex gap-2 mt-1">
+          <Button
+            size="sm"
+            className="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs h-8"
+            disabled={busy}
+            onClick={() => { setSelectedMethod(null); setPaymentDialog(true); }}
+          >
+            ຮັບເງິນ / Mark Paid
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-red-500 border-red-200 hover:bg-red-50 text-xs h-8"
+            disabled={busy}
+            onClick={handleCancel}
+          >
+            ຍົກເລີກ
+          </Button>
+        </div>
       </div>
 
-      <div className="flex justify-between text-xs text-muted-foreground border-t pt-2">
-        <span>Total</span>
-        <span className="font-semibold text-slate-800">{formatKip(order.total_amount)}</span>
-      </div>
+      {/* Step 1 — Payment method */}
+      <Dialog
+        open={paymentDialog}
+        onOpenChange={(open) => { if (!open) { setSelectedMethod(null); setPaymentDialog(false); } }}
+      >
+        <DialogContent showCloseButton>
+          <DialogHeader>
+            <DialogTitle>ວິທີຊຳລະເງິນ</DialogTitle>
+            <DialogDescription>ລູກຄ້າຊຳລະດ້ວຍວິທີໃດ?</DialogDescription>
+          </DialogHeader>
 
-      <div className="flex gap-2 mt-1">
-        <Button
-          size="sm"
-          className="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs h-8"
-          disabled={busy}
-          onClick={handlePaid}
-        >
-          ຮັບເງິນ / Mark Paid
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-red-500 border-red-200 hover:bg-red-50 text-xs h-8"
-          disabled={busy}
-          onClick={handleCancel}
-        >
-          ຍົກເລີກ
-        </Button>
-      </div>
+          <div className="grid grid-cols-2 gap-3 py-1">
+            <button
+              onClick={() => setSelectedMethod('CASH')}
+              className={`flex flex-col items-center gap-2 rounded-xl border-2 p-5 transition-colors ${
+                selectedMethod === 'CASH'
+                  ? 'border-emerald-500 bg-emerald-50'
+                  : 'border-slate-200 hover:border-emerald-400 hover:bg-emerald-50'
+              }`}
+            >
+              <Banknote size={28} className="text-emerald-600" />
+              <span className="font-semibold text-sm">ເງິນສົດ (Cash)</span>
+            </button>
+            <button
+              onClick={() => setSelectedMethod('QR')}
+              className={`flex flex-col items-center gap-2 rounded-xl border-2 p-5 transition-colors ${
+                selectedMethod === 'QR'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50'
+              }`}
+            >
+              <QrCode size={28} className="text-blue-600" />
+              <span className="font-semibold text-sm">QR Code</span>
+            </button>
+          </div>
 
-    </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => { setSelectedMethod(null); setPaymentDialog(false); }}
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={!selectedMethod}
+              onClick={() => { setPaymentDialog(false); setPrintDialog(true); }}
+            >
+              Yes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Step 2 — Print receipt */}
+      <Dialog open={printDialog} onOpenChange={(open) => { if (!open) handleSkipPrint(); }}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>ພິມໃບບິນ?</DialogTitle>
+            <DialogDescription>
+              ທ່ານຕ້ອງການພິມໃບບິນບໍ? / You wanna print or not?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleSkipPrint}>
+              Cancel
+            </Button>
+            <Button onClick={handlePrint} className="gap-1.5" disabled={busy}>
+              <Printer size={15} />
+              Print
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
 // ─── Main tab component ───────────────────────────────────────────────────────
 
 export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
-  const restaurantName = useAuthStore((s) => s.admin?.restaurant?.name ?? '');
-
   if (loading) {
     return (
       <div className="p-6 grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
@@ -282,7 +378,11 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
                   </h3>
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                     {confirmed.map((order) => (
-                      <ConfirmedCard key={order.id} order={order} onDone={onRefresh} restaurantName={restaurantName} />
+                      <ConfirmedCard
+                        key={order.id}
+                        order={order}
+                        onDone={onRefresh}
+                      />
                     ))}
                   </div>
                 </section>
@@ -291,6 +391,7 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
           )}
         </div>
       </ScrollArea>
+
     </div>
   );
 }

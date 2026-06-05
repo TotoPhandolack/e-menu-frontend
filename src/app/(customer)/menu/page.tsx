@@ -1,4 +1,4 @@
-// src/app/menu/page.tsx
+// src/app/(customer)/menu/page.tsx
 "use client";
 
 import { useEffect, useState, useCallback, useRef, Suspense } from "react";
@@ -14,14 +14,14 @@ import {
 } from "@/lib/api";
 import { playDing } from "@/lib/sound";
 import { useSocket } from "@/hooks/useSocket";
-import OrderListSheet from "@/components/menu/OrderListSheet";
+import OrderListSheet from "@/components/customer/OrderListSheet";
 
 import { useCartStore } from "@/stores/cart.store";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import MenuItemCard from "@/components/menu/MenuItemCard";
-import CategoryTabs from "@/components/menu/CategoryTabs";
-import CartSheet from "@/components/menu/CartSheet";
+import MenuItemCard from "@/components/customer/MenuItemCard";
+import CategoryTabs from "@/components/customer/CategoryTabs";
+import CartSheet from "@/components/customer/CartSheet";
 import {
   Sheet,
   SheetContent,

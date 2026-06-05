@@ -1,4 +1,4 @@
-// src/components/menu/CartSheet.tsx
+// src/components/customer/CartSheet.tsx
 "use client";
 
 import { resolveImageUrl } from "@/lib/api";

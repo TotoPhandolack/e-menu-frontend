@@ -1,4 +1,4 @@
-// src/components/menu/CategoryTabs.tsx
+// src/components/customer/CategoryTabs.tsx
 "use client";
 
 interface Props {

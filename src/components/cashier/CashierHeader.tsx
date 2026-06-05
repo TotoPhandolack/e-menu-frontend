@@ -3,10 +3,11 @@
 
 import { LogOut } from "lucide-react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/cashier/NotificationBell";
 import type { Admin, Order } from "@/lib/api";
+import { resolveImageUrl } from "@/lib/api";
 
 interface Props {
   admin: Admin | null;
@@ -14,19 +15,32 @@ interface Props {
   pendingOrders: Order[];
   onSignOut: () => void;
   fetchLiveOrders: () => void;
+  onProfileClick: () => void;
 }
 
-export function CashierHeader({ admin, initials, pendingOrders, onSignOut, fetchLiveOrders }: Props) {
+export function CashierHeader({ admin, initials, pendingOrders, onSignOut, fetchLiveOrders, onProfileClick }: Props) {
+  const logoUrl = resolveImageUrl(admin?.restaurant?.logo_url);
+
   return (
     <div className="bg-background border-b px-4 md:px-7 py-3 md:py-3.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-4 shrink-0">
       {/* Row 1 (mobile) / Left (desktop): user info + sign out */}
       <div className="flex items-center justify-between md:justify-start gap-3">
         <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 md:h-11 md:w-11 ring-2 ring-primary/20">
-            <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <button
+            type="button"
+            onClick={onProfileClick}
+            className="rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            title="Restaurant settings"
+          >
+            <Avatar className="h-9 w-9 md:h-11 md:w-11 ring-2 ring-primary/20 hover:ring-primary/60 transition-all cursor-pointer">
+              {logoUrl ? (
+                <AvatarImage src={logoUrl} alt="Restaurant logo" className="object-cover" />
+              ) : null}
+              <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </button>
           <div>
             <p className="font-bold text-sm leading-tight">
               {admin?.name ?? "Cashier"}

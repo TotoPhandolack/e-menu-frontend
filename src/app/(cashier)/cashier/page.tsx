@@ -8,6 +8,7 @@ import { playDing } from "@/lib/sound";
 import { printBill } from "@/lib/printBill";
 
 import { CashierHeader } from "@/components/cashier/CashierHeader";
+import { RestaurantProfileDialog, applyTheme } from "@/components/cashier/RestaurantProfileDialog";
 import { TakeawayPaymentDialog } from "@/components/cashier/TakeawayPaymentDialog";
 import { MobileCartFab } from "@/components/cashier/MobileCartFab";
 import { MenuSection } from "@/components/cashier/MenuSection";
@@ -63,6 +64,17 @@ export default function CashierPage() {
 
   const [pendingTakeawayOrder, setPendingTakeawayOrder] = useState<Order | null>(null);
   const [takeawayPayment, setTakeawayPayment] = useState<"CASH" | "QR">("CASH");
+
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [localAdmin, setLocalAdmin] = useState(admin);
+
+  // Keep localAdmin in sync with auth store and re-apply theme whenever it changes
+  useEffect(() => {
+    setLocalAdmin(admin);
+    if (admin?.restaurant?.theme_color) {
+      applyTheme(admin.restaurant.theme_color);
+    }
+  }, [admin]);
 
   useEffect(() => {
     if (!admin) return;
@@ -260,7 +272,7 @@ export default function CashierPage() {
   };
 
   const initials =
-    admin?.name
+    localAdmin?.name
       ?.split(" ")
       .map((w) => w[0])
       .join("")
@@ -277,6 +289,23 @@ export default function CashierPage() {
         />
       )}
 
+      <RestaurantProfileDialog
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        admin={localAdmin}
+        onProfileUpdated={(updates) => {
+          setLocalAdmin((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  restaurant: { ...prev.restaurant, ...updates },
+                  ...(updates.name ? {} : {}),
+                }
+              : prev
+          );
+        }}
+      />
+
       {/* LEFT — Main content */}
       <div className="flex flex-col flex-1 overflow-hidden min-w-0">
         <Tabs
@@ -288,11 +317,12 @@ export default function CashierPage() {
           }}
         >
           <CashierHeader
-            admin={admin}
+            admin={localAdmin}
             initials={initials}
             pendingOrders={pendingOrders}
             onSignOut={() => { logout(); window.location.href = "/login"; }}
             fetchLiveOrders={fetchLiveOrders}
+            onProfileClick={() => setProfileOpen(true)}
           />
 
           <TabsContent value="order" className="flex flex-col flex-1 overflow-hidden mt-0">

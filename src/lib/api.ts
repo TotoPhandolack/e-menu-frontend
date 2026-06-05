@@ -53,6 +53,8 @@ export interface Restaurant {
   radius_meters: number;
   vat_rate: number;
   service_charge_rate: number;
+  logo_url?: string | null;
+  theme_color?: string | null;
 }
 
 export interface TableInfo {
@@ -118,7 +120,15 @@ export interface Admin {
   email: string;
   role: AdminRole;
   restaurant_id: string;
-  restaurant: { name: string };
+  restaurant: { name: string; logo_url?: string | null; theme_color?: string | null };
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: AdminRole;
+  created_at: string;
 }
 
 export interface AuthResponse {
@@ -341,3 +351,36 @@ export const cashierPrintKitchen = (order_id: string) =>
 
 export const cashierReprint = (order_id: string, type: 'receipt' | 'kitchen') =>
   api.post('/cashier/print/reprint', { order_id, type });
+
+// ─── Restaurant Profile ──────────────────────────────────────────────────────
+
+export const getRestaurant = (id: string) =>
+  api.get<Restaurant>(`/restaurants/${id}`);
+
+export const updateRestaurantProfile = (
+  id: string,
+  data: { name?: string; theme_color?: string },
+) => api.put<Restaurant>(`/restaurants/${id}`, data);
+
+export const uploadRestaurantLogo = (id: string, file: File) => {
+  const form = new FormData();
+  form.append('file', file);
+  return api.post<Restaurant>(`/restaurants/${id}/logo`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+// ─── Team Management ────────────────────────────────────────────────────────
+
+export const cashierGetTeam = () =>
+  api.get<TeamMember[]>('/cashier/team');
+
+export const cashierAddTeamMember = (data: {
+  name: string;
+  email: string;
+  password: string;
+  role?: 'ADMIN' | 'CASHIER';
+}) => api.post<TeamMember>('/cashier/team', data);
+
+export const cashierRemoveTeamMember = (memberId: string) =>
+  api.delete(`/cashier/team/${memberId}`);

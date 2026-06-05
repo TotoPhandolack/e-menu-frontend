@@ -56,7 +56,7 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
                   {quantity}
                 </span>
                 <button
-                  className="w-6 h-6 rounded-full bg-[#3a5a40] text-white flex items-center justify-center active:bg-[#2c4430] transition-colors disabled:opacity-40"
+                  className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center active:bg-primary/90 transition-colors disabled:opacity-40"
                   onClick={() => addItem(item)}
                   disabled={!item.is_available}
                   aria-label="Increase"
@@ -66,7 +66,7 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
               </div>
             ) : (
               <button
-                className="w-8 h-8 rounded-full bg-[#3a5a40] text-white flex items-center justify-center shadow-md active:bg-[#2c4430] transition-colors disabled:opacity-40"
+                className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md active:bg-primary/90 transition-colors disabled:opacity-40"
                 onClick={() => addItem(item)}
                 disabled={!item.is_available}
                 aria-label="Add to cart"
@@ -90,7 +90,7 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
             )}
           </div>
 
-          <p className="text-sm font-bold text-[#3a5a40]">
+          <p className="text-sm font-bold text-primary">
             ₭{Number(item.price).toLocaleString()}
           </p>
         </div>
@@ -132,7 +132,7 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
             {item.description}
           </p>
         )}
-        <p className="text-[15px] font-bold text-[#3a5a40] mt-1.5">
+        <p className="text-[15px] font-bold text-primary mt-1.5">
           ₭{Number(item.price).toLocaleString()}
         </p>
       </div>
@@ -152,7 +152,7 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
               {quantity}
             </span>
             <button
-              className="w-8 h-8 rounded-full bg-[#3a5a40] text-white flex items-center justify-center active:bg-[#2c4430] transition-colors disabled:opacity-40"
+              className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center active:bg-primary/90 transition-colors disabled:opacity-40"
               onClick={() => addItem(item)}
               disabled={!item.is_available}
               aria-label="Increase quantity"
@@ -162,7 +162,7 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
           </>
         ) : (
           <button
-            className="w-8 h-8 rounded-full bg-[#3a5a40] text-white flex items-center justify-center active:bg-[#2c4430] transition-colors disabled:opacity-40"
+            className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center active:bg-primary/90 transition-colors disabled:opacity-40"
             onClick={() => addItem(item)}
             disabled={!item.is_available}
             aria-label="Add to cart"

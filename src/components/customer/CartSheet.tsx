@@ -85,7 +85,7 @@ export default function CartSheet({ open, onClose, onOrder, ordering, browseMode
                       {quantity}
                     </span>
                     <button
-                      className="w-8 h-8 rounded-full bg-[#3a5a40] text-white flex items-center justify-center active:bg-[#2c4430]"
+                      className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center active:bg-primary/90"
                       onClick={() => updateQuantity(menuItem.id, quantity + 1)}
                       aria-label="Increase"
                     >
@@ -106,12 +106,12 @@ export default function CartSheet({ open, onClose, onOrder, ordering, browseMode
             </span>
           </div>
           {browseMode ? (
-            <div className="w-full h-12 flex items-center justify-center rounded-xl bg-[#f0f5f1] text-[#3a5a40] text-sm font-semibold">
+            <div className="w-full h-12 flex items-center justify-center rounded-xl bg-primary/10 text-primary text-sm font-semibold">
               ແຈ້ງລາຍການນີ້ກັບພະນັກງານ
             </div>
           ) : (
             <Button
-              className="w-full h-12 bg-[#3a5a40] hover:bg-[#2c4430] active:bg-[#1e3022] text-white font-semibold text-base rounded-xl shadow-md shadow-[rgba(58,90,64,0.25)] transition-all"
+              className="w-full h-12 bg-primary hover:bg-primary/90 active:bg-primary/80 text-primary-foreground font-semibold text-base rounded-xl shadow-md transition-all"
               disabled={items.length === 0 || ordering}
               onClick={onOrder}
             >

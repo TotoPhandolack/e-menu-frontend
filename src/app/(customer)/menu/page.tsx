@@ -7,11 +7,14 @@ import {
   scanQRNoLocation,
   scanRestaurant,
   getMenuItems,
+  getRestaurant,
   getOrdersByTable,
   createOrder,
+  resolveImageUrl,
   MenuItem,
   Order,
 } from "@/lib/api";
+import { applyTheme } from "@/lib/theme";
 import { playDing } from "@/lib/sound";
 import { useSocket } from "@/hooks/useSocket";
 import OrderListSheet from "@/components/customer/OrderListSheet";
@@ -36,7 +39,6 @@ import {
   LayoutList,
   ClipboardList,
 } from "lucide-react";
-import Image from "next/image";
 
 function MenuPageContent() {
   const searchParams = useSearchParams();
@@ -56,6 +58,11 @@ function MenuPageContent() {
     clearCart,
   } = useCartStore();
 
+  const [restaurantProfile, setRestaurantProfile] = useState<{
+    name: string;
+    logo_url?: string | null;
+    theme_color?: string | null;
+  } | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [browseMode, setBrowseMode] = useState(false);
@@ -89,9 +96,14 @@ function MenuPageContent() {
         const lat = position?.coords.latitude ?? 0;
         const lon = position?.coords.longitude ?? 0;
 
-        const { data } = await scanRestaurant(restaurantIdParam, lat, lon);
+        const [{ data }, profileRes] = await Promise.all([
+          scanRestaurant(restaurantIdParam, lat, lon),
+          getRestaurant(restaurantIdParam),
+        ]);
         setRestaurantInfo(data.restaurant_id);
         setBrowseMode(true);
+        setRestaurantProfile(profileRes.data);
+        applyTheme(profileRes.data.theme_color || "forest");
 
         const flat = data.categories.flatMap((cat) =>
           cat.menuItems.map((item) => ({ ...item, category: cat })),
@@ -117,8 +129,13 @@ function MenuPageContent() {
     try {
       const { data: table } = await scanQRNoLocation(token);
       setTableInfo(table.id, table.restaurant_id);
-      const { data: menuData } = await getMenuItems(table.restaurant_id);
+      const [{ data: menuData }, profileRes] = await Promise.all([
+        getMenuItems(table.restaurant_id),
+        getRestaurant(table.restaurant_id),
+      ]);
       setMenuItems(menuData);
+      setRestaurantProfile(profileRes.data);
+      applyTheme(profileRes.data.theme_color || "forest");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       const msg = error.response?.data?.message || "Failed to load menu";
@@ -324,7 +341,7 @@ function MenuPageContent() {
     return (
       <div className="min-h-screen bg-white">
         {/* Sticky skeleton block */}
-        <div className="sticky top-0 z-20 bg-white border-b border-[#e8ede9]">
+        <div className="sticky top-0 z-20 bg-white border-b border-primary/20">
           {/* Header row */}
           <div className="px-4 py-3.5">
             <Skeleton className="h-5 w-32 rounded-md" />
@@ -365,7 +382,7 @@ function MenuPageContent() {
   return (
     <div className="min-h-screen bg-white pb-32">
       {/* ── Sticky top block: Header + Search + Category Tabs ── */}
-      <div className="sticky top-0 z-20 bg-white border-b border-[#e8ede9]">
+      <div className="sticky top-0 z-20 bg-white border-b border-primary/20">
         {/* Header row — collapses on scroll */}
         <div
           className="overflow-hidden transition-all duration-300 ease-in-out"
@@ -376,9 +393,20 @@ function MenuPageContent() {
         >
           <div className="px-4 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Image src="/somsa-cafe.png" alt="Logo" width={35} height={35} style={{ width: 35, height: 35 }} />
+              {resolveImageUrl(restaurantProfile?.logo_url) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={resolveImageUrl(restaurantProfile?.logo_url)}
+                  alt="Logo"
+                  className="w-9 h-9 rounded-full object-cover shrink-0"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs shrink-0">
+                  {(restaurantProfile?.name ?? "R").slice(0, 2).toUpperCase()}
+                </div>
+              )}
               <h1 className="text-base font-bold text-slate-800 tracking-tight">
-                Somsa cafe & Bar
+                {restaurantProfile?.name ?? ""}
               </h1>
             </div>
             {table_id && !browseMode && (
@@ -389,14 +417,14 @@ function MenuPageContent() {
                 {/* Orders icon — opens order list sheet */}
                 <button
                   onClick={() => setOrdersOpen(true)}
-                  className="relative p-1.5 rounded-xl bg-[#f0f5f1] text-[#3a5a40] active:bg-[#dceade] transition-colors"
+                  className="relative p-1.5 rounded-xl bg-primary/10 text-primary active:bg-primary/20 transition-colors"
                   aria-label="ລາຍການສັ່ງຂອງທ່ານ"
                 >
                   <ClipboardList className="h-5 w-5" />
                   {tableOrders.filter(
                     (o) => o.status === "PENDING" || o.status === "CONFIRMED",
                   ).length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[#3a5a40] text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-1 leading-none pointer-events-none">
+                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-1 leading-none pointer-events-none">
                       {
                         tableOrders.filter(
                           (o) =>
@@ -420,7 +448,7 @@ function MenuPageContent() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ຄົ້ນຫາເມນູ…"
-              className="w-full bg-[#f0f5f1] rounded-xl pl-9 pr-9 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#3a5a40]/30 transition-all"
+              className="w-full bg-primary/10 rounded-xl pl-9 pr-9 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
             />
             {searchQuery && (
               <button
@@ -445,13 +473,13 @@ function MenuPageContent() {
       <div className="px-4 pt-2">
         {/* View toggle toolbar */}
         <div className="flex justify-end">
-          <div className="flex items-center bg-[#f0f5f1] rounded-xl p-1 gap-0.5">
+          <div className="flex items-center bg-primary/10 rounded-xl p-1 gap-0.5">
             <button
               onClick={() => setViewMode("grid")}
               className={`p-1.5 rounded-lg transition-all ${
                 viewMode === "grid"
-                  ? "bg-[#3a5a40] text-white shadow-sm"
-                  : "text-[#3a5a40] hover:text-[#2c4430]"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-primary hover:text-primary/80"
               }`}
               aria-label="Grid view"
             >
@@ -461,8 +489,8 @@ function MenuPageContent() {
               onClick={() => setViewMode("list")}
               className={`p-1.5 rounded-lg transition-all ${
                 viewMode === "list"
-                  ? "bg-[#3a5a40] text-white shadow-sm"
-                  : "text-[#3a5a40] hover:text-[#2c4430]"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-primary hover:text-primary/80"
               }`}
               aria-label="List view"
             >
@@ -480,7 +508,7 @@ function MenuPageContent() {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="text-[#3a5a40] text-sm font-medium"
+                className="text-primary text-sm font-medium"
               >
                 ລ້າງການຄົ້ນຫາ
               </button>
@@ -559,13 +587,13 @@ function MenuPageContent() {
         <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center px-4">
           <button
             onClick={() => setCartOpen(true)}
-            className="w-full max-w-sm flex items-center justify-between bg-[#3a5a40] active:bg-[#2c4430] text-white rounded-2xl px-5 py-3.5 shadow-lg shadow-[rgba(58,90,64,0.3)] transition-all"
+            className="w-full max-w-sm flex items-center justify-between bg-primary active:bg-primary/90 text-primary-foreground rounded-2xl px-5 py-3.5 shadow-lg transition-all"
           >
             {/* Cart count badge */}
             <div className="flex items-center gap-2">
               <div className="relative">
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-2 -right-2 bg-white text-[#3a5a40] text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                <span className="absolute -top-2 -right-2 bg-white text-primary text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
                   {totalItems()}
                 </span>
               </div>
@@ -609,8 +637,8 @@ function MenuPageContent() {
         >
           <SheetHeader className="items-center pb-4">
             {/* Icon */}
-            <div className="w-16 h-16 rounded-full bg-[#f0f5f1] flex items-center justify-center mb-2">
-              <ShoppingCart className="h-7 w-7 text-[#3a5a40]" />
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <ShoppingCart className="h-7 w-7 text-primary" />
             </div>
             <SheetTitle className="text-lg font-bold text-slate-800">
               ຢືນຢັນການສັ່ງ?
@@ -619,7 +647,7 @@ function MenuPageContent() {
 
           <p className="text-center text-sm text-slate-500 mb-6">
             ທ່ານຕ້ອງການສັ່ງ{" "}
-            <strong className="text-[#3a5a40]">
+            <strong className="text-primary">
               {items.reduce((s, i) => s + i.quantity, 0)} ລາຍການ
             </strong>{" "}
             ແທ້ບໍ?
@@ -639,7 +667,7 @@ function MenuPageContent() {
             <button
               id="confirm-order-yes"
               onClick={handleConfirmOrder}
-              className="flex-1 py-3 rounded-xl bg-[#3a5a40] hover:bg-[#2c4430] active:bg-[#1e3022] text-white text-sm font-bold transition-colors shadow-md shadow-[rgba(58,90,64,0.25)]"
+              className="flex-1 py-3 rounded-xl bg-primary hover:bg-primary/90 active:bg-primary/80 text-primary-foreground text-sm font-bold transition-colors shadow-md"
             >
               ແມ່ນ
             </button>

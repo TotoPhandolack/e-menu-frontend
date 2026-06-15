@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "title": "Design System: Emenu",
+  "extensions": {
+    "colorMeta": {
+      "chalk-white": {
+        "role": "neutral",
+        "displayName": "Chalk White",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(0.1 0 0)",
+          "oklch(0.2 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.5 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.80 0 0)",
+          "oklch(0.92 0 0)",
+          "oklch(1 0 0)"
+        ]
+      },
+      "blackboard": {
+        "role": "primary",
+        "displayName": "Blackboard",
+        "canonical": "oklch(0.205 0 0)",
+        "tonalRamp": [
+          "oklch(0.08 0 0)",
+          "oklch(0.145 0 0)",
+          "oklch(0.205 0 0)",
+          "oklch(0.30 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.60 0 0)",
+          "oklch(0.78 0 0)",
+          "oklch(0.94 0 0)"
+        ]
+      },
+      "deep-ink": {
+        "role": "neutral",
+        "displayName": "Deep Ink",
+        "canonical": "oklch(0.145 0 0)",
+        "tonalRamp": [
+          "oklch(0.05 0 0)",
+          "oklch(0.1 0 0)",
+          "oklch(0.145 0 0)",
+          "oklch(0.22 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(0.93 0 0)"
+        ]
+      },
+      "ghost-surface": {
+        "role": "neutral",
+        "displayName": "Ghost Surface",
+        "canonical": "oklch(0.97 0 0)",
+        "tonalRamp": [
+          "oklch(0.3 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.58 0 0)",
+          "oklch(0.70 0 0)",
+          "oklch(0.80 0 0)",
+          "oklch(0.88 0 0)",
+          "oklch(0.94 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "slate-gray": {
+        "role": "neutral",
+        "displayName": "Slate Gray",
+        "canonical": "oklch(0.556 0 0)",
+        "tonalRamp": [
+          "oklch(0.1 0 0)",
+          "oklch(0.2 0 0)",
+          "oklch(0.32 0 0)",
+          "oklch(0.43 0 0)",
+          "oklch(0.556 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.78 0 0)",
+          "oklch(0.93 0 0)"
+        ]
+      },
+      "kitchen-red": {
+        "role": "destructive",
+        "displayName": "Kitchen Red",
+        "canonical": "oklch(0.577 0.245 27.325)",
+        "tonalRamp": [
+          "oklch(0.2 0.12 27)",
+          "oklch(0.3 0.18 27)",
+          "oklch(0.42 0.22 27)",
+          "oklch(0.52 0.24 27)",
+          "oklch(0.577 0.245 27.325)",
+          "oklch(0.65 0.2 27)",
+          "oklch(0.78 0.12 30)",
+          "oklch(0.92 0.05 30)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Restaurant name at menu top, onboarding heroes. Phetsarath OT carries Lao equivalents."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Menu category headers, dashboard section titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card titles, modal headings, list item primary text."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Menu item descriptions, order details, flowing text. Line-height 1.6 required for Lao script."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Status indicators, table numbers, small metadata. Never uppercase-tracked."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-spring",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Entrance animations, slide-up transitions. Spring-like settle without bounce."
+      },
+      {
+        "name": "ease-standard",
+        "value": "ease-in-out",
+        "purpose": "Ambient background movement, decorative floating elements."
+      },
+      {
+        "name": "duration-fast",
+        "value": "0.15s",
+        "purpose": "State transitions — hover, focus, color changes."
+      },
+      {
+        "name": "duration-enter",
+        "value": "0.5s",
+        "purpose": "Entrance animations (slideUp). Pairs with ease-spring."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary action trigger. Near-black fill, white text, 10px radius. Darkens on hover; sinks 1px on active.",
+      "html": "<button class=\"ds-btn-primary\">ສັ່ງອາຫານ</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 10px; background: oklch(0.205 0 0); color: oklch(0.985 0 0); font-family: Outfit, 'Noto Sans Lao', sans-serif; font-size: 14px; font-weight: 500; border-radius: 10px; border: 1px solid transparent; white-space: nowrap; cursor: pointer; transition: background-color 0.15s ease; } .ds-btn-primary:hover { background: oklch(0.145 0 0); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: none; border-color: oklch(0.708 0 0); box-shadow: 0 0 0 3px oklch(0.708 0 0 / 0.5); } .ds-btn-primary:disabled { opacity: 0.5; pointer-events: none; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action. No fill at rest; Ghost Surface on hover. Used for cancel and non-destructive secondary actions.",
+      "html": "<button class=\"ds-btn-ghost\">ຍົກເລີກ</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 10px; background: transparent; color: oklch(0.145 0 0); font-family: Outfit, 'Noto Sans Lao', sans-serif; font-size: 14px; font-weight: 500; border-radius: 10px; border: 1px solid transparent; white-space: nowrap; cursor: pointer; transition: background-color 0.15s ease; } .ds-btn-ghost:hover { background: oklch(0.97 0 0); } .ds-btn-ghost:focus-visible { outline: none; border-color: oklch(0.708 0 0); box-shadow: 0 0 0 3px oklch(0.708 0 0 / 0.5); } .ds-btn-ghost:disabled { opacity: 0.5; pointer-events: none; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Primary content container. Ring-only border, 14px radius, strict header/content/footer zones.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-header\"><div class=\"ds-card-title\">ລາຍການ</div><div class=\"ds-card-description\">ລາຍລະອຽດ</div></div><div class=\"ds-card-content\"><p>ເນື້ອຫາ</p></div><div class=\"ds-card-footer\">ດຳເນີນການ</div></div>",
+      "css": ".ds-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; background: oklch(1 0 0); padding: 16px 0 0 0; box-shadow: 0 0 0 1px oklch(0.145 0 0 / 0.1); font-size: 14px; color: oklch(0.145 0 0); } .ds-card-header { padding: 0 16px 12px 16px; display: grid; gap: 4px; } .ds-card-title { font-family: Outfit, 'Noto Sans Lao', sans-serif; font-size: 16px; font-weight: 500; line-height: 1.35; } .ds-card-description { font-size: 14px; color: oklch(0.556 0 0); } .ds-card-content { padding: 0 16px 16px; } .ds-card-footer { display: flex; align-items: center; border-top: 1px solid oklch(0.922 0 0); background: oklch(0.97 0 0 / 0.5); padding: 16px; }"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Text field. Transparent fill, Hairline stroke, 10px radius. Focus shifts border to Focus Ash with a 3px ring.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"ຄົ້ນຫາ...\" />",
+      "css": ".ds-input { height: 32px; width: 100%; min-width: 0; border-radius: 10px; border: 1px solid oklch(0.922 0 0); background: transparent; padding: 4px 10px; font-family: Outfit, 'Noto Sans Lao', sans-serif; font-size: 14px; color: oklch(0.145 0 0); outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; box-sizing: border-box; } .ds-input::placeholder { color: oklch(0.556 0 0); } .ds-input:focus { border-color: oklch(0.708 0 0); box-shadow: 0 0 0 3px oklch(0.708 0 0 / 0.5); } .ds-input[aria-invalid='true'] { border-color: oklch(0.577 0.245 27.325); box-shadow: 0 0 0 3px oklch(0.577 0.245 27.325 / 0.2); } .ds-input:disabled { background: oklch(0.922 0 0 / 0.5); opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Order Status Badge",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Signature component. Four operationally distinct states (pending/confirmed/preparing/complete), differentiated by background color — never by shade alone.",
+      "html": "<span class=\"ds-badge ds-badge-pending\">ລໍຖ້າ</span> <span class=\"ds-badge ds-badge-confirmed\">ຮັບແລ້ວ</span> <span class=\"ds-badge ds-badge-preparing\">ກຳລັງປຸງ</span> <span class=\"ds-badge ds-badge-complete\">ສຳເລັດ</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 18px; font-family: Outfit, 'Noto Sans Lao', sans-serif; font-size: 12px; font-weight: 500; white-space: nowrap; } .ds-badge-pending { background: oklch(0.97 0 0); color: oklch(0.556 0 0); } .ds-badge-confirmed { background: oklch(0.95 0.05 230); color: oklch(0.25 0.08 230); } .ds-badge-preparing { background: oklch(0.95 0.12 80); color: oklch(0.4 0.12 80); } .ds-badge-complete { background: oklch(0.95 0.05 145); color: oklch(0.35 0.1 145); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Well-Run Kitchen",
+    "overview": "A well-run kitchen doesn't waste motion. Every tool is where it belongs, every surface is clear, every action has a single obvious next step. Emenu carries that discipline into the digital — a product UI where operational clarity is the design. The Blackboard-and-Chalk palette is monochromatic by intent: zero visual noise means a cashier can read order state at a glance and a diner can find their dish without scanning through marketing. The brand color lives in --primary, injected per restaurant, so each tenant gets identity without the neutral system losing coherence.\n\nLao script is not an afterthought. Phetsarath OT handles headlines; Noto Sans Lao covers body copy; Outfit carries Latin characters at the same visual mass.\n\nThis system explicitly rejects delivery-app marketplace energy (UberEats, Foodpanda, GrabFood) and glassmorphism. Decoration that competes with the food is prohibited.",
+    "keyCharacteristics": [
+      "Achromatic zinc foundation — zero brand-color interference at the base layer",
+      "Flat tonal elevation — ring-borders and surface layering carry all depth",
+      "Lao-first typography — Phetsarath OT and Noto Sans Lao as primary weight-carriers",
+      "Tenant-injected accent — the system recedes; the restaurant brand advances",
+      "Dense but breathable layout — cashier needs density; diner needs whitespace"
+    ],
+    "rules": [
+      { "name": "The Slate Gray Floor Rule", "body": "oklch(0.556 0 0) is the minimum lightness for any body text on Chalk White. Anything lighter fails 4.5:1. When in doubt, shift toward Deep Ink.", "section": "colors" },
+      { "name": "The Tenant Accent Rule", "body": "--primary is a reservation, not a committed color. Every affordance must survive replacement with any restaurant brand hue.", "section": "colors" },
+      { "name": "The Lao Line Height Rule", "body": "Lao script requires line-height: 1.6 minimum. Never go below 1.5 for any Lao copy.", "section": "typography" },
+      { "name": "The Phetsarath Ceiling", "body": "Use Phetsarath OT only at headline and display sizes (≥1rem). Noto Sans Lao below that boundary.", "section": "typography" },
+      { "name": "The Flat Register Rule", "body": "No box-shadow with blur > 0 on any component at rest. Hover states may add a soft ambient shadow for interactive elements only.", "section": "elevation" },
+      { "name": "The Ring-Not-Border Rule", "body": "Card boundaries use box-shadow: 0 0 0 1px oklch(0.145 0 0 / 0.1), not border.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use box-shadow: 0 0 0 1px oklch(0.145 0 0 / 0.1) as the card boundary. Not border.",
+      "Do keep muted foreground at ≥ oklch(0.556 0 0) for any body text on Chalk White.",
+      "Do set Lao script body text at line-height: 1.6 minimum.",
+      "Do design every affordance to work with any --primary value.",
+      "Do use Phetsarath OT for Lao at ≥1rem; Noto Sans Lao below that.",
+      "Do reserve Kitchen Red for destructive and error states only.",
+      "Do differentiate order status badges by background color, not shade."
+    ],
+    "donts": [
+      "Don't use border-left or border-right > 1px as a colored accent on cards or list items.",
+      "Don't use delivery-app UI patterns: promotional banners, gamified badges, carousel-first layouts.",
+      "Don't use generic white-label SaaS scaffolding forgettable across any product.",
+      "Don't use glassmorphism: blurred hero images behind menus, frosted-glass card treatments.",
+      "Don't use gradient text (background-clip: text with a gradient). Solid color always.",
+      "Don't tint the neutral base warm or cool by default. Warmth comes from --primary.",
+      "Don't use tracked uppercase eyebrow labels or numbered section markers (01 · 02 · 03).",
+      "Don't use arbitrary z-index values (999, 9999). Use semantic scale."
+    ]
+  }
+}

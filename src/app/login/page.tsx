@@ -20,17 +20,20 @@ const LANGUAGES = [
 
 type LangCode = (typeof LANGUAGES)[number]["code"];
 
-const T: Record<LangCode, {
-  subtitle: string;
-  email: string;
-  password: string;
-  submit: string;
-  newHere: string;
-  createAccount: string;
-  errorEmpty: string;
-  errorInvalid: string;
-  welcome: (name: string) => string;
-}> = {
+const T: Record<
+  LangCode,
+  {
+    subtitle: string;
+    email: string;
+    password: string;
+    submit: string;
+    newHere: string;
+    createAccount: string;
+    errorEmpty: string;
+    errorInvalid: string;
+    welcome: (name: string) => string;
+  }
+> = {
   en: {
     subtitle: "Sign in to E-Menu",
     email: "Email",
@@ -129,7 +132,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-svh flex items-center justify-center bg-muted/40 px-4 py-12">
       <div className="w-full max-w-4xl animate-slideUp">
-        <div className="relative grid overflow-hidden rounded-2xl border bg-background shadow-sm md:grid-cols-2">
+        <div className="relative grid overflow-hidden rounded-2xl ring-1 ring-foreground/10 bg-background md:grid-cols-2">
           {/* Language switcher */}
           <div ref={langRef} className="absolute right-3 top-3 z-20">
             <button
@@ -155,7 +158,9 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => handleSelectLang(l.code)}
                     className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-muted ${
-                      l.code === lang ? "font-semibold text-foreground" : "text-muted-foreground"
+                      l.code === lang
+                        ? "font-semibold text-foreground"
+                        : "text-muted-foreground"
                     }`}
                   >
                     {l.label}
@@ -170,7 +175,7 @@ export default function LoginPage() {
           <div className="hidden p-2 md:block">
             <div className="relative min-h-140 overflow-hidden rounded-2xl">
               <Image
-                src="/images/loginImage.png"
+                src="/images/login.png"
                 alt="E-Menu"
                 fill
                 priority
@@ -187,10 +192,10 @@ export default function LoginPage() {
               <Image
                 src="/images/main-logo.png"
                 alt="E-Menu"
-                width={96}
-                height={48}
+                width={100}
+                height={100}
                 priority
-                className="h-12 w-auto rounded-sm object-contain"
+                className="h-20 w-auto rounded-sm object-contain"
               />
             </div>
 
@@ -214,7 +219,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                   autoComplete="email"
-                  className="h-10"
+                  className="h-11 rounded-xl"
                 />
               </div>
 
@@ -229,7 +234,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                     autoComplete="current-password"
-                    className="h-10 pr-10"
+                    className="h-11 rounded-xl pr-10"
                   />
                   <button
                     type="button"
@@ -243,15 +248,12 @@ export default function LoginPage() {
               </div>
 
               <Button
-                className="w-full h-10 mt-1"
+                className="w-full h-11 mt-1 rounded-xl bg-primary text-primary-foreground"
                 onClick={handleLogin}
                 disabled={loading}
               >
-                {loading ? (
-                  <Loader2 size={15} className="animate-spin" />
-                ) : (
-                  t.submit
-                )}
+                {loading && <Loader2 size={15} className="animate-spin" />}
+                {t.submit}
               </Button>
             </div>
 

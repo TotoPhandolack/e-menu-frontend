@@ -33,7 +33,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import type { Admin, TeamMember } from "@/lib/api";
 import {
   uploadRestaurantLogo,

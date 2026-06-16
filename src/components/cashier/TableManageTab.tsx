@@ -16,7 +16,7 @@ import {
   Users,
   ArrowUpDown,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";

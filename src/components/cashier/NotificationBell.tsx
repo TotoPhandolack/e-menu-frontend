@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Bell, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { updateOrderStatus, cashierPrintKitchen, type Order } from "@/lib/api";

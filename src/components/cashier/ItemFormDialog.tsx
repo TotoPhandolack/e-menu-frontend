@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ImagePlus, Link, Trash2, Upload, Utensils, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import {
   Dialog,
   DialogContent,

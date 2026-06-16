@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { registerAdmin, getRestaurants, type Restaurant } from '@/lib/api';
-import { toast } from 'sonner';
+import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

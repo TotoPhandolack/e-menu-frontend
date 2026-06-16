@@ -5,7 +5,7 @@ import { RefreshCw, ClipboardList, Clock, ChefHat, Banknote, QrCode, Printer } f
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
+import { toast } from "react-toastify";
 import { updateOrderStatus, cashierPrintKitchen, type Order } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
 import { printBill } from '@/lib/printBill';

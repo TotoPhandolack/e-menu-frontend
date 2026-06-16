@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { ClipboardList, RefreshCw, X, Clock, ChefHat } from "lucide-react";
 import { cancelOrder, type Order } from "@/lib/api";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 interface Props {
   open: boolean;

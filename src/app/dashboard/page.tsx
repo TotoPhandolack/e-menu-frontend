@@ -9,7 +9,7 @@ import {
 } from "@/lib/api";
 import { useSocket } from "@/hooks/useSocket";
 import OrderCard from "@/components/dashboard/OrderCard";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useAuthStore } from "@/stores/auth.store";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";

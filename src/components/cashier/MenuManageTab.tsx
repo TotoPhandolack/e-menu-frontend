@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Utensils, EyeOff, RefreshCw, Search, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";

@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { toast as rtToast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import { playDing } from "@/lib/sound";
 import { printBill } from "@/lib/printBill";
 
@@ -155,7 +154,7 @@ export default function CashierPage() {
       );
       if (!newOrder.session_id?.startsWith("cashier-")) {
         playDing();
-        rtToast.info(
+        toast.info(
           `🔔 Order ໃໝ່! ໂຕະ ${newOrder.table?.table_number ?? "Takeaway"}`,
           { position: "top-right", autoClose: 6000, theme: "colored" },
         );
@@ -433,8 +432,6 @@ export default function CashierPage() {
         mobileOrderOpen={mobileOrderOpen}
         onOpen={() => setMobileOrderOpen(true)}
       />
-
-      <ToastContainer limit={5} />
 
       <TakeawayPaymentDialog
         order={pendingTakeawayOrder}

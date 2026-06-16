@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createRestaurant } from "@/lib/api";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Store, MapPin, Compass, Loader2, ArrowLeft, Map } from "lucide-react";
 
 const DEFAULT_RADIUS = 1000;

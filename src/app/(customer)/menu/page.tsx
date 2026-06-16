@@ -21,7 +21,7 @@ import OrderListSheet from "@/components/customer/OrderListSheet";
 
 import { useCartStore } from "@/stores/cart.store";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import MenuItemCard from "@/components/customer/MenuItemCard";
 import CategoryTabs from "@/components/customer/CategoryTabs";
 import CartSheet from "@/components/customer/CartSheet";

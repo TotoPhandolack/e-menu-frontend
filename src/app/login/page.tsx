@@ -1,129 +1,276 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { login } from '@/lib/api';
-import { useAuthStore } from '@/stores/auth.store';
-import { toast } from 'sonner';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { login } from "@/lib/api";
+import { useAuthStore } from "@/stores/auth.store";
+import { toast } from "sonner";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Image from "next/image";
+import { Check, ChevronDown, Eye, EyeOff, Globe, Loader2 } from "lucide-react";
+
+const LANGUAGES = [
+  { code: "lo", label: "ລາວ" },
+  { code: "th", label: "ไทย" },
+  { code: "en", label: "ENG" },
+] as const;
+
+type LangCode = (typeof LANGUAGES)[number]["code"];
+
+const T: Record<LangCode, {
+  subtitle: string;
+  email: string;
+  password: string;
+  submit: string;
+  newHere: string;
+  createAccount: string;
+  errorEmpty: string;
+  errorInvalid: string;
+  welcome: (name: string) => string;
+}> = {
+  en: {
+    subtitle: "Sign in to E-Menu",
+    email: "Email",
+    password: "Password",
+    submit: "Sign in",
+    newHere: "New here?",
+    createAccount: "Create an account",
+    errorEmpty: "Please enter your email and password",
+    errorInvalid: "Invalid email or password",
+    welcome: (name) => `Welcome back, ${name}!`,
+  },
+  lo: {
+    subtitle: "ເຂົ້າສູ່ລະບົບ E-Menu",
+    email: "ອີເມລ",
+    password: "ລະຫັດຜ່ານ",
+    submit: "ເຂົ້າສູ່ລະບົບ",
+    newHere: "ຍັງບໍ່ມີບັນຊີ?",
+    createAccount: "ສ້າງບັນຊີໃໝ່",
+    errorEmpty: "ກະລຸນາໃສ່ອີເມລ ແລະ ລະຫັດຜ່ານ",
+    errorInvalid: "ອີເມລ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ",
+    welcome: (name) => `ຍິນດີຕ້ອນຮັບ ${name}!`,
+  },
+  th: {
+    subtitle: "เข้าสู่ระบบ E-Menu",
+    email: "อีเมล",
+    password: "รหัสผ่าน",
+    submit: "เข้าสู่ระบบ",
+    newHere: "ยังไม่มีบัญชี?",
+    createAccount: "สร้างบัญชีใหม่",
+    errorEmpty: "กรุณากรอกอีเมลและรหัสผ่าน",
+    errorInvalid: "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+    welcome: (name) => `ยินดีต้อนรับ ${name}!`,
+  },
+};
 
 export default function LoginPage() {
-    const router = useRouter();
-    const { setAuth } = useAuthStore();
+  const router = useRouter();
+  const { setAuth } = useAuthStore();
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-    const handleLogin = async () => {
-        if (!email || !password) {
-            toast.error('ກະລຸນາໃສ່ອີເມລ ແລະ ລະຫັດຜ່ານ');
-            return;
-        }
-        setLoading(true);
-        try {
-            const { data } = await login(email, password);
-            setAuth(data.access_token, data.admin);
-            toast.success(`ຍິນດີຕ້ອນຮັບ ${data.admin.name}!`);
-            if (data.admin.role === 'CASHIER') {
-                router.push('/cashier');
-            } else {
-                router.push('/dashboard');
-            }
-        } catch {
-            toast.error('ອີເມລ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ');
-        } finally {
-            setLoading(false);
-        }
+  const [lang, setLang] = useState<LangCode>("en");
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("emenu-lang") as LangCode | null;
+    if (stored && LANGUAGES.some((l) => l.code === stored)) setLang(stored);
+  }, []);
+
+  useEffect(() => {
+    if (!langOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
     };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [langOpen]);
 
-    return (
-        <div className="min-h-svh flex items-center justify-center bg-muted/40 px-4 py-12">
-            <div className="w-full max-w-sm animate-slideUp">
-                <div className="rounded-2xl border bg-background shadow-sm p-8">
-                    {/* Logo */}
-                    <div className="flex justify-center mb-6">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-950">
-                            <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-                                <path d="M8 20 Q14 8 20 20" stroke="white" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-                                <circle cx="14" cy="10" r="2.2" fill="white" />
-                            </svg>
-                        </div>
-                    </div>
+  const handleSelectLang = (code: LangCode) => {
+    setLang(code);
+    localStorage.setItem("emenu-lang", code);
+    setLangOpen(false);
+  };
 
-                    <div className="mb-7 text-center">
-                        <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
-                        <p className="mt-1.5 text-sm text-muted-foreground">ເຂົ້າສູ່ລະບົບ E-Menu</p>
-                    </div>
+  const currentLang = LANGUAGES.find((l) => l.code === lang) ?? LANGUAGES[0];
+  const t = T[lang];
 
-                    <div className="space-y-4">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="email">ອີເມລ</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="your@email.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                                autoComplete="email"
-                                className="h-10"
-                            />
-                        </div>
+  const handleLogin = async () => {
+    if (!email || !password) {
+      toast.error(t.errorEmpty);
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data } = await login(email, password);
+      setAuth(data.access_token, data.admin);
+      toast.success(t.welcome(data.admin.name));
+      if (data.admin.role === "CASHIER") {
+        router.push("/cashier");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch {
+      toast.error(t.errorInvalid);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                        <div className="space-y-1.5">
-                            <Label htmlFor="password">ລະຫັດຜ່ານ</Label>
-                            <div className="relative">
-                                <Input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                                    autoComplete="current-password"
-                                    className="h-10 pr-10"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                                    aria-label="Toggle password visibility"
-                                >
-                                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                                </button>
-                            </div>
-                        </div>
+  return (
+    <div className="min-h-svh flex items-center justify-center bg-muted/40 px-4 py-12">
+      <div className="w-full max-w-4xl animate-slideUp">
+        <div className="relative grid overflow-hidden rounded-2xl border bg-background shadow-sm md:grid-cols-2">
+          {/* Language switcher */}
+          <div ref={langRef} className="absolute right-3 top-3 z-20">
+            <button
+              type="button"
+              onClick={() => setLangOpen((v) => !v)}
+              className="flex items-center gap-1.5 rounded-lg border bg-background/80 px-2.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur transition-colors hover:bg-muted hover:text-foreground"
+              aria-label="Change language"
+              aria-expanded={langOpen}
+            >
+              <Globe size={14} />
+              {currentLang.label}
+              <ChevronDown
+                size={13}
+                className={`transition-transform ${langOpen ? "rotate-180" : ""}`}
+              />
+            </button>
 
-                        <Button
-                            className="w-full h-10 mt-1"
-                            onClick={handleLogin}
-                            disabled={loading}
-                        >
-                            {loading ? <Loader2 size={15} className="animate-spin" /> : 'ເຂົ້າສູ່ລະບົບ'}
-                        </Button>
-                    </div>
+            {langOpen && (
+              <div className="absolute right-0 mt-1.5 w-28 overflow-hidden rounded-lg border bg-background shadow-md">
+                {LANGUAGES.map((l) => (
+                  <button
+                    key={l.code}
+                    type="button"
+                    onClick={() => handleSelectLang(l.code)}
+                    className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-muted ${
+                      l.code === lang ? "font-semibold text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    {l.label}
+                    {l.code === lang && <Check size={14} />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-                    <p className="mt-6 text-center text-sm text-muted-foreground">
-                        New here?{' '}
-                        <Link
-                            href="/register"
-                            className="font-semibold text-primary underline-offset-4 hover:underline"
-                        >
-                            Create an account
-                        </Link>
-                    </p>
-                </div>
-
-                <p className="mt-5 text-center text-xs text-muted-foreground/50">
-                    Restaurant management system · E-Menu
-                </p>
+          {/* Left — image */}
+          <div className="hidden p-2 md:block">
+            <div className="relative min-h-140 overflow-hidden rounded-2xl">
+              <Image
+                src="/images/loginImage.png"
+                alt="E-Menu"
+                fill
+                priority
+                sizes="(min-width: 768px) 50vw, 0px"
+                className="object-cover"
+              />
             </div>
+          </div>
+
+          {/* Right — login form */}
+          <div className="flex flex-col justify-center p-8 sm:p-10">
+            {/* Logo */}
+            <div className="mb-6 flex justify-center">
+              <Image
+                src="/images/main-logo.png"
+                alt="E-Menu"
+                width={96}
+                height={48}
+                priority
+                className="h-12 w-auto rounded-sm object-contain"
+              />
+            </div>
+
+            <div className="mb-7 text-center">
+              <h2 className="text-2xl font-bold tracking-tight">
+                Welcome back
+              </h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                {t.subtitle}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email">{t.email}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  autoComplete="email"
+                  className="h-10"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="password">{t.password}</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                    autoComplete="current-password"
+                    className="h-10 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                className="w-full h-10 mt-1"
+                onClick={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  t.submit
+                )}
+              </Button>
+            </div>
+
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              {t.newHere}{" "}
+              <Link
+                href="/register"
+                className="font-semibold text-primary underline-offset-4 hover:underline"
+              >
+                {t.createAccount}
+              </Link>
+            </p>
+          </div>
         </div>
-    );
+
+        <p className="mt-5 text-center text-xs text-muted-foreground/50">
+          Restaurant management system · E-Menu
+        </p>
+      </div>
+    </div>
+  );
 }

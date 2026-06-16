@@ -1,4 +1,4 @@
-// src/stores/cart.store.ts
+// src/stores/cartStore.ts
 import { create } from "zustand";
 import { MenuItem } from "@/lib/api";
 

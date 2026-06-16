@@ -2,7 +2,7 @@
 "use client";
 
 import { resolveImageUrl } from "@/lib/api";
-import { useCartStore } from "@/stores/cart.store";
+import { useCartStore } from "@/stores/cartStore";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,

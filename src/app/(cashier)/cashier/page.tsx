@@ -17,7 +17,7 @@ import { OrderPanel, type CartItem } from "@/components/cashier/OrderPanel";
 import { LiveOrdersTab } from "@/components/cashier/LiveOrdersTab";
 import { OrderHistoryTab } from "@/components/cashier/OrderHistoryTab";
 
-import { useAuthStore } from "@/stores/auth.store";
+import { useAuthStore } from "@/stores/authStore";
 import { useSocket } from "@/hooks/useSocket";
 import {
   getMenuItems,

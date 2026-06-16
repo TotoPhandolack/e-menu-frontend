@@ -2,7 +2,7 @@
 "use client";
 
 import { resolveImageUrl, MenuItem } from "@/lib/api";
-import { useCartStore } from "@/stores/cart.store";
+import { useCartStore } from "@/stores/cartStore";
 import { ChefHat, Plus, Minus } from "lucide-react";
 
 interface Props {

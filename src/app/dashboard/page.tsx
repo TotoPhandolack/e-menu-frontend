@@ -10,7 +10,7 @@ import {
 import { useSocket } from "@/hooks/useSocket";
 import OrderCard from "@/components/dashboard/OrderCard";
 import { toast } from "react-toastify";
-import { useAuthStore } from "@/stores/auth.store";
+import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChefHat } from "lucide-react";

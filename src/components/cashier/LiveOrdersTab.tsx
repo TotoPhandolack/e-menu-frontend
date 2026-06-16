@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from "react-toastify";
 import { updateOrderStatus, cashierPrintKitchen, type Order } from '@/lib/api';
-import { useAuthStore } from '@/stores/auth.store';
+import { useAuthStore } from '@/stores/authStore';
 import { printBill } from '@/lib/printBill';
 import {
   Dialog,

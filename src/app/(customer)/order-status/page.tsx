@@ -3,7 +3,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useCartStore } from "@/stores/cart.store";
+import { useCartStore } from "@/stores/cartStore";
 import { ShoppingCart } from "lucide-react";
 
 function OrderSuccessContent() {

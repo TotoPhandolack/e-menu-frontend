@@ -19,7 +19,7 @@ import { playDing } from "@/lib/sound";
 import { useSocket } from "@/hooks/useSocket";
 import OrderListSheet from "@/components/customer/OrderListSheet";
 
-import { useCartStore } from "@/stores/cart.store";
+import { useCartStore } from "@/stores/cartStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
 import MenuItemCard from "@/components/customer/MenuItemCard";

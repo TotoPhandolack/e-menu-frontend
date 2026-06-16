@@ -6,16 +6,16 @@ import { toast } from "react-toastify";
 import { playDing } from "@/lib/sound";
 import { printBill } from "@/lib/printBill";
 
-import { CashierHeader } from "@/components/cashier/CashierHeader";
-import { RestaurantProfileDialog, applyTheme } from "@/components/cashier/RestaurantProfileDialog";
-import { TakeawayPaymentDialog } from "@/components/cashier/TakeawayPaymentDialog";
-import { MobileCartFab } from "@/components/cashier/MobileCartFab";
-import { MenuSection } from "@/components/cashier/MenuSection";
-import { MenuManageTab } from "@/components/cashier/MenuManageTab";
-import { TableManageTab } from "@/components/cashier/TableManageTab";
-import { OrderPanel, type CartItem } from "@/components/cashier/OrderPanel";
-import { LiveOrdersTab } from "@/components/cashier/LiveOrdersTab";
-import { OrderHistoryTab } from "@/components/cashier/OrderHistoryTab";
+import { CashierHeader } from "./components/cashierHeader";
+import { RestaurantProfileDialog, applyTheme } from "./components/restaurantProfileDialog";
+import { TakeawayPaymentDialog } from "./components/takeawayPaymentDialog";
+import { MobileCartFab } from "./components/mobileCartFab";
+import { MenuSection } from "./components/menuSection";
+import { MenuManageTab } from "./components/menuManageTab";
+import { TableManageTab } from "./components/tableManageTab";
+import { OrderPanel, type CartItem } from "./components/orderPanel";
+import { LiveOrdersTab } from "./components/liveOrdersTab";
+import { OrderHistoryTab } from "./components/orderHistoryTab";
 
 import { useAuthStore } from "@/stores/authStore";
 import { useSocket } from "@/hooks/useSocket";

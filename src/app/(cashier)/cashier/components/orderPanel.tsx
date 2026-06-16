@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { NoteEditDialog } from './NoteEditDialog';
+import { NoteEditDialog } from './noteEditDialog';
 import { resolveImageUrl, type MenuItem, type TableInfo, type OrderType } from '@/lib/api';
 
 export interface CartItem {

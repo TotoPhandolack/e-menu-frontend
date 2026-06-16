@@ -1,4 +1,4 @@
-// src/components/customer/MenuItemCard.tsx
+// src/app/(customer)/menu/components/menuItemCard.tsx
 "use client";
 
 import { resolveImageUrl, MenuItem } from "@/lib/api";

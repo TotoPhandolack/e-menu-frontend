@@ -17,14 +17,14 @@ import {
 import { applyTheme } from "@/lib/theme";
 import { playDing } from "@/lib/sound";
 import { useSocket } from "@/hooks/useSocket";
-import OrderListSheet from "@/components/customer/OrderListSheet";
+import OrderListSheet from "./components/orderListSheet";
 
 import { useCartStore } from "@/stores/cartStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
-import MenuItemCard from "@/components/customer/MenuItemCard";
-import CategoryTabs from "@/components/customer/CategoryTabs";
-import CartSheet from "@/components/customer/CartSheet";
+import MenuItemCard from "./components/menuItemCard";
+import CategoryTabs from "./components/categoryTabs";
+import CartSheet from "./components/cartSheet";
 import {
   Sheet,
   SheetContent,

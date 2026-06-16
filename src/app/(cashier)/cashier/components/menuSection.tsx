@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { MenuItemCard } from "./MenuItemCard";
+import { MenuItemCard } from "./menuItemCard";
 import type { MenuItem } from "@/lib/api";
 
 interface Props {

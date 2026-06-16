@@ -17,7 +17,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { ItemFormDialog, type CategoryOption } from "./ItemFormDialog";
+import { ItemFormDialog, type CategoryOption } from "./itemFormDialog";
 import { getCategories, deleteMenuItem, resolveImageUrl, createCategory, cashierToggleMenuItemAvailability, cashierToggleMenuItemRecommended, type MenuItem } from "@/lib/api";
 
 interface Props {

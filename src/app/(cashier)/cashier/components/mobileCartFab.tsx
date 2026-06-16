@@ -1,4 +1,4 @@
-// src/components/cashier/MobileCartFab.tsx
+// src/app/(cashier)/cashier/components/mobileCartFab.tsx
 "use client";
 
 import { ShoppingBag } from "lucide-react";

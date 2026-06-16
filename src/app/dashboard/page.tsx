@@ -8,7 +8,7 @@ import {
   Restaurant,
 } from "@/lib/api";
 import { useSocket } from "@/hooks/useSocket";
-import OrderCard from "@/components/dashboard/OrderCard";
+import OrderCard from "./components/orderCard";
 import { toast } from "react-toastify";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "next/navigation";

@@ -1,4 +1,4 @@
-// src/components/cashier/TakeawayPaymentDialog.tsx
+// src/app/(cashier)/cashier/components/takeawayPaymentDialog.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";

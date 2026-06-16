@@ -1,11 +1,11 @@
-// src/components/cashier/CashierHeader.tsx
+// src/app/(cashier)/cashier/components/cashierHeader.tsx
 "use client";
 
 import { LogOut } from "lucide-react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { NotificationBell } from "@/components/cashier/NotificationBell";
+import { NotificationBell } from "./notificationBell";
 import type { Admin, Order } from "@/lib/api";
 import { resolveImageUrl } from "@/lib/api";
 

@@ -84,7 +84,7 @@ export default function CashierPage() {
         setMenuItems(menuRes.data);
         setTables(tableRes.data);
       })
-      .catch(() => toast.error("Failed to load menu data"))
+      .catch(() => toast.error("ໂຫຼດຂໍ້ມູນເມນູບໍ່ສຳເລັດ"))
       .finally(() => setMenuLoading(false));
   }, [admin]);
 
@@ -103,7 +103,7 @@ export default function CashierPage() {
       const res = await cashierGetLiveOrders();
       setLiveOrders(res.data);
     } catch {
-      toast.error("Failed to load active orders");
+      toast.error("ໂຫຼດອໍເດີ້ບໍ່ສຳເລັດ");
     } finally {
       if (!silent) setLiveLoading(false);
     }
@@ -115,7 +115,7 @@ export default function CashierPage() {
       const res = await cashierGetOrderHistory();
       setHistoryOrders(res.data);
     } catch {
-      toast.error("Failed to load order history");
+      toast.error("ໂຫຼດປະຫວັດອໍເດີ້ບໍ່ສຳເລັດ");
     } finally {
       setHistoryLoading(false);
     }
@@ -127,7 +127,7 @@ export default function CashierPage() {
       const res = await cashierGetMenuItems();
       setManageItems(res.data);
     } catch {
-      toast.error("Failed to load menu items");
+      toast.error("ໂຫຼດລາຍການເມນູບໍ່ສຳເລັດ");
     } finally {
       setManageLoading(false);
     }
@@ -140,7 +140,7 @@ export default function CashierPage() {
       const res = await getTables(admin.restaurant_id);
       setManageTables(res.data);
     } catch {
-      toast.error("Failed to load tables");
+      toast.error("ໂຫຼດໂຕະບໍ່ສຳເລັດ");
     } finally {
       setManageTablesLoading(false);
     }
@@ -220,7 +220,7 @@ export default function CashierPage() {
       if (orderType === "TAKEAWAY") {
         setPendingTakeawayOrder(res.data);
       } else {
-        toast.success("Order placed!");
+        toast.success("ສັ່ງອາຫານສຳເລັດແລ້ວ!");
       }
       try {
         await cashierPrintKitchen(res.data.id);

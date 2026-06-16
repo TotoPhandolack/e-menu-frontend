@@ -121,7 +121,7 @@ function MenuPageContent() {
 
     // ── Table QR (normal ordering mode) ──
     if (!token) {
-      toast.error("Invalid QR Code");
+      toast.error("QR Code ບໍ່ຖືກຕ້ອງ");
       setLoading(false);
       return;
     }

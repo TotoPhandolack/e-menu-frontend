@@ -109,19 +109,19 @@ export function ItemFormDialog({
 
   function handleFileChange(f: File | null) {
     if (!f) return;
-    if (!f.type.startsWith("image/")) { toast.error("Only image files are allowed"); return; }
-    if (f.size > 5 * 1024 * 1024) { toast.error("File must be under 5 MB"); return; }
+    if (!f.type.startsWith("image/")) { toast.error("ອະນຸຍາດສະເພາະໄຟລ໌ຮູບພາບ"); return; }
+    if (f.size > 5 * 1024 * 1024) { toast.error("ໄຟລ໌ຕ້ອງນ້ອຍກວ່າ 5 MB"); return; }
     setFile(f);
     setFilePreview(URL.createObjectURL(f));
     setRemoveImage(false);
   }
 
   function validate() {
-    if (!form.name.trim()) { toast.error("Name is required"); return false; }
-    if (!form.description.trim()) { toast.error("Description is required"); return false; }
+    if (!form.name.trim()) { toast.error("ກະລຸນາໃສ່ຊື່"); return false; }
+    if (!form.description.trim()) { toast.error("ກະລຸນາໃສ່ລາຍລະອຽດ"); return false; }
     const p = parseFloat(form.price);
-    if (isNaN(p) || p < 0) { toast.error("Enter a valid price"); return false; }
-    if (!form.category_id) { toast.error("Select a category"); return false; }
+    if (isNaN(p) || p < 0) { toast.error("ກະລຸນາໃສ່ລາຄາທີ່ຖືກຕ້ອງ"); return false; }
+    if (!form.category_id) { toast.error("ກະລຸນາເລືອກໝວດໝູ່"); return false; }
     return true;
   }
 
@@ -182,7 +182,7 @@ export function ItemFormDialog({
       toast.success(isEdit ? "Item updated" : "Item created");
       handleClose();
     } catch {
-      toast.error("Failed to save item");
+      toast.error("ບັນທຶກລາຍການບໍ່ສຳເລັດ");
     } finally {
       setSaving(false);
     }

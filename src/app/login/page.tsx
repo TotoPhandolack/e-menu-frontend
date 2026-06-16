@@ -23,6 +23,7 @@ type LangCode = (typeof LANGUAGES)[number]["code"];
 const T: Record<
   LangCode,
   {
+    welcomeBack: string;
     subtitle: string;
     email: string;
     password: string;
@@ -35,6 +36,7 @@ const T: Record<
   }
 > = {
   en: {
+    welcomeBack: "Welcome back",
     subtitle: "Sign in to E-Menu",
     email: "Email",
     password: "Password",
@@ -46,6 +48,7 @@ const T: Record<
     welcome: (name) => `Welcome back, ${name}!`,
   },
   lo: {
+    welcomeBack: "ຍິນດີຕ້ອນຮັບກັບມາ",
     subtitle: "ເຂົ້າສູ່ລະບົບ E-Menu",
     email: "ອີເມລ",
     password: "ລະຫັດຜ່ານ",
@@ -57,6 +60,7 @@ const T: Record<
     welcome: (name) => `ຍິນດີຕ້ອນຮັບ ${name}!`,
   },
   th: {
+    welcomeBack: "ยินดีต้อนรับกลับ",
     subtitle: "เข้าสู่ระบบ E-Menu",
     email: "อีเมล",
     password: "รหัสผ่าน",
@@ -78,7 +82,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [lang, setLang] = useState<LangCode>("en");
+  const [lang, setLang] = useState<LangCode>("lo");
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
 
@@ -201,7 +205,7 @@ export default function LoginPage() {
 
             <div className="mb-7 text-center">
               <h2 className="text-2xl font-bold tracking-tight">
-                Welcome back
+                {t.welcomeBack}
               </h2>
               <p className="mt-1.5 text-sm text-muted-foreground">
                 {t.subtitle}

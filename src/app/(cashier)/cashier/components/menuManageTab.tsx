@@ -60,7 +60,7 @@ export function MenuManageTab({
     if (!restaurantId) return;
     getCategories(restaurantId)
       .then((r) => setCategories(r.data.map((c) => ({ id: c.id, name: c.name }))))
-      .catch(() => toast.error("Failed to load categories"));
+      .catch(() => toast.error("ໂຫຼດໝວດໝູ່ບໍ່ສຳເລັດ"));
   }, [restaurantId]);
 
   function openCreate() {
@@ -79,9 +79,9 @@ export function MenuManageTab({
     try {
       await deleteMenuItem(deletingItem.id);
       onItemDeleted(deletingItem.id);
-      toast.success(`"${deletingItem.name}" removed`);
+      toast.success(`ລຶບ "${deletingItem.name}" ແລ້ວ`);
     } catch {
-      toast.error("Failed to delete item");
+      toast.error("ລຶບລາຍການບໍ່ສຳເລັດ");
     } finally {
       setDeleting(false);
       setDeletingItem(null);
@@ -90,7 +90,7 @@ export function MenuManageTab({
 
   async function handleCreateCategory() {
     if (!newCategoryName.trim()) {
-      toast.error("Category name is required");
+      toast.error("ກະລຸນາໃສ່ຊື່ໝວດໝູ່");
       return;
     }
     setSavingCategory(true);
@@ -105,9 +105,9 @@ export function MenuManageTab({
       // Refresh categories
       const { data: cats } = await getCategories(restaurantId);
       setCategories(cats.map((c) => ({ id: c.id, name: c.name })));
-      toast.success("Category created");
+      toast.success("ສ້າງໝວດໝູ່ສຳເລັດແລ້ວ");
     } catch {
-      toast.error("Failed to create category");
+      toast.error("ສ້າງໝວດໝູ່ບໍ່ສຳເລັດ");
     } finally {
       setSavingCategory(false);
     }
@@ -119,7 +119,7 @@ export function MenuManageTab({
       onItemUpdated({ ...item, is_available: !item.is_available });
       toast.success(item.is_available ? "Item disabled" : "Item enabled");
     } catch {
-      toast.error("Failed to update item");
+      toast.error("ອັບເດດລາຍການບໍ່ສຳເລັດ");
     }
   }
 
@@ -129,7 +129,7 @@ export function MenuManageTab({
       onItemUpdated({ ...item, is_recommended: !item.is_recommended });
       toast.success(item.is_recommended ? "Removed from recommended" : "Added to recommended");
     } catch {
-      toast.error("Failed to update item");
+      toast.error("ອັບເດດລາຍການບໍ່ສຳເລັດ");
     }
   }
 

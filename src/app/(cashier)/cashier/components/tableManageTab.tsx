@@ -172,7 +172,7 @@ export function TableManageTab({
         `Table "${table.table_number}" marked as ${isOccupied ? "available" : "not available"}`,
       );
     } catch {
-      toast.error("Failed to update table status");
+      toast.error("ອັບເດດສະຖານະໂຕະບໍ່ສຳເລັດ");
     } finally {
       setToggling((prev) => ({ ...prev, [table.id]: false }));
     }
@@ -190,10 +190,10 @@ export function TableManageTab({
     const tableNumber = form.table_number.trim();
     const cap = parseInt(form.capacity, 10);
 
-    if (!tableNumber) { toast.error("Table number is required"); return; }
-    if (isNaN(cap) || cap < 1) { toast.error("Capacity must be at least 1"); return; }
+    if (!tableNumber) { toast.error("ກະລຸນາໃສ່ໝາຍເລກໂຕະ"); return; }
+    if (isNaN(cap) || cap < 1) { toast.error("ຄວາມຈຸຕ້ອງຢ່າງໜ້ອຍ 1"); return; }
     if (isDuplicate(tableNumber, editingTable?.id)) {
-      toast.warning(`Table number "${tableNumber}" already exists. Use a different number.`);
+      toast.warning(`ໝາຍເລກໂຕະ "${tableNumber}" ມີຢູ່ແລ້ວ. ກະລຸນາໃຊ້ເລກອື່ນ.`);
       return;
     }
 
@@ -202,13 +202,13 @@ export function TableManageTab({
       if (editingTable) {
         const res = await updateTable(editingTable.id, { table_number: tableNumber, capacity: cap });
         onTableUpdated(res.data);
-        toast.success(`Table "${res.data.table_number}" updated`);
+        toast.success(`ອັບເດດໂຕະ "${res.data.table_number}" ແລ້ວ`);
         setFormOpen(false);
       } else {
         const payload: CreateTablePayload = { restaurant_id: restaurantId, table_number: tableNumber, capacity: cap };
         const res = await createTable(payload);
         onTableCreated(res.data);
-        toast.success(`Table "${res.data.table_number}" created`);
+        toast.success(`ສ້າງໂຕະ "${res.data.table_number}" ແລ້ວ`);
         setFormOpen(false);
         setQrPreview({ token: res.data.qr_code_token, tableNumber: res.data.table_number });
       }
@@ -226,7 +226,7 @@ export function TableManageTab({
   async function handleDelete() {
     if (!deletingTable) return;
     if (deletingTable.status === "OCCUPIED") {
-      toast.error("Cannot delete an occupied table — clear it first");
+      toast.error("ບໍ່ສາມາດລຶບໂຕະທີ່ກຳລັງໃຊ້ — ກະລຸນາເຄລຍກ່ອນ");
       setDeletingTable(null);
       return;
     }
@@ -234,9 +234,9 @@ export function TableManageTab({
     try {
       await deleteTable(deletingTable.id);
       onTableDeleted(deletingTable.id);
-      toast.success(`Table "${deletingTable.table_number}" removed`);
+      toast.success(`ລຶບໂຕະ "${deletingTable.table_number}" ແລ້ວ`);
     } catch {
-      toast.error("Failed to delete table");
+      toast.error("ລຶບໂຕະບໍ່ສຳເລັດ");
     } finally {
       setDeleting(false);
       setDeletingTable(null);

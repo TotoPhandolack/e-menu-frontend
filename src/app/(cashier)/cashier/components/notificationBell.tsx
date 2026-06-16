@@ -46,7 +46,7 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
       );
       onRefresh();
     } catch {
-      toast.error("Failed to confirm order");
+      toast.error("ຢືນຢັນອໍເດີ້ບໍ່ສຳເລັດ");
     } finally {
       setBusyId(null);
     }
@@ -56,10 +56,10 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
     setBusyId(order.id);
     try {
       await updateOrderStatus(order.id, "CANCELLED");
-      toast.success("Order cancelled");
+      toast.success("ຍົກເລີກອໍເດີ້ແລ້ວ");
       onRefresh();
     } catch {
-      toast.error("Failed to cancel order");
+      toast.error("ຍົກເລີກອໍເດີ້ບໍ່ສຳເລັດ");
     } finally {
       setBusyId(null);
     }

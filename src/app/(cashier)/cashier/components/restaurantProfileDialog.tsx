@@ -112,7 +112,7 @@ export function RestaurantProfileDialog({
       setTeamLoading(true);
       cashierGetTeam()
         .then((res) => setTeam(res.data))
-        .catch(() => toast.error("Failed to load team"))
+        .catch(() => toast.error("ໂຫຼດທີມງານບໍ່ສຳເລັດ"))
         .finally(() => {
           setTeamLoading(false);
           setTeamFetched(true);
@@ -131,9 +131,9 @@ export function RestaurantProfileDialog({
       const newUrl = resolveImageUrl(res.data.logo_url);
       setLogoPreview(newUrl);
       onProfileUpdated({ logo_url: res.data.logo_url ?? undefined });
-      toast.success("Logo updated");
+      toast.success("ອັບເດດໂລໂກ້ແລ້ວ");
     } catch {
-      toast.error("Failed to upload logo");
+      toast.error("ອັບໂຫຼດໂລໂກ້ບໍ່ສຳເລັດ");
     } finally {
       setUploadingLogo(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -150,9 +150,9 @@ export function RestaurantProfileDialog({
         name: restaurantName.trim(),
       });
       onProfileUpdated({ name: restaurantName.trim() });
-      toast.success("Restaurant name updated");
+      toast.success("ອັບເດດຊື່ຮ້ານແລ້ວ");
     } catch {
-      toast.error("Failed to update name");
+      toast.error("ອັບເດດຊື່ບໍ່ສຳເລັດ");
     } finally {
       setSavingName(false);
     }
@@ -175,7 +175,7 @@ export function RestaurantProfileDialog({
       setNewName("");
       setNewEmail("");
       setNewPassword("");
-      toast.success(`${res.data.name} added to team`);
+      toast.success(`ເພີ່ມ ${res.data.name} ເຂົ້າທີມແລ້ວ`);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
         ?.response?.data?.message;
@@ -189,9 +189,9 @@ export function RestaurantProfileDialog({
     try {
       await cashierRemoveTeamMember(member.id);
       setTeam((prev) => prev.filter((m) => m.id !== member.id));
-      toast.success(`${member.name} removed`);
+      toast.success(`ລຶບ ${member.name} ແລ້ວ`);
     } catch {
-      toast.error("Failed to remove member");
+      toast.error("ລຶບສະມາຊິກບໍ່ສຳເລັດ");
     }
   }
 
@@ -205,9 +205,9 @@ export function RestaurantProfileDialog({
       });
       applyTheme(selectedTheme);
       onProfileUpdated({ theme_color: selectedTheme });
-      toast.success("Theme saved");
+      toast.success("ບັນທຶກສີຕີມແລ້ວ");
     } catch {
-      toast.error("Failed to save theme");
+      toast.error("ບັນທຶກສີຕີມບໍ່ສຳເລັດ");
     } finally {
       setSavingTheme(false);
     }

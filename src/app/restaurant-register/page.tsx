@@ -33,9 +33,9 @@ export default function RestaurantRegisterPage() {
       );
       setLatitude(position.latitude.toFixed(6));
       setLongitude(position.longitude.toFixed(6));
-      toast.success("Location fetched successfully");
+      toast.success("ດຶງຕຳແໜ່ງສຳເລັດແລ້ວ");
     } catch (err) {
-      toast.error("Failed to get location. Please enable location access.");
+      toast.error("ດຶງຕຳແໜ່ງບໍ່ສຳເລັດ. ກະລຸນາເປີດການເຂົ້າເຖິງຕຳແໜ່ງ.");
     } finally {
       setGeoLoading(false);
     }
@@ -44,12 +44,12 @@ export default function RestaurantRegisterPage() {
   const handleMockLocation = () => {
     setLatitude("13.736666");
     setLongitude("100.523333");
-    toast.success("Mock location set (Bangkok, Thailand)");
+    toast.success("ຕັ້ງຕຳແໜ່ງຈຳລອງແລ້ວ (Bangkok, Thailand)");
   };
 
   const handleSubmit = async () => {
     if (!name.trim() || !address.trim() || !latitude || !longitude) {
-      toast.error("Please fill in all required fields");
+      toast.error("ກະລຸນາຕື່ມຂໍ້ມູນທີ່ຈຳເປັນທັງໝົດ");
       return;
     }
 
@@ -58,22 +58,22 @@ export default function RestaurantRegisterPage() {
     const rad = parseInt(radius, 10);
 
     if (isNaN(lat) || isNaN(lng) || isNaN(rad)) {
-      toast.error("Invalid coordinate or radius values");
+      toast.error("ຄ່າພິກັດ ຫຼື ລັດສະໝີບໍ່ຖືກຕ້ອງ");
       return;
     }
 
     if (lat < -90 || lat > 90) {
-      toast.error("Latitude must be between -90 and 90");
+      toast.error("ເສັ້ນຂະໜານຕ້ອງຢູ່ລະຫວ່າງ -90 ແລະ 90");
       return;
     }
 
     if (lng < -180 || lng > 180) {
-      toast.error("Longitude must be between -180 and 180");
+      toast.error("ເສັ້ນແວງຕ້ອງຢູ່ລະຫວ່າງ -180 ແລະ 180");
       return;
     }
 
     if (rad < 10) {
-      toast.error("Radius must be at least 10 meters");
+      toast.error("ລັດສະໝີຕ້ອງຢ່າງໜ້ອຍ 10 ແມັດ");
       return;
     }
 

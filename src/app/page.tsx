@@ -2,22 +2,22 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/authStore";
+import { useSession } from "next-auth/react";
 
 export default function Home() {
   const router = useRouter();
-  const { token, admin } = useAuthStore();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (!token) {
+    if (status === "loading") return;
+    if (status === "unauthenticated") {
       router.replace("/login");
-    } else if (admin?.role === "CASHIER") {
+    } else if (session?.admin?.role === "CASHIER") {
       router.replace("/cashier");
     } else {
       router.replace("/dashboard");
     }
-  }, [token, admin, router]);
+  }, [status, session, router]);
 
   return null;
-  
 }

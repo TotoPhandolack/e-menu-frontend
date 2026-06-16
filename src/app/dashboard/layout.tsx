@@ -1,9 +1,9 @@
 // src/app/dashboard/layout.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/authStore';
+import { useSession } from 'next-auth/react';
 
 export default function DashboardLayout({
     children,
@@ -11,23 +11,16 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const router = useRouter();
-    const { isAuthenticated } = useAuthStore();
-    const [mounted, setMounted] = useState(false);
+    const { status } = useSession();
 
     useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (mounted && !isAuthenticated()) {
+        if (status === 'unauthenticated') {
             router.push('/login');
         }
-    }, [mounted, isAuthenticated, router]);
+    }, [status, router]);
 
-    // Return null during SSR and initial client render to avoid hydration mismatch
-    if (!mounted) return null;
-
-    if (!isAuthenticated()) return null;
+    // Avoid flashing protected content while the session resolves / redirects.
+    if (status === 'loading' || status === 'unauthenticated') return null;
 
     return <>{children}</>;
 }

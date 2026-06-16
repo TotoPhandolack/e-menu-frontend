@@ -1,6 +1,6 @@
 // src/lib/api.ts
 import axios from "axios";
-import { useAuthStore } from "@/stores/authStore";
+import { getSession, signOut } from "next-auth/react";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -9,8 +9,9 @@ const api = axios.create({
 
 export default api;
 
-api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
+api.interceptors.request.use(async (config) => {
+  const session = await getSession();
+  const token = session?.accessToken;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -21,8 +22,7 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
+      signOut({ callbackUrl: "/login" });
     }
     return Promise.reject(err);
   },

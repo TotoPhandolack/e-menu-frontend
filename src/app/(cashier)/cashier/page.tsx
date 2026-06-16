@@ -17,7 +17,7 @@ import { OrderPanel, type CartItem } from "./components/orderPanel";
 import { LiveOrdersTab } from "./components/liveOrdersTab";
 import { OrderHistoryTab } from "./components/orderHistoryTab";
 
-import { useAuthStore } from "@/stores/authStore";
+import { useSession, signOut } from "next-auth/react";
 import { useSocket } from "@/hooks/useSocket";
 import {
   getMenuItems,
@@ -36,7 +36,8 @@ import {
 } from "@/lib/api";
 
 export default function CashierPage() {
-  const { admin, logout } = useAuthStore();
+  const { data: session } = useSession();
+  const admin = session?.admin ?? null;
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [tables, setTables] = useState<TableInfo[]>([]);
@@ -319,7 +320,7 @@ export default function CashierPage() {
             admin={localAdmin}
             initials={initials}
             pendingOrders={pendingOrders}
-            onSignOut={() => { logout(); window.location.href = "/login"; }}
+            onSignOut={() => signOut({ callbackUrl: "/login" })}
             fetchLiveOrders={fetchLiveOrders}
             onProfileClick={() => setProfileOpen(true)}
           />

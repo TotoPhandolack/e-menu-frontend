@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from "react-toastify";
 import { updateOrderStatus, cashierPrintKitchen, type Order } from '@/lib/api';
-import { useAuthStore } from '@/stores/authStore';
+import { useSession } from 'next-auth/react';
 import { printBill } from '@/lib/printBill';
 import {
   Dialog,
@@ -133,7 +133,8 @@ function ConfirmedCard({
   order: Order;
   onDone: () => void;
 }) {
-  const restaurantName = useAuthStore((s) => s.admin?.restaurant?.name ?? '');
+  const { data: session } = useSession();
+  const restaurantName = session?.admin?.restaurant?.name ?? '';
   const [busy, setBusy] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<'CASH' | 'QR' | null>(null);

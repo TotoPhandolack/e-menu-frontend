@@ -3,6 +3,7 @@ import { Outfit, Phetsarath, Noto_Sans_Lao, Caveat, Roboto_Mono } from "next/fon
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
+import AuthSessionProvider from "@/components/sessionProvider";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -63,7 +64,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} ${phetsarath.variable} ${notoSansLao.variable} ${caveat.variable} ${robotoMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        {children}
+        <AuthSessionProvider>{children}</AuthSessionProvider>
         <ToastContainer position="top-right" autoClose={3000} />
       </body>
     </html>

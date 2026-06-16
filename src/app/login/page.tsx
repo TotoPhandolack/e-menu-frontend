@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/api";
-import { useAuthStore } from "@/stores/authStore";
+import { signIn, getSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -75,7 +74,6 @@ const T: Record<
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setAuth } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -118,10 +116,18 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      const { data } = await login(email, password);
-      setAuth(data.access_token, data.admin);
-      toast.success(t.welcome(data.admin.name));
-      if (data.admin.role === "CASHIER") {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      if (!res || res.error) {
+        toast.error(t.errorInvalid);
+        return;
+      }
+      const session = await getSession();
+      toast.success(t.welcome(session?.admin?.name ?? ""));
+      if (session?.admin?.role === "CASHIER") {
         router.push("/cashier");
       } else {
         router.push("/dashboard");

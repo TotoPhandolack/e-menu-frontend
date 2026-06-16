@@ -10,8 +10,7 @@ import {
 import { useSocket } from "@/hooks/useSocket";
 import OrderCard from "./components/orderCard";
 import { toast } from "react-toastify";
-import { useAuthStore } from "@/stores/authStore";
-import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { ChefHat } from "lucide-react";
 
@@ -21,12 +20,11 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isPending, startTransition] = useTransition();
 
-  const { admin, logout } = useAuthStore();
-  const router = useRouter();
+  const { data: session } = useSession();
+  const admin = session?.admin;
 
   const handleLogout = () => {
-    logout();
-    router.push('/login');
+    signOut({ callbackUrl: "/login" });
   };
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth.store";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

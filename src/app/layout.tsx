@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Outfit, Phetsarath, Noto_Sans_Lao, Caveat, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
-import { Toaster } from "sonner";
+import { ToastContainer } from "react-toastify";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -63,7 +63,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} ${phetsarath.variable} ${notoSansLao.variable} ${caveat.variable} ${robotoMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        {children} <Toaster />
+        {children}
+        <ToastContainer position="top-right" autoClose={3000} />
       </body>
     </html>
   );

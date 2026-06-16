@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Phetsarath } from "next/font/google";
+import { Outfit, Phetsarath, Noto_Sans_Lao, Caveat, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
 import { Toaster } from "sonner";
@@ -15,6 +15,28 @@ const phetsarath = Phetsarath({
   variable: "--font-phetsarath",
   subsets: ["lao"],
   weight: ["400", "700"],
+  display: "swap",
+});
+
+const notoSansLao = Noto_Sans_Lao({
+  variable: "--font-noto-lao",
+  subsets: ["lao"],
+  weight: ["400", "700"],
+  display: "swap",
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat-var",
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  display: "swap",
+});
+
+const robotoMono = Roboto_Mono({
+  variable: "--font-roboto-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -39,7 +61,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${outfit.variable} ${phetsarath.variable} h-full antialiased`}>
+    <html lang="en" className={`${outfit.variable} ${phetsarath.variable} ${notoSansLao.variable} ${caveat.variable} ${robotoMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children} <Toaster />
       </body>

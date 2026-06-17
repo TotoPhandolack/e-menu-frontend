@@ -1,6 +1,6 @@
 // src/lib/api.ts
 import axios from "axios";
-import { getSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -9,11 +9,17 @@ const api = axios.create({
 
 export default api;
 
-api.interceptors.request.use(async (config) => {
-  const session = await getSession();
-  const token = session?.accessToken;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// Access token is synced once from the NextAuth session (see AuthSessionProvider)
+// instead of calling getSession() on every request, which would hit
+// /api/auth/session for each API call.
+let accessToken: string | null = null;
+export function setAccessToken(token: string | null) {
+  accessToken = token;
+}
+
+api.interceptors.request.use((config) => {
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
 });

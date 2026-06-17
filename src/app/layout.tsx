@@ -17,6 +17,7 @@ const phetsarath = Phetsarath({
   subsets: ["lao"],
   weight: ["400", "700"],
   display: "swap",
+  adjustFontFallback: false,
 });
 
 const notoSansLao = Noto_Sans_Lao({
@@ -24,6 +25,7 @@ const notoSansLao = Noto_Sans_Lao({
   subsets: ["lao"],
   weight: ["400", "700"],
   display: "swap",
+  adjustFontFallback: false,
 });
 
 const caveat = Caveat({

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { Check, ChevronDown, Eye, EyeOff, Globe, Loader2 } from "lucide-react";
+import { clearTokenCache } from "@/lib/api";
 
 const LANGUAGES = [
   { code: "lo", label: "ລາວ" },
@@ -125,6 +126,7 @@ export default function LoginPage() {
         toast.error(t.errorInvalid);
         return;
       }
+      clearTokenCache(); // drop any stale token so the new session is used immediately
       const session = await getSession();
       toast.success(t.welcome(session?.admin?.name ?? ""));
       if (session?.admin?.role === "CASHIER") {

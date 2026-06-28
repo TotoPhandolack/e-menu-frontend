@@ -9,11 +9,29 @@ const api = axios.create({
 
 export default api;
 
+// Cache the access token in memory so we don't hit /api/auth/session on every
+// request. getSession() does a full network round-trip; without caching, the
+// per-request interceptor + the 10s live-orders poll flood that endpoint, and a
+// single transient dev-server blip surfaces as a wall of "Failed to fetch".
+// While unauthenticated (cachedToken == null) we always refetch so a fresh login
+// is picked up immediately.
+let cachedToken: string | null = null;
+let cachedAt = 0;
+const TOKEN_TTL = 60_000;
+
+export function clearTokenCache(): void {
+  cachedToken = null;
+  cachedAt = 0;
+}
+
 api.interceptors.request.use(async (config) => {
-  const session = await getSession();
-  const token = session?.accessToken;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (!cachedToken || Date.now() - cachedAt > TOKEN_TTL) {
+    const session = await getSession();
+    cachedToken = session?.accessToken ?? null;
+    cachedAt = Date.now();
+  }
+  if (cachedToken) {
+    config.headers.Authorization = `Bearer ${cachedToken}`;
   }
   return config;
 });
@@ -22,6 +40,7 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
+      clearTokenCache();
       signOut({ callbackUrl: "/login" });
     }
     return Promise.reject(err);

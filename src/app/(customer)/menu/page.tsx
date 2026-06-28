@@ -526,7 +526,7 @@ function MenuPageContent() {
                   <div className="pb-4 mb-2">
                     <h2
                       className="text-2xl text-slate-700 mb-3 pb-1"
-                      style={{ fontFamily: "'Caveat', cursive" }}
+                      style={{ fontFamily: "'Phetsarath', cursive" }}
                     >
                       ⭐ ແນະນຳ
                     </h2>

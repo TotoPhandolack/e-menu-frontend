@@ -3,6 +3,7 @@
 
 import { resolveImageUrl, MenuItem } from "@/lib/api";
 import { useCartStore } from "@/stores/cartStore";
+import { useTranslations } from "@/lib/i18n";
 import { ChefHat, Plus, Minus } from "lucide-react";
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function MenuItemCard({ item, viewMode = "list" }: Props) {
+  const t = useTranslations();
   const { items, addItem, updateQuantity } = useCartStore();
   const cartItem = items.find((i) => i.menuItem.id === item.id);
   const quantity = cartItem?.quantity ?? 0;
@@ -37,7 +39,7 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
           {/* Unavailable overlay */}
           {!item.is_available && (
             <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-              <span className="text-xs font-medium text-slate-400">ໝົດ</span>
+              <span className="text-xs font-medium text-slate-400">{t.customer.item.soldOut}</span>
             </div>
           )}
 

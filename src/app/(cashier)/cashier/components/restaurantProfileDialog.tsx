@@ -34,6 +34,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { useTranslations } from "@/lib/i18n";
 import type { Admin, TeamMember } from "@/lib/api";
 import {
   uploadRestaurantLogo,
@@ -68,6 +69,7 @@ export function RestaurantProfileDialog({
   admin,
   onProfileUpdated,
 }: Props) {
+  const t = useTranslations();
   const restaurantId = admin?.restaurant_id ?? "";
   const [tab, setTab] = useState("profile");
 
@@ -112,13 +114,13 @@ export function RestaurantProfileDialog({
       setTeamLoading(true);
       cashierGetTeam()
         .then((res) => setTeam(res.data))
-        .catch(() => toast.error("ໂຫຼດທີມງານບໍ່ສຳເລັດ"))
+        .catch(() => toast.error(t.cashier.profile.toasts.teamLoadFailed))
         .finally(() => {
           setTeamLoading(false);
           setTeamFetched(true);
         });
     }
-  }, [tab, teamFetched]);
+  }, [tab, teamFetched, t]);
 
   // ─── Logo upload ────────────────────────────────────────────────────────────
 
@@ -131,9 +133,9 @@ export function RestaurantProfileDialog({
       const newUrl = resolveImageUrl(res.data.logo_url);
       setLogoPreview(newUrl);
       onProfileUpdated({ logo_url: res.data.logo_url ?? undefined });
-      toast.success("ອັບເດດໂລໂກ້ແລ້ວ");
+      toast.success(t.cashier.profile.toasts.logoUpdated);
     } catch {
-      toast.error("ອັບໂຫຼດໂລໂກ້ບໍ່ສຳເລັດ");
+      toast.error(t.cashier.profile.toasts.logoUploadFailed);
     } finally {
       setUploadingLogo(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -150,9 +152,9 @@ export function RestaurantProfileDialog({
         name: restaurantName.trim(),
       });
       onProfileUpdated({ name: restaurantName.trim() });
-      toast.success("ອັບເດດຊື່ຮ້ານແລ້ວ");
+      toast.success(t.cashier.profile.toasts.nameUpdated);
     } catch {
-      toast.error("ອັບເດດຊື່ບໍ່ສຳເລັດ");
+      toast.error(t.cashier.profile.toasts.nameUpdateFailed);
     } finally {
       setSavingName(false);
     }
@@ -175,11 +177,11 @@ export function RestaurantProfileDialog({
       setNewName("");
       setNewEmail("");
       setNewPassword("");
-      toast.success(`ເພີ່ມ ${res.data.name} ເຂົ້າທີມແລ້ວ`);
+      toast.success(t.cashier.profile.toasts.memberAdded(res.data.name));
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
         ?.response?.data?.message;
-      toast.error(msg ?? "Failed to add team member");
+      toast.error(msg ?? t.cashier.profile.toasts.memberAddFailed);
     } finally {
       setAddingMember(false);
     }
@@ -189,9 +191,9 @@ export function RestaurantProfileDialog({
     try {
       await cashierRemoveTeamMember(member.id);
       setTeam((prev) => prev.filter((m) => m.id !== member.id));
-      toast.success(`ລຶບ ${member.name} ແລ້ວ`);
+      toast.success(t.cashier.profile.toasts.memberRemoved(member.name));
     } catch {
-      toast.error("ລຶບສະມາຊິກບໍ່ສຳເລັດ");
+      toast.error(t.cashier.profile.toasts.memberRemoveFailed);
     }
   }
 
@@ -205,9 +207,9 @@ export function RestaurantProfileDialog({
       });
       applyTheme(selectedTheme);
       onProfileUpdated({ theme_color: selectedTheme });
-      toast.success("ບັນທຶກສີຕີມແລ້ວ");
+      toast.success(t.cashier.profile.toasts.themeSaved);
     } catch {
-      toast.error("ບັນທຶກສີຕີມບໍ່ສຳເລັດ");
+      toast.error(t.cashier.profile.toasts.themeSaveFailed);
     } finally {
       setSavingTheme(false);
     }
@@ -225,7 +227,7 @@ export function RestaurantProfileDialog({
       <DialogContent className="max-w-lg w-full p-0 gap-0 overflow-hidden">
         <DialogHeader className="px-6 pt-5 pb-0">
           <DialogTitle className="text-base font-bold">
-            Restaurant Settings
+            {t.cashier.profile.title}
           </DialogTitle>
         </DialogHeader>
 
@@ -236,19 +238,19 @@ export function RestaurantProfileDialog({
                 value="profile"
                 className="flex-1 text-xs font-semibold"
               >
-                Profile
+                {t.cashier.profile.tabProfile}
               </TabsTrigger>
               <TabsTrigger
                 value="team"
                 className="flex-1 text-xs font-semibold"
               >
-                Team
+                {t.cashier.profile.tabTeam}
               </TabsTrigger>
               <TabsTrigger
                 value="theme"
                 className="flex-1 text-xs font-semibold"
               >
-                Theme
+                {t.cashier.profile.tabTheme}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -291,18 +293,18 @@ export function RestaurantProfileDialog({
                 onChange={handleLogoChange}
               />
               <p className="text-xs text-muted-foreground">
-                Click logo to upload (max 5 MB)
+                {t.cashier.profile.logoHint}
               </p>
             </div>
 
             {/* Restaurant name */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">Restaurant Name</Label>
+              <Label className="text-xs font-semibold">{t.cashier.profile.restaurantName}</Label>
               <div className="flex gap-2">
                 <Input
                   value={restaurantName}
                   onChange={(e) => setRestaurantName(e.target.value)}
-                  placeholder="Restaurant name"
+                  placeholder={t.cashier.profile.restaurantNamePlaceholder}
                   className="h-9 text-sm"
                 />
                 <Button
@@ -314,7 +316,7 @@ export function RestaurantProfileDialog({
                   {savingName ? (
                     <Loader2 size={14} className="animate-spin" />
                   ) : (
-                    "Save"
+                    t.common.save
                   )}
                 </Button>
               </div>
@@ -323,7 +325,7 @@ export function RestaurantProfileDialog({
             {/* Current cashier info (read-only) */}
             <div className="rounded-lg border bg-muted/30 p-3 space-y-1 text-sm">
               <p className="text-xs text-muted-foreground font-medium">
-                Your Account
+                {t.cashier.profile.yourAccount}
               </p>
               <p className="font-semibold">{admin?.name}</p>
               <p className="text-muted-foreground text-xs">{admin?.email}</p>
@@ -347,7 +349,7 @@ export function RestaurantProfileDialog({
                   </div>
                 ) : team.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No team members yet.
+                    {t.cashier.profile.noTeam}
                   </p>
                 ) : (
                   team.map((m) => (
@@ -381,20 +383,19 @@ export function RestaurantProfileDialog({
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>
-                                  Remove {m.name}?
+                                  {t.cashier.profile.removeMember(m.name)}
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This will permanently delete this account and
-                                  cannot be undone.
+                                  {t.cashier.profile.removeMemberDesc}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
                                 <AlertDialogAction
                                   className="bg-destructive hover:bg-destructive/90"
                                   onClick={() => handleRemoveMember(m)}
                                 >
-                                  Remove
+                                  {t.common.remove}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -410,11 +411,11 @@ export function RestaurantProfileDialog({
               <div className="border-t pt-4">
                 <p className="text-xs font-semibold mb-3 flex items-center gap-1.5">
                   <Plus size={12} />
-                  Add New Member
+                  {t.cashier.profile.addNewMember}
                 </p>
                 <form onSubmit={handleAddMember} className="space-y-2">
                   <Input
-                    placeholder="Full name"
+                    placeholder={t.cashier.profile.fullName}
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     className="h-8 text-sm"
@@ -422,7 +423,7 @@ export function RestaurantProfileDialog({
                   />
                   <Input
                     type="email"
-                    placeholder="Email address"
+                    placeholder={t.cashier.profile.emailAddress}
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     className="h-8 text-sm"
@@ -431,7 +432,7 @@ export function RestaurantProfileDialog({
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
-                      placeholder="Password"
+                      placeholder={t.cashier.profile.password}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       className="h-8 text-sm pr-9"
@@ -453,8 +454,8 @@ export function RestaurantProfileDialog({
                       }
                       className="flex-1 h-8 rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                     >
-                      <option value="CASHIER">Cashier</option>
-                      <option value="ADMIN">Admin</option>
+                      <option value="CASHIER">{t.cashier.profile.roleCashier}</option>
+                      <option value="ADMIN">{t.cashier.profile.roleAdmin}</option>
                     </select>
                     <Button
                       type="submit"
@@ -467,7 +468,7 @@ export function RestaurantProfileDialog({
                       {addingMember ? (
                         <Loader2 size={13} className="animate-spin" />
                       ) : (
-                        "Add"
+                        t.common.add
                       )}
                     </Button>
                   </div>
@@ -479,7 +480,7 @@ export function RestaurantProfileDialog({
           {/* ─── Theme Tab ────────────────────────────────────────────── */}
           <TabsContent value="theme" className="px-6 pt-4 pb-5 mt-0 space-y-4">
             <p className="text-xs text-muted-foreground">
-              Choose a primary color for your cashier interface.
+              {t.cashier.profile.chooseColor}
             </p>
             <div className="grid grid-cols-4 gap-3">
               {THEME_PRESETS.map((preset) => (
@@ -522,7 +523,7 @@ export function RestaurantProfileDialog({
               {savingTheme ? (
                 <Loader2 size={14} className="animate-spin mr-2" />
               ) : null}
-              Save Theme
+              {t.cashier.profile.saveTheme}
             </Button>
           </TabsContent>
         </Tabs>

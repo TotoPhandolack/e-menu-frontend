@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/lib/i18n";
 import {
   createMenuItem,
   updateMenuItem,
@@ -64,6 +65,7 @@ export function ItemFormDialog({
   onClose,
   onSaved,
 }: Props) {
+  const t = useTranslations();
   const isEdit = !!item;
 
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -109,19 +111,19 @@ export function ItemFormDialog({
 
   function handleFileChange(f: File | null) {
     if (!f) return;
-    if (!f.type.startsWith("image/")) { toast.error("ອະນຸຍາດສະເພາະໄຟລ໌ຮູບພາບ"); return; }
-    if (f.size > 5 * 1024 * 1024) { toast.error("ໄຟລ໌ຕ້ອງນ້ອຍກວ່າ 5 MB"); return; }
+    if (!f.type.startsWith("image/")) { toast.error(t.cashier.itemForm.toasts.onlyImageFiles); return; }
+    if (f.size > 5 * 1024 * 1024) { toast.error(t.cashier.itemForm.toasts.fileTooLarge); return; }
     setFile(f);
     setFilePreview(URL.createObjectURL(f));
     setRemoveImage(false);
   }
 
   function validate() {
-    if (!form.name.trim()) { toast.error("ກະລຸນາໃສ່ຊື່"); return false; }
-    if (!form.description.trim()) { toast.error("ກະລຸນາໃສ່ລາຍລະອຽດ"); return false; }
+    if (!form.name.trim()) { toast.error(t.cashier.itemForm.toasts.enterName); return false; }
+    if (!form.description.trim()) { toast.error(t.cashier.itemForm.toasts.enterDescription); return false; }
     const p = parseFloat(form.price);
-    if (isNaN(p) || p < 0) { toast.error("ກະລຸນາໃສ່ລາຄາທີ່ຖືກຕ້ອງ"); return false; }
-    if (!form.category_id) { toast.error("ກະລຸນາເລືອກໝວດໝູ່"); return false; }
+    if (isNaN(p) || p < 0) { toast.error(t.cashier.itemForm.toasts.enterValidPrice); return false; }
+    if (!form.category_id) { toast.error(t.cashier.itemForm.toasts.selectCategory); return false; }
     return true;
   }
 
@@ -179,10 +181,10 @@ export function ItemFormDialog({
       }
 
       onSaved(saved, !isEdit);
-      toast.success(isEdit ? "Item updated" : "Item created");
+      toast.success(isEdit ? t.cashier.itemForm.toasts.itemUpdated : t.cashier.itemForm.toasts.itemCreated);
       handleClose();
     } catch {
-      toast.error("ບັນທຶກລາຍການບໍ່ສຳເລັດ");
+      toast.error(t.cashier.itemForm.toasts.itemSaveFailed);
     } finally {
       setSaving(false);
     }
@@ -197,17 +199,17 @@ export function ItemFormDialog({
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? `Edit — ${item!.name}` : "New Menu Item"}
+            {isEdit ? t.cashier.itemForm.editTitle(item!.name) : t.cashier.itemForm.newTitle}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 pt-1">
           {/* Name */}
           <div className="space-y-1.5">
-            <Label htmlFor="item-name">Name *</Label>
+            <Label htmlFor="item-name">{t.cashier.itemForm.name}</Label>
             <Input
               id="item-name"
-              placeholder="e.g. Green Papaya Salad"
+              placeholder={t.cashier.itemForm.namePlaceholder}
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
             />
@@ -215,10 +217,10 @@ export function ItemFormDialog({
 
           {/* Description */}
           <div className="space-y-1.5">
-            <Label htmlFor="item-desc">Description *</Label>
+            <Label htmlFor="item-desc">{t.cashier.itemForm.description}</Label>
             <Textarea
               id="item-desc"
-              placeholder="Short description shown on the menu"
+              placeholder={t.cashier.itemForm.descriptionPlaceholder}
               rows={2}
               value={form.description}
               onChange={(e) => set("description", e.target.value)}
@@ -228,7 +230,7 @@ export function ItemFormDialog({
           {/* Price + Category */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="item-price">Price (₭) *</Label>
+              <Label htmlFor="item-price">{t.cashier.itemForm.price}</Label>
               <Input
                 id="item-price"
                 type="number"
@@ -240,10 +242,10 @@ export function ItemFormDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Category *</Label>
+              <Label>{t.cashier.itemForm.category}</Label>
               <Select value={form.category_id} onValueChange={(v) => set("category_id", v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select…" />
+                  <SelectValue placeholder={t.cashier.itemForm.selectCategory} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((c) => (
@@ -262,16 +264,16 @@ export function ItemFormDialog({
           <div className="space-y-2">
             <Label className="flex items-center gap-1.5">
               <ImagePlus size={13} />
-              Image <span className="text-muted-foreground font-normal">(optional)</span>
+              {t.cashier.itemForm.image} <span className="text-muted-foreground font-normal">{t.cashier.itemForm.optional}</span>
             </Label>
 
             <Tabs value={imgTab} onValueChange={(v) => setImgTab(v as "upload" | "url")}>
               <TabsList className="w-full">
                 <TabsTrigger value="upload" className="flex-1 gap-1.5">
-                  <Upload size={12} /> Upload File
+                  <Upload size={12} /> {t.cashier.itemForm.uploadFile}
                 </TabsTrigger>
                 <TabsTrigger value="url" className="flex-1 gap-1.5">
-                  <Link size={12} /> Paste URL
+                  <Link size={12} /> {t.cashier.itemForm.pasteUrl}
                 </TabsTrigger>
               </TabsList>
 
@@ -308,7 +310,7 @@ export function ItemFormDialog({
                           }
                         }}
                         className="absolute top-2 right-2 bg-background/80 rounded-full p-1 hover:bg-destructive hover:text-destructive-foreground shadow transition-colors"
-                        title={file ? "Clear selected file" : "Remove image"}
+                        title={file ? t.cashier.itemForm.clearFile : t.cashier.itemForm.removeImage}
                       >
                         {file ? <X size={13} /> : <Trash2 size={13} />}
                       </button>
@@ -316,19 +318,19 @@ export function ItemFormDialog({
                   ) : removeImage && currentImage ? (
                     <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
                       <Trash2 size={20} strokeWidth={1.4} className="text-destructive/60" />
-                      <p className="text-xs font-medium text-destructive/70">Image will be removed</p>
+                      <p className="text-xs font-medium text-destructive/70">{t.cashier.itemForm.imageWillBeRemoved}</p>
                       <button
                         onClick={(e) => { e.stopPropagation(); setRemoveImage(false); }}
                         className="text-[11px] text-primary underline-offset-2 hover:underline"
                       >
-                        Undo
+                        {t.cashier.itemForm.undo}
                       </button>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
                       <Utensils size={24} strokeWidth={1.2} />
-                      <p className="text-xs font-medium">Click or drag image</p>
-                      <p className="text-[11px]">PNG, JPG, WEBP · max 5 MB</p>
+                      <p className="text-xs font-medium">{t.cashier.itemForm.clickOrDrag}</p>
+                      <p className="text-[11px]">{t.cashier.itemForm.imageHint}</p>
                     </div>
                   )}
                 </div>
@@ -344,7 +346,7 @@ export function ItemFormDialog({
               {/* URL tab */}
               <TabsContent value="url" className="mt-3 space-y-3">
                 <Input
-                  placeholder="https://example.com/image.jpg"
+                  placeholder={t.cashier.itemForm.urlPlaceholder}
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
                 />
@@ -367,10 +369,10 @@ export function ItemFormDialog({
         {/* Actions */}
         <div className="flex gap-3 pt-3">
           <Button variant="outline" className="flex-1" onClick={handleClose} disabled={saving}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button className="flex-1" onClick={handleSave} disabled={saving}>
-            {saving ? "Saving…" : isEdit ? "Save Changes" : "Create Item"}
+            {saving ? t.common.saving : isEdit ? t.common.saveChanges : t.cashier.itemForm.createItem}
           </Button>
         </div>
       </DialogContent>

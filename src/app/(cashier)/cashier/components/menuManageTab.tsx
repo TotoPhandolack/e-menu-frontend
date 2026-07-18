@@ -17,6 +17,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/lib/i18n";
 import { ItemFormDialog, type CategoryOption } from "./itemFormDialog";
 import { getCategories, deleteMenuItem, resolveImageUrl, createCategory, cashierToggleMenuItemAvailability, cashierToggleMenuItemRecommended, type MenuItem } from "@/lib/api";
 
@@ -39,6 +40,7 @@ export function MenuManageTab({
   onItemUpdated,
   onItemDeleted,
 }: Props) {
+  const t = useTranslations();
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
@@ -60,8 +62,8 @@ export function MenuManageTab({
     if (!restaurantId) return;
     getCategories(restaurantId)
       .then((r) => setCategories(r.data.map((c) => ({ id: c.id, name: c.name }))))
-      .catch(() => toast.error("ໂຫຼດໝວດໝູ່ບໍ່ສຳເລັດ"));
-  }, [restaurantId]);
+      .catch(() => toast.error(t.cashier.manage.toasts.categoriesLoadFailed));
+  }, [restaurantId, t]);
 
   function openCreate() {
     setEditingItem(null);
@@ -79,9 +81,9 @@ export function MenuManageTab({
     try {
       await deleteMenuItem(deletingItem.id);
       onItemDeleted(deletingItem.id);
-      toast.success(`ລຶບ "${deletingItem.name}" ແລ້ວ`);
+      toast.success(t.cashier.manage.toasts.itemDeleted(deletingItem.name));
     } catch {
-      toast.error("ລຶບລາຍການບໍ່ສຳເລັດ");
+      toast.error(t.cashier.manage.toasts.itemDeleteFailed);
     } finally {
       setDeleting(false);
       setDeletingItem(null);
@@ -90,7 +92,7 @@ export function MenuManageTab({
 
   async function handleCreateCategory() {
     if (!newCategoryName.trim()) {
-      toast.error("ກະລຸນາໃສ່ຊື່ໝວດໝູ່");
+      toast.error(t.cashier.manage.toasts.enterCategoryName);
       return;
     }
     setSavingCategory(true);
@@ -105,9 +107,9 @@ export function MenuManageTab({
       // Refresh categories
       const { data: cats } = await getCategories(restaurantId);
       setCategories(cats.map((c) => ({ id: c.id, name: c.name })));
-      toast.success("ສ້າງໝວດໝູ່ສຳເລັດແລ້ວ");
+      toast.success(t.cashier.manage.toasts.categoryCreated);
     } catch {
-      toast.error("ສ້າງໝວດໝູ່ບໍ່ສຳເລັດ");
+      toast.error(t.cashier.manage.toasts.categoryCreateFailed);
     } finally {
       setSavingCategory(false);
     }
@@ -117,9 +119,9 @@ export function MenuManageTab({
     try {
       await cashierToggleMenuItemAvailability(item.id, !item.is_available);
       onItemUpdated({ ...item, is_available: !item.is_available });
-      toast.success(item.is_available ? "Item disabled" : "Item enabled");
+      toast.success(item.is_available ? t.cashier.manage.toasts.itemDisabled : t.cashier.manage.toasts.itemEnabled);
     } catch {
-      toast.error("ອັບເດດລາຍການບໍ່ສຳເລັດ");
+      toast.error(t.cashier.manage.toasts.itemUpdateFailed);
     }
   }
 
@@ -127,9 +129,9 @@ export function MenuManageTab({
     try {
       await cashierToggleMenuItemRecommended(item.id, !item.is_recommended);
       onItemUpdated({ ...item, is_recommended: !item.is_recommended });
-      toast.success(item.is_recommended ? "Removed from recommended" : "Added to recommended");
+      toast.success(item.is_recommended ? t.cashier.manage.toasts.removedRecommended : t.cashier.manage.toasts.addedRecommended);
     } catch {
-      toast.error("ອັບເດດລາຍການບໍ່ສຳເລັດ");
+      toast.error(t.cashier.manage.toasts.itemUpdateFailed);
     }
   }
 
@@ -140,15 +142,15 @@ export function MenuManageTab({
         <div className="flex gap-2 shrink-0">
           <Button variant="outline" size="sm" onClick={onRefresh} className="gap-1.5">
             <RefreshCw size={13} />
-            Refresh
+            {t.common.refresh}
           </Button>
           <Button variant="outline" size="sm" onClick={() => setCategoryFormOpen(true)} className="gap-1.5">
             <Plus size={13} />
-            New Category
+            {t.cashier.manage.newCategory}
           </Button>
           <Button size="sm" onClick={openCreate} className="gap-1.5">
             <Plus size={13} />
-            New Item
+            {t.cashier.manage.newItem}
           </Button>
         </div>
 
@@ -160,7 +162,7 @@ export function MenuManageTab({
         <div className="relative flex-1 max-w-xs ml-auto">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Search items…"
+            placeholder={t.cashier.manage.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-8 pr-8 h-9 text-sm"
@@ -189,16 +191,16 @@ export function MenuManageTab({
               <Utensils size={36} strokeWidth={1.2} />
               {search.trim() ? (
                 <>
-                  <p className="text-sm">No items match &ldquo;{search}&rdquo;</p>
+                  <p className="text-sm">{t.cashier.manage.noMatch(search)}</p>
                   <button onClick={() => setSearch("")} className="text-sm text-primary font-medium">
-                    Clear search
+                    {t.common.clearSearch}
                   </button>
                 </>
               ) : (
                 <>
-                  <p className="text-sm">No menu items yet</p>
+                  <p className="text-sm">{t.cashier.manage.noItemsYet}</p>
                   <Button size="sm" onClick={openCreate} className="gap-1.5">
-                    <Plus size={13} /> Add first item
+                    <Plus size={13} /> {t.cashier.manage.addFirstItem}
                   </Button>
                 </>
               )}
@@ -237,19 +239,19 @@ export function MenuManageTab({
       <Dialog open={categoryFormOpen} onOpenChange={setCategoryFormOpen}>
         <DialogContent aria-describedby="category-desc">
           <DialogHeader>
-            <DialogTitle>New Category</DialogTitle>
+            <DialogTitle>{t.cashier.manage.newCategoryTitle}</DialogTitle>
             <DialogDescription id="category-desc">
-              Add a new food category to your menu.
+              {t.cashier.manage.newCategoryDesc}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
               <label htmlFor="cat-name" className="text-sm font-medium">
-                Category Name *
+                {t.cashier.manage.categoryName}
               </label>
               <Input
                 id="cat-name"
-                placeholder="e.g. Desserts"
+                placeholder={t.cashier.manage.categoryPlaceholder}
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCreateCategory()}
@@ -258,10 +260,10 @@ export function MenuManageTab({
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setCategoryFormOpen(false)} disabled={savingCategory}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button onClick={handleCreateCategory} disabled={savingCategory}>
-              {savingCategory ? "Creating…" : "Create"}
+              {savingCategory ? t.common.creating : t.common.create}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -271,21 +273,21 @@ export function MenuManageTab({
       <Dialog open={!!deletingItem} onOpenChange={(v) => !v && setDeletingItem(null)}>
         <DialogContent aria-describedby="delete-desc">
           <DialogHeader>
-            <DialogTitle>Remove &ldquo;{deletingItem?.name}&rdquo;?</DialogTitle>
+            <DialogTitle>{t.cashier.manage.removeItemTitle(deletingItem?.name ?? "")}</DialogTitle>
             <DialogDescription id="delete-desc">
-              This will hide the item from the customer menu.
+              {t.cashier.manage.removeItemDesc}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setDeletingItem(null)} disabled={deleting}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleting}
             >
-              {deleting ? "Removing…" : "Remove"}
+              {deleting ? t.common.removing : t.common.remove}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -307,6 +309,7 @@ function ManageItemCard({
   onToggleAvailability: () => void;
   onToggleRecommended: () => void;
 }) {
+  const t = useTranslations();
   const imageUrl = resolveImageUrl(item.imge_url ?? item.image_url);
 
   return (
@@ -334,7 +337,7 @@ function ManageItemCard({
           <button
             onClick={onEdit}
             className="bg-background/90 rounded-full p-2 shadow hover:bg-background"
-            title="Edit item"
+            title={t.cashier.manage.editItemTooltip}
           >
             <Pencil size={13} />
           </button>
@@ -346,7 +349,7 @@ function ManageItemCard({
                 ? "hover:bg-orange-500 hover:text-white"
                 : "hover:bg-green-500 hover:text-white",
             )}
-            title={item.is_available ? "Disable item" : "Enable item"}
+            title={item.is_available ? t.cashier.manage.disableItem : t.cashier.manage.enableItem}
           >
             <EyeOff size={13} />
           </button>
@@ -358,14 +361,14 @@ function ManageItemCard({
                 ? "hover:bg-yellow-500 hover:text-white"
                 : "hover:bg-gray-500 hover:text-white",
             )}
-            title={item.is_recommended ? "Unmark as recommended" : "Mark as recommended"}
+            title={item.is_recommended ? t.cashier.manage.unmarkRecommended : t.cashier.manage.markRecommended}
           >
             {item.is_recommended ? "⭐" : "☆"}
           </button>
           <button
             onClick={onDelete}
             className="bg-background/90 rounded-full p-2 shadow hover:bg-destructive hover:text-destructive-foreground"
-            title="Remove item"
+            title={t.cashier.manage.removeItemTooltip}
           >
             <Trash2 size={13} />
           </button>
@@ -382,7 +385,7 @@ function ManageItemCard({
           {!item.is_available && (
             <Badge variant="secondary" className="gap-1 text-[10px] px-1.5">
               <EyeOff size={9} />
-              Off
+              {t.cashier.manage.off}
             </Badge>
           )}
         </div>

@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/select";
 import { MdOutlineTableBar } from "react-icons/md";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/lib/i18n";
 import { Switch } from "@/components/ui/switch";
 import {
   type TableInfo,
@@ -114,6 +115,7 @@ export function TableManageTab({
   onTableUpdated,
   onTableDeleted,
 }: Props) {
+  const t = useTranslations();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("number-asc");
   const [toggling, setToggling] = useState<TogglingMap>({});
@@ -169,10 +171,10 @@ export function TableManageTab({
         : await cashierOpenTable(table.id);
       onTableUpdated(res.data);
       toast.success(
-        `Table "${table.table_number}" marked as ${isOccupied ? "available" : "not available"}`,
+        t.cashier.table.toasts.tableMarked(table.table_number, isOccupied),
       );
     } catch {
-      toast.error("ອັບເດດສະຖານະໂຕະບໍ່ສຳເລັດ");
+      toast.error(t.cashier.table.toasts.statusFailed);
     } finally {
       setToggling((prev) => ({ ...prev, [table.id]: false }));
     }
@@ -190,10 +192,10 @@ export function TableManageTab({
     const tableNumber = form.table_number.trim();
     const cap = parseInt(form.capacity, 10);
 
-    if (!tableNumber) { toast.error("ກະລຸນາໃສ່ໝາຍເລກໂຕະ"); return; }
-    if (isNaN(cap) || cap < 1) { toast.error("ຄວາມຈຸຕ້ອງຢ່າງໜ້ອຍ 1"); return; }
+    if (!tableNumber) { toast.error(t.cashier.table.toasts.enterNumber); return; }
+    if (isNaN(cap) || cap < 1) { toast.error(t.cashier.table.toasts.capacityMin); return; }
     if (isDuplicate(tableNumber, editingTable?.id)) {
-      toast.warning(`ໝາຍເລກໂຕະ "${tableNumber}" ມີຢູ່ແລ້ວ. ກະລຸນາໃຊ້ເລກອື່ນ.`);
+      toast.warning(t.cashier.table.toasts.numberExists(tableNumber));
       return;
     }
 
@@ -202,20 +204,20 @@ export function TableManageTab({
       if (editingTable) {
         const res = await updateTable(editingTable.id, { table_number: tableNumber, capacity: cap });
         onTableUpdated(res.data);
-        toast.success(`ອັບເດດໂຕະ "${res.data.table_number}" ແລ້ວ`);
+        toast.success(t.cashier.table.toasts.updated(res.data.table_number));
         setFormOpen(false);
       } else {
         const payload: CreateTablePayload = { restaurant_id: restaurantId, table_number: tableNumber, capacity: cap };
         const res = await createTable(payload);
         onTableCreated(res.data);
-        toast.success(`ສ້າງໂຕະ "${res.data.table_number}" ແລ້ວ`);
+        toast.success(t.cashier.table.toasts.created(res.data.table_number));
         setFormOpen(false);
         setQrPreview({ token: res.data.qr_code_token, tableNumber: res.data.table_number });
       }
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        "Failed to save table";
+        t.cashier.table.toasts.saveFailed;
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -226,7 +228,7 @@ export function TableManageTab({
   async function handleDelete() {
     if (!deletingTable) return;
     if (deletingTable.status === "OCCUPIED") {
-      toast.error("ບໍ່ສາມາດລຶບໂຕະທີ່ກຳລັງໃຊ້ — ກະລຸນາເຄລຍກ່ອນ");
+      toast.error(t.cashier.table.toasts.cannotDeleteOccupied);
       setDeletingTable(null);
       return;
     }
@@ -234,9 +236,9 @@ export function TableManageTab({
     try {
       await deleteTable(deletingTable.id);
       onTableDeleted(deletingTable.id);
-      toast.success(`ລຶບໂຕະ "${deletingTable.table_number}" ແລ້ວ`);
+      toast.success(t.cashier.table.toasts.deleted(deletingTable.table_number));
     } catch {
-      toast.error("ລຶບໂຕະບໍ່ສຳເລັດ");
+      toast.error(t.cashier.table.toasts.deleteFailed);
     } finally {
       setDeleting(false);
       setDeletingTable(null);
@@ -277,11 +279,11 @@ export function TableManageTab({
         <div className="flex gap-2 shrink-0">
           <Button variant="outline" size="sm" onClick={onRefresh} className="gap-1.5">
             <RefreshCw size={13} />
-            Refresh
+            {t.common.refresh}
           </Button>
           <Button size="sm" onClick={openCreate} className="gap-1.5">
             <Plus size={13} />
-            Add Table
+            {t.cashier.table.addTable}
           </Button>
         </div>
 
@@ -297,10 +299,10 @@ export function TableManageTab({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="number-asc">Number: Low → High</SelectItem>
-              <SelectItem value="number-desc">Number: High → Low</SelectItem>
-              <SelectItem value="alpha-asc">Name: A → Z</SelectItem>
-              <SelectItem value="alpha-desc">Name: Z → A</SelectItem>
+              <SelectItem value="number-asc">{t.cashier.table.sortNumberAsc}</SelectItem>
+              <SelectItem value="number-desc">{t.cashier.table.sortNumberDesc}</SelectItem>
+              <SelectItem value="alpha-asc">{t.cashier.table.sortAlphaAsc}</SelectItem>
+              <SelectItem value="alpha-desc">{t.cashier.table.sortAlphaDesc}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -309,7 +311,7 @@ export function TableManageTab({
         <div className="relative flex-1 max-w-xs ml-auto">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Search tables…"
+            placeholder={t.cashier.table.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-8 pr-8 h-9 text-sm"
@@ -339,16 +341,16 @@ export function TableManageTab({
               <LayoutGrid size={36} strokeWidth={1.2} />
               {search.trim() ? (
                 <>
-                  <p className="text-sm">No tables match &ldquo;{search}&rdquo;</p>
+                  <p className="text-sm">{t.cashier.table.noMatch(search)}</p>
                   <button onClick={() => setSearch("")} className="text-sm text-primary font-medium">
-                    Clear search
+                    {t.common.clearSearch}
                   </button>
                 </>
               ) : (
                 <>
-                  <p className="text-sm">No tables yet</p>
+                  <p className="text-sm">{t.cashier.table.noTablesYet}</p>
                   <Button size="sm" onClick={openCreate} className="gap-1.5">
-                    <Plus size={13} /> Add first table
+                    <Plus size={13} /> {t.cashier.table.addFirstTable}
                   </Button>
                 </>
               )}
@@ -376,12 +378,12 @@ export function TableManageTab({
         <DialogContent aria-describedby="table-form-desc" className={cn(editingTable && "sm:max-w-md")}>
           <DialogHeader>
             <DialogTitle>
-              {editingTable ? `Edit Table "${editingTable.table_number}"` : "Add New Table"}
+              {editingTable ? t.cashier.table.editTitle(editingTable.table_number) : t.cashier.table.addTitle}
             </DialogTitle>
             <DialogDescription id="table-form-desc">
               {editingTable
-                ? "Update table details. The QR code below is linked to this table's token."
-                : "A QR code will be generated automatically after creation."}
+                ? t.cashier.table.editDesc
+                : t.cashier.table.addDesc}
             </DialogDescription>
           </DialogHeader>
 
@@ -399,7 +401,7 @@ export function TableManageTab({
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 justify-center">
-                    <QrCode size={11} /> Scan to open table menu
+                    <QrCode size={11} /> {t.cashier.table.scanToOpen}
                   </p>
                   <p className="text-[10px] text-muted-foreground/60 font-mono break-all px-4">
                     {buildQrUrl(editingTable.qr_code_token)}
@@ -412,16 +414,16 @@ export function TableManageTab({
                   className="gap-1.5 h-7 text-xs"
                   onClick={() => downloadQR(editingTable.qr_code_token, editingTable.table_number)}
                 >
-                  <Download size={12} /> Download QR
+                  <Download size={12} /> {t.cashier.table.downloadQR}
                 </Button>
               </div>
             )}
 
             <div className="space-y-1.5">
-              <Label htmlFor="table-number">Table Number</Label>
+              <Label htmlFor="table-number">{t.cashier.table.tableNumber}</Label>
               <Input
                 id="table-number"
-                placeholder="e.g. A1, 12, VIP-1"
+                placeholder={t.cashier.table.tableNumberPlaceholder}
                 value={form.table_number}
                 onChange={(e) => setForm((f) => ({ ...f, table_number: e.target.value }))}
                 autoFocus={!editingTable}
@@ -430,7 +432,7 @@ export function TableManageTab({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="capacity">Capacity (seats)</Label>
+              <Label htmlFor="capacity">{t.cashier.table.capacity}</Label>
               <Input
                 id="capacity"
                 type="number"
@@ -444,12 +446,12 @@ export function TableManageTab({
 
             <DialogFooter className="pt-2 gap-2 sm:gap-0">
               <Button type="button" variant="outline" onClick={() => setFormOpen(false)} disabled={submitting}>
-                Cancel
+                {t.common.cancel}
               </Button>
               <Button type="submit" disabled={submitting}>
                 {submitting
-                  ? editingTable ? "Saving…" : "Creating…"
-                  : editingTable ? "Save Changes" : "Create Table"}
+                  ? editingTable ? t.common.saving : t.common.creating
+                  : editingTable ? t.common.saveChanges : t.cashier.table.createTable}
               </Button>
             </DialogFooter>
           </form>
@@ -460,23 +462,23 @@ export function TableManageTab({
       <Dialog open={!!deletingTable} onOpenChange={(v) => !deleting && !v && setDeletingTable(null)}>
         <DialogContent aria-describedby="del-table-desc">
           <DialogHeader>
-            <DialogTitle>Remove Table &ldquo;{deletingTable?.table_number}&rdquo;?</DialogTitle>
+            <DialogTitle>{t.cashier.table.removeTitle(deletingTable?.table_number ?? "")}</DialogTitle>
             <DialogDescription id="del-table-desc">
               {deletingTable?.status === "OCCUPIED"
-                ? "⚠️ This table is currently OCCUPIED. Clear it before deleting."
-                : "The table will be deactivated and hidden from orders."}
+                ? t.cashier.table.removeOccupiedDesc
+                : t.cashier.table.removeDesc}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setDeletingTable(null)} disabled={deleting}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleting || deletingTable?.status === "OCCUPIED"}
             >
-              {deleting ? "Removing…" : "Remove"}
+              {deleting ? t.common.removing : t.common.remove}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -488,10 +490,10 @@ export function TableManageTab({
           <DialogHeader>
             <DialogTitle className="flex items-center justify-center gap-2">
               <QrCode size={18} />
-              Table &ldquo;{qrPreview?.tableNumber}&rdquo; QR Code
+              {t.cashier.table.qrTitle(qrPreview?.tableNumber ?? "")}
             </DialogTitle>
             <DialogDescription id="qr-view-desc">
-              Print or download this QR code and place it on the table.
+              {t.cashier.table.qrDesc}
             </DialogDescription>
           </DialogHeader>
 
@@ -513,14 +515,14 @@ export function TableManageTab({
 
           <DialogFooter className="justify-center gap-2 sm:gap-2 flex-row">
             <Button variant="outline" onClick={() => setQrPreview(null)}>
-              Close
+              {t.common.close}
             </Button>
             {qrPreview && (
               <Button
                 onClick={() => downloadQR(qrPreview.token, qrPreview.tableNumber)}
                 className="gap-1.5"
               >
-                <Download size={14} /> Download
+                <Download size={14} /> {t.common.download}
               </Button>
             )}
           </DialogFooter>
@@ -546,6 +548,7 @@ function TableCard({
   onDelete: () => void;
   onToggleStatus: () => void;
 }) {
+  const t = useTranslations();
   const occupied = table.status === "OCCUPIED";
 
   return (
@@ -574,13 +577,13 @@ function TableCard({
                 : "bg-emerald-500/15 text-emerald-700 border-emerald-400/30 dark:text-emerald-400",
             )}
           >
-            {occupied ? "Not Available" : "Available"}
+            {occupied ? t.cashier.table.notAvailable : t.cashier.table.available}
           </Badge>
         </div>
 
         <div className="flex items-center gap-2 text-muted-foreground">
           <Users size={15} />
-          <span className="text-sm">{table.capacity} seats</span>
+          <span className="text-sm">{t.cashier.table.seats(table.capacity)}</span>
         </div>
 
         {/* Hover action overlay — View, Edit, Delete */}
@@ -588,21 +591,21 @@ function TableCard({
           <button
             onClick={onView}
             className="bg-background/90 rounded-full p-2 shadow hover:bg-background"
-            title="View QR code"
+            title={t.cashier.table.viewQR}
           >
             <Eye size={13} />
           </button>
           <button
             onClick={onEdit}
             className="bg-background/90 rounded-full p-2 shadow hover:bg-background"
-            title="Edit table"
+            title={t.cashier.table.editTooltip}
           >
             <Pencil size={13} />
           </button>
           <button
             onClick={onDelete}
             className="bg-background/90 rounded-full p-2 shadow hover:bg-destructive hover:text-destructive-foreground"
-            title="Remove table"
+            title={t.cashier.table.removeTooltip}
           >
             <Trash2 size={13} />
           </button>
@@ -612,13 +615,13 @@ function TableCard({
       {/* Toggle footer — always visible, not covered by overlay */}
       <div className="border-t px-4 py-2.5 flex items-center justify-between bg-card rounded-b-2xl">
         <span className="text-xs text-muted-foreground">
-          {occupied ? "Not Available" : "Available"}
+          {occupied ? t.cashier.table.notAvailable : t.cashier.table.available}
         </span>
         <Switch
           checked={!occupied}
           onCheckedChange={onToggleStatus}
           disabled={toggling}
-          title={occupied ? "Mark as available" : "Mark as not available"}
+          title={occupied ? t.cashier.table.markAvailable : t.cashier.table.markNotAvailable}
         />
       </div>
     </div>

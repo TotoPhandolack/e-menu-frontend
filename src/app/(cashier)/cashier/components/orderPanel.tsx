@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { NoteEditDialog } from './noteEditDialog';
+import { useTranslations } from '@/lib/i18n';
 import { resolveImageUrl, type MenuItem, type TableInfo, type OrderType } from '@/lib/api';
 
 export interface CartItem {
@@ -58,6 +59,7 @@ export function OrderPanel({
   mobileOpen = false,
   onMobileClose,
 }: Props) {
+  const t = useTranslations();
   const [editingNote, setEditingNote] = useState<{ itemId: string; name: string; note: string } | null>(null);
 
   const subtotal = cart.reduce((s, i) => s + i.menuItem.price * i.quantity, 0);
@@ -89,12 +91,12 @@ export function OrderPanel({
         <div className="px-5 py-4 border-b flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <ShoppingBag size={20} strokeWidth={1.8} />
-            <span className="font-bold text-base">Order List</span>
+            <span className="font-bold text-base">{t.cashier.order.title}</span>
           </div>
           <div className="flex items-center gap-2">
             {cart.length > 0 && (
               <Badge variant="secondary" className="font-semibold">
-                {cart.reduce((s, i) => s + i.quantity, 0)} items
+                {t.cashier.order.itemsCount(cart.reduce((s, i) => s + i.quantity, 0))}
               </Badge>
             )}
             {/* Close button — mobile only */}
@@ -115,20 +117,20 @@ export function OrderPanel({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="TABLE">Dine In</SelectItem>
-              <SelectItem value="TAKEAWAY">Take Away</SelectItem>
+              <SelectItem value="TABLE">{t.cashier.order.dineIn}</SelectItem>
+              <SelectItem value="TAKEAWAY">{t.cashier.order.takeAway}</SelectItem>
             </SelectContent>
           </Select>
 
           {orderType === 'TABLE' && (
             <Select value={selectedTableId} onValueChange={onTableChange}>
               <SelectTrigger className="flex-1 h-9 text-[13px]">
-                <SelectValue placeholder="Select Table" />
+                <SelectValue placeholder={t.cashier.order.selectTable} />
               </SelectTrigger>
               <SelectContent>
-                {availableTables.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    Table {t.table_number}
+                {availableTables.map((tbl) => (
+                  <SelectItem key={tbl.id} value={tbl.id}>
+                    {t.cashier.order.tableLabel(tbl.table_number)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -142,7 +144,7 @@ export function OrderPanel({
             {cart.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-40 text-muted-foreground gap-2.5">
                 <ShoppingBag size={40} strokeWidth={1.2} />
-                <p className="text-sm">No items selected</p>
+                <p className="text-sm">{t.cashier.order.noItemsSelected}</p>
               </div>
             ) : (
               cart.map((item) => (
@@ -187,7 +189,7 @@ export function OrderPanel({
                     >
                       <Edit2 size={10} strokeWidth={2} />
                       <span className="truncate max-w-37.5">
-                        {item.note || 'Add note...'}
+                        {item.note || t.cashier.order.addNote}
                       </span>
                     </button>
 
@@ -224,12 +226,12 @@ export function OrderPanel({
 
         {/* payment summary */}
         <div className="px-5 py-4 border-t shrink-0">
-          <p className="font-bold text-sm mb-3">Summary</p>
+          <p className="font-bold text-sm mb-3">{t.cashier.order.summary}</p>
           <div className="space-y-2">
-            <SummaryRow label="Subtotal" value={formatRp(subtotal)} />
+            <SummaryRow label={t.cashier.order.subtotal} value={formatRp(subtotal)} />
             <SummaryRow
-              label="Tax & Service"
-              value="Calculated at billing"
+              label={t.cashier.order.taxService}
+              value={t.cashier.order.calculatedAtBilling}
               valueClass="text-muted-foreground text-xs"
             />
           </div>
@@ -237,7 +239,7 @@ export function OrderPanel({
           <Separator className="my-3" />
 
           <div className="flex justify-between items-center mb-4">
-            <span className="font-bold text-sm">Estimated Total</span>
+            <span className="font-bold text-sm">{t.cashier.order.estimatedTotal}</span>
             <span className="font-bold text-sm">{formatRp(subtotal)}</span>
           </div>
 
@@ -247,11 +249,11 @@ export function OrderPanel({
             disabled={!canOrder || creating}
           >
             <UtensilsCrossed size={16} strokeWidth={2} />
-            {creating ? 'Processing...' : 'Place Order'}
+            {creating ? t.cashier.order.processing : t.cashier.order.placeOrder}
           </Button>
 
           {!canOrder && cart.length > 0 && orderType === 'TABLE' && (
-            <p className="text-xs text-destructive text-center mt-2">Please select a table first</p>
+            <p className="text-xs text-destructive text-center mt-2">{t.cashier.order.selectTableFirst}</p>
           )}
         </div>
       </div>

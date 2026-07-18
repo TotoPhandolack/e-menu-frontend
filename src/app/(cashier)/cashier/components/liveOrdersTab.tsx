@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { updateOrderStatus, cashierPrintKitchen, type Order } from '@/lib/api';
 import { useSession } from 'next-auth/react';
 import { printBill } from '@/lib/printBill';
+import { useTranslations, type Translations } from '@/lib/i18n';
 import {
   Dialog,
   DialogContent,
@@ -24,12 +25,12 @@ interface Props {
   onRefresh: () => void;
 }
 
-function timeAgo(dateStr: string) {
+function timeAgo(dateStr: string, t: Translations) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins}m ago`;
-  return `${Math.floor(mins / 60)}h ago`;
+  if (mins < 1) return t.cashier.time.justNow;
+  if (mins < 60) return t.cashier.time.minutesAgo(mins);
+  return t.cashier.time.hoursAgo(Math.floor(mins / 60));
 }
 
 function formatKip(n: number | string) {
@@ -39,6 +40,7 @@ function formatKip(n: number | string) {
 // ─── Individual order card with actions ──────────────────────────────────────
 
 function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
+  const t = useTranslations();
   const [busy, setBusy] = useState(false);
 
   const handleConfirm = async () => {
@@ -47,10 +49,10 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
       await updateOrderStatus(order.id, 'CONFIRMED');
       // Fire kitchen print — non-critical, don't block on failure
       cashierPrintKitchen(order.id).catch(() => null);
-      toast.success(`ຢືນຢັນ Order ໂຕະ ${order.table?.table_number ?? 'Takeaway'} ແລ້ວ`);
+      toast.success(t.cashier.live.orderConfirmed(order.table?.table_number ?? t.common.takeaway));
       onDone();
     } catch {
-      toast.error('Failed to confirm order');
+      toast.error(t.cashier.live.confirmFailed);
     } finally {
       setBusy(false);
     }
@@ -60,10 +62,10 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
     setBusy(true);
     try {
       await updateOrderStatus(order.id, 'CANCELLED');
-      toast.success('Order cancelled');
+      toast.success(t.cashier.live.orderCancelled);
       onDone();
     } catch {
-      toast.error('Failed to cancel order');
+      toast.error(t.cashier.live.cancelFailed);
     } finally {
       setBusy(false);
     }
@@ -75,15 +77,15 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
         <div>
           <p className="font-bold text-sm text-slate-800">
             {order.order_type === 'TAKEAWAY'
-              ? `Takeaway #${order.queue_number}`
-              : `ໂຕະ ${order.table?.table_number ?? '-'}`}
+              ? `${t.common.takeaway} #${order.queue_number}`
+              : t.cashier.order.tableLabel(order.table?.table_number ?? '-')}
           </p>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            {timeAgo(order.created_at)}
+            {timeAgo(order.created_at, t)}
           </p>
         </div>
         <span className="bg-yellow-100 text-yellow-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
-          PENDING
+          {t.cashier.live.pending}
         </span>
       </div>
 
@@ -99,7 +101,7 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
       </div>
 
       <div className="flex justify-between text-xs text-muted-foreground border-t pt-2">
-        <span>Total</span>
+        <span>{t.cashier.live.total}</span>
         <span className="font-semibold text-slate-800">{formatKip(order.total_amount)}</span>
       </div>
 
@@ -110,7 +112,7 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
           disabled={busy}
           onClick={handleConfirm}
         >
-          ✓ ຢືນຢັນ & ສົ່ງຄົວ
+          {t.cashier.live.confirmAndSend}
         </Button>
         <Button
           size="sm"
@@ -119,7 +121,7 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
           disabled={busy}
           onClick={handleCancel}
         >
-          ຍົກເລີກ
+          {t.common.cancel}
         </Button>
       </div>
     </div>
@@ -133,6 +135,7 @@ function ConfirmedCard({
   order: Order;
   onDone: () => void;
 }) {
+  const t = useTranslations();
   const { data: session } = useSession();
   const restaurantName = session?.admin?.restaurant?.name ?? '';
   const [busy, setBusy] = useState(false);
@@ -145,11 +148,11 @@ function ConfirmedCard({
     setBusy(true);
     try {
       await updateOrderStatus(order.id, 'PAID');
-      toast.success('Order ຮັບເງິນແລ້ວ');
+      toast.success(t.cashier.live.orderPaid);
       printBill(order, restaurantName);
       onDone(); // refresh parent — card unmounts after this
     } catch {
-      toast.error('Failed to mark as paid');
+      toast.error(t.cashier.live.markPaidFailed);
       setBusy(false);
     }
   };
@@ -163,10 +166,10 @@ function ConfirmedCard({
     setBusy(true);
     try {
       await updateOrderStatus(order.id, 'CANCELLED');
-      toast.success('Order cancelled');
+      toast.success(t.cashier.live.orderCancelled);
       onDone();
     } catch {
-      toast.error('Failed to cancel order');
+      toast.error(t.cashier.live.cancelFailed);
     } finally {
       setBusy(false);
     }
@@ -179,15 +182,15 @@ function ConfirmedCard({
           <div>
             <p className="font-bold text-sm text-slate-800">
               {order.order_type === 'TAKEAWAY'
-                ? `Takeaway #${order.queue_number}`
-                : `ໂຕະ ${order.table?.table_number ?? '-'}`}
+                ? `${t.common.takeaway} #${order.queue_number}`
+                : t.cashier.order.tableLabel(order.table?.table_number ?? '-')}
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {timeAgo(order.created_at)}
+              {timeAgo(order.created_at, t)}
             </p>
           </div>
           <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
-            IN KITCHEN
+            {t.cashier.live.inKitchen}
           </span>
         </div>
 
@@ -203,7 +206,7 @@ function ConfirmedCard({
         </div>
 
         <div className="flex justify-between text-xs text-muted-foreground border-t pt-2">
-          <span>Total</span>
+          <span>{t.cashier.live.total}</span>
           <span className="font-semibold text-slate-800">{formatKip(order.total_amount)}</span>
         </div>
 
@@ -214,7 +217,7 @@ function ConfirmedCard({
             disabled={busy}
             onClick={() => { setSelectedMethod(null); setPaymentDialog(true); }}
           >
-            ຮັບເງິນ / Mark Paid
+            {t.cashier.live.markPaid}
           </Button>
           <Button
             size="sm"
@@ -223,7 +226,7 @@ function ConfirmedCard({
             disabled={busy}
             onClick={handleCancel}
           >
-            ຍົກເລີກ
+            {t.common.cancel}
           </Button>
         </div>
       </div>
@@ -235,8 +238,8 @@ function ConfirmedCard({
       >
         <DialogContent showCloseButton>
           <DialogHeader>
-            <DialogTitle>ວິທີຊຳລະເງິນ</DialogTitle>
-            <DialogDescription>ລູກຄ້າຊຳລະດ້ວຍວິທີໃດ?</DialogDescription>
+            <DialogTitle>{t.cashier.live.paymentMethod}</DialogTitle>
+            <DialogDescription>{t.cashier.live.paymentMethodQuestion}</DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-2 gap-3 py-1">
@@ -249,7 +252,7 @@ function ConfirmedCard({
               }`}
             >
               <Banknote size={28} className="text-emerald-600" />
-              <span className="font-semibold text-sm">ເງິນສົດ (Cash)</span>
+              <span className="font-semibold text-sm">{t.cashier.live.cash}</span>
             </button>
             <button
               onClick={() => setSelectedMethod('QR')}
@@ -260,7 +263,7 @@ function ConfirmedCard({
               }`}
             >
               <QrCode size={28} className="text-blue-600" />
-              <span className="font-semibold text-sm">QR Code</span>
+              <span className="font-semibold text-sm">{t.cashier.live.qrCode}</span>
             </button>
           </div>
 
@@ -269,13 +272,13 @@ function ConfirmedCard({
               variant="outline"
               onClick={() => { setSelectedMethod(null); setPaymentDialog(false); }}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               disabled={!selectedMethod}
               onClick={() => { setPaymentDialog(false); setPrintDialog(true); }}
             >
-              Yes
+              {t.common.yes}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -285,18 +288,18 @@ function ConfirmedCard({
       <Dialog open={printDialog} onOpenChange={(open) => { if (!open) handleSkipPrint(); }}>
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>ພິມໃບບິນ?</DialogTitle>
+            <DialogTitle>{t.cashier.live.printBillQuestion}</DialogTitle>
             <DialogDescription>
-              ທ່ານຕ້ອງການພິມໃບບິນບໍ? / You wanna print or not?
+              {t.cashier.live.printBillPrompt}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={handleSkipPrint}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button onClick={handlePrint} className="gap-1.5" disabled={busy}>
               <Printer size={15} />
-              Print
+              {t.common.print}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -308,6 +311,7 @@ function ConfirmedCard({
 // ─── Main tab component ───────────────────────────────────────────────────────
 
 export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
+  const t = useTranslations();
   if (loading) {
     return (
       <div className="p-6 grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
@@ -329,22 +333,22 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
           {pending.length > 0 && (
             <span className="flex items-center gap-1.5 text-xs font-semibold text-yellow-700 bg-yellow-100 px-2.5 py-1 rounded-full">
               <Clock size={11} />
-              {pending.length} ລໍຖ້າຢືນຢັນ
+              {t.cashier.live.waitingCount(pending.length)}
             </span>
           )}
           {confirmed.length > 0 && (
             <span className="flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full">
               <ChefHat size={11} />
-              {confirmed.length} ໃນຄົວ
+              {t.cashier.live.inKitchenCount(confirmed.length)}
             </span>
           )}
           {orders.length === 0 && (
-            <p className="text-sm text-muted-foreground">No active orders</p>
+            <p className="text-sm text-muted-foreground">{t.cashier.live.noActiveOrdersShort}</p>
           )}
         </div>
         <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs" onClick={onRefresh}>
           <RefreshCw size={13} strokeWidth={2} />
-          Refresh
+          {t.common.refresh}
         </Button>
       </div>
 
@@ -353,7 +357,7 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
           {orders.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-56 text-muted-foreground gap-3">
               <ClipboardList size={44} strokeWidth={1.2} />
-              <p className="text-sm">ບໍ່ມີ order ທີ່ active</p>
+              <p className="text-sm">{t.cashier.live.noActiveOrders}</p>
             </div>
           ) : (
             <>
@@ -361,7 +365,7 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
               {pending.length > 0 && (
                 <section>
                   <h3 className="text-xs font-bold uppercase tracking-widest text-yellow-600 mb-3">
-                    ລໍຖ້າການຢືນຢັນ
+                    {t.cashier.live.pendingSection}
                   </h3>
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                     {pending.map((order) => (
@@ -375,7 +379,7 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
               {confirmed.length > 0 && (
                 <section>
                   <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">
-                    ໃນຄົວ — ລໍຖ້າຮັບເງິນ
+                    {t.cashier.live.confirmedSection}
                   </h3>
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                     {confirmed.map((order) => (

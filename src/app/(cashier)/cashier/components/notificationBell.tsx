@@ -5,6 +5,7 @@ import { Bell, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { useTranslations, type Translations } from "@/lib/i18n";
 import { updateOrderStatus, cashierPrintKitchen, type Order } from "@/lib/api";
 
 interface Props {
@@ -12,14 +13,15 @@ interface Props {
   onRefresh: () => void;
 }
 
-function timeAgo(dateStr: string) {
+function timeAgo(dateStr: string, t: Translations) {
   const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
-  return `${Math.floor(mins / 60)}h ago`;
+  if (mins < 1) return t.cashier.time.justNow;
+  if (mins < 60) return t.cashier.time.minutesAgo(mins);
+  return t.cashier.time.hoursAgo(Math.floor(mins / 60));
 }
 
 export function NotificationBell({ pendingOrders, onRefresh }: Props) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -42,11 +44,11 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
       await updateOrderStatus(order.id, "CONFIRMED");
       cashierPrintKitchen(order.id).catch(() => null);
       toast.success(
-        `ຢືນຢັນ Order ໂຕະ ${order.table?.table_number ?? "Takeaway"} ແລ້ວ`,
+        t.cashier.live.orderConfirmed(order.table?.table_number ?? t.common.takeaway),
       );
       onRefresh();
     } catch {
-      toast.error("ຢືນຢັນອໍເດີ້ບໍ່ສຳເລັດ");
+      toast.error(t.cashier.live.confirmFailed);
     } finally {
       setBusyId(null);
     }
@@ -56,10 +58,10 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
     setBusyId(order.id);
     try {
       await updateOrderStatus(order.id, "CANCELLED");
-      toast.success("ຍົກເລີກອໍເດີ້ແລ້ວ");
+      toast.success(t.cashier.live.orderCancelled);
       onRefresh();
     } catch {
-      toast.error("ຍົກເລີກອໍເດີ້ບໍ່ສຳເລັດ");
+      toast.error(t.cashier.live.cancelFailed);
     } finally {
       setBusyId(null);
     }
@@ -77,7 +79,7 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
               ? "hover:bg-red-50 text-red-500"
               : "hover:bg-slate-100 text-muted-foreground"
         }`}
-        aria-label="Order notifications"
+        aria-label={t.cashier.notif.ariaLabel}
       >
         <Bell size={20} className={count > 0 ? "animate-bell-ring" : ""} />
         {count > 0 && (
@@ -95,13 +97,13 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
             <div className="flex items-center gap-2">
               <Bell size={13} className="text-slate-500" />
               <span className="text-sm font-bold text-slate-700">
-                ລໍຖ້າການຢືນຢັນ
+                {t.cashier.notif.title}
               </span>
             </div>
             <div className="flex items-center gap-2">
               {count > 0 && (
                 <span className="bg-red-100 text-red-600 text-[11px] font-bold px-2 py-0.5 rounded-full">
-                  {count} orders
+                  {t.cashier.notif.ordersCount(count)}
                 </span>
               )}
               <button
@@ -118,7 +120,7 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
             {count === 0 ? (
               <div className="flex flex-col items-center justify-center py-14 text-slate-400 gap-3">
                 <Bell size={32} strokeWidth={1.2} />
-                <p className="text-sm">ບໍ່ມີ order ໃໝ່</p>
+                <p className="text-sm">{t.cashier.notif.noNew}</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
@@ -131,11 +133,11 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-sm text-slate-800">
                         {order.order_type === "TAKEAWAY"
-                          ? `Takeaway #${order.queue_number}`
-                          : `ໂຕະ ${order.table?.table_number ?? "-"}`}
+                          ? `${t.common.takeaway} #${order.queue_number}`
+                          : t.cashier.order.tableLabel(order.table?.table_number ?? "-")}
                       </span>
                       <span className="text-[11px] text-slate-400 tabular-nums">
-                        {timeAgo(order.created_at)}
+                        {timeAgo(order.created_at, t)}
                       </span>
                     </div>
 
@@ -174,7 +176,7 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                         disabled={busyId === order.id}
                         onClick={() => handleConfirm(order)}
                       >
-                        ✓ ຢືນຢັນ & ສົ່ງຄົວ
+                        {t.cashier.notif.confirmAndSend}
                       </Button>
                       <Button
                         size="sm"
@@ -183,7 +185,7 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                         disabled={busyId === order.id}
                         onClick={() => handleCancel(order)}
                       >
-                        ✕ ຍົກເລີກ
+                        {t.cashier.notif.cancel}
                       </Button>
                     </div>
                   </div>

@@ -11,6 +11,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/lib/i18n";
 import type { Order } from "@/lib/api";
 
 interface Props {
@@ -22,13 +23,14 @@ interface Props {
 }
 
 export function TakeawayPaymentDialog({ order, payment, onPaymentChange, onClose, onPrint }: Props) {
+  const t = useTranslations();
   return (
     <Dialog open={!!order} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-lg">ຊຳລະເງິນ / Payment</DialogTitle>
+          <DialogTitle className="text-lg">{t.cashier.takeaway.title}</DialogTitle>
           <DialogDescription>
-            Takeaway #{order?.queue_number}
+            {t.common.takeaway} #{order?.queue_number}
           </DialogDescription>
         </DialogHeader>
 
@@ -43,7 +45,7 @@ export function TakeawayPaymentDialog({ order, payment, onPaymentChange, onClose
             )}
           >
             <span className="text-3xl">💵</span>
-            Cash
+            {t.cashier.takeaway.cash}
           </button>
           <button
             onClick={() => onPaymentChange("QR")}
@@ -55,7 +57,7 @@ export function TakeawayPaymentDialog({ order, payment, onPaymentChange, onClose
             )}
           >
             <span className="text-3xl">📱</span>
-            QR Code
+            {t.cashier.takeaway.qrCode}
           </button>
         </div>
 
@@ -65,9 +67,9 @@ export function TakeawayPaymentDialog({ order, payment, onPaymentChange, onClose
             className="text-red-500 border-red-200 hover:bg-red-50"
             onClick={onClose}
           >
-            ຍົກເລີກ / Cancel
+            {t.common.cancel}
           </Button>
-          <Button onClick={onPrint}>ພິມໃບບິນ / Print</Button>
+          <Button onClick={onPrint}>{t.cashier.takeaway.printBill}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, getSession } from "next-auth/react";
 import { toast } from "react-toastify";
@@ -9,16 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
-import { Check, ChevronDown, Eye, EyeOff, Globe, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { clearTokenCache } from "@/lib/api";
-
-const LANGUAGES = [
-  { code: "lo", label: "ລາວ" },
-  { code: "th", label: "ไทย" },
-  { code: "en", label: "ENG" },
-] as const;
-
-type LangCode = (typeof LANGUAGES)[number]["code"];
+import { LanguageSwitcher } from "@/components/languageSwitcher";
+import { useLangStore, type LangCode } from "@/stores/langStore";
 
 const T: Record<
   LangCode,
@@ -81,33 +75,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [lang, setLang] = useState<LangCode>("lo");
-  const [langOpen, setLangOpen] = useState(false);
-  const langRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("emenu-lang") as LangCode | null;
-    if (stored && LANGUAGES.some((l) => l.code === stored)) setLang(stored);
-  }, []);
-
-  useEffect(() => {
-    if (!langOpen) return;
-    const handleClick = (e: MouseEvent) => {
-      if (langRef.current && !langRef.current.contains(e.target as Node)) {
-        setLangOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [langOpen]);
-
-  const handleSelectLang = (code: LangCode) => {
-    setLang(code);
-    localStorage.setItem("emenu-lang", code);
-    setLangOpen(false);
-  };
-
-  const currentLang = LANGUAGES.find((l) => l.code === lang) ?? LANGUAGES[0];
+  const lang = useLangStore((s) => s.lang) as LangCode;
   const t = T[lang];
 
   const handleLogin = async () => {
@@ -146,42 +114,7 @@ export default function LoginPage() {
       <div className="w-full max-w-4xl animate-slideUp">
         <div className="relative grid overflow-hidden rounded-2xl ring-1 ring-foreground/10 bg-background md:grid-cols-2">
           {/* Language switcher */}
-          <div ref={langRef} className="absolute right-3 top-3 z-20">
-            <button
-              type="button"
-              onClick={() => setLangOpen((v) => !v)}
-              className="flex items-center gap-1.5 rounded-lg border bg-background/80 px-2.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Change language"
-              aria-expanded={langOpen}
-            >
-              <Globe size={14} />
-              {currentLang.label}
-              <ChevronDown
-                size={13}
-                className={`transition-transform ${langOpen ? "rotate-180" : ""}`}
-              />
-            </button>
-
-            {langOpen && (
-              <div className="absolute right-0 mt-1.5 w-28 overflow-hidden rounded-lg border bg-background shadow-md">
-                {LANGUAGES.map((l) => (
-                  <button
-                    key={l.code}
-                    type="button"
-                    onClick={() => handleSelectLang(l.code)}
-                    className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-muted ${
-                      l.code === lang
-                        ? "font-semibold text-foreground"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    {l.label}
-                    {l.code === lang && <Check size={14} />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <LanguageSwitcher className="absolute right-3 top-3 z-20" />
 
           {/* Left — image */}
           <div className="hidden p-2 md:block">

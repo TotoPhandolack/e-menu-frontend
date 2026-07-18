@@ -11,6 +11,7 @@ import {
 import { ClipboardList, RefreshCw, X, Clock, ChefHat } from "lucide-react";
 import { cancelOrder, type Order } from "@/lib/api";
 import { toast } from "react-toastify";
+import { useTranslations } from "@/lib/i18n";
 
 interface Props {
   open: boolean;
@@ -22,18 +23,19 @@ interface Props {
 }
 
 function StatusBadge({ status }: { status: Order["status"] }) {
+  const t = useTranslations();
   if (status === "PENDING")
     return (
       <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
         <Clock size={9} />
-        ລໍຖ້າ
+        {t.customer.orders.pending}
       </span>
     );
   if (status === "CONFIRMED")
     return (
       <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
         <ChefHat size={9} />
-        ໃນຄົວ
+        {t.customer.orders.inKitchen}
       </span>
     );
   return null;
@@ -46,16 +48,17 @@ function OrderRow({
   order: Order;
   onCancelled: (id: string) => void;
 }) {
+  const t = useTranslations();
   const [busy, setBusy] = useState(false);
 
   const handleCancel = async () => {
     setBusy(true);
     try {
       await cancelOrder(order.id);
-      toast.success("ຍົກເລີກ order ແລ້ວ");
+      toast.success(t.customer.orders.cancelled);
       onCancelled(order.id);
     } catch {
-      toast.error("ບໍ່ສາມາດຍົກເລີກໄດ້");
+      toast.error(t.customer.orders.cancelFailed);
     } finally {
       setBusy(false);
     }
@@ -100,7 +103,7 @@ function OrderRow({
             className="flex items-center gap-1 text-[11px] font-semibold text-red-500 border border-red-200 rounded-lg px-2.5 py-1 active:bg-red-50 disabled:opacity-50 transition-colors"
           >
             <X size={10} />
-            ຍົກເລີກ
+            {t.customer.orders.cancel}
           </button>
         )}
       </div>
@@ -116,6 +119,7 @@ export default function OrderListSheet({
   onRefresh,
   onOrderCancelled,
 }: Props) {
+  const t = useTranslations();
   const activeOrders = orders.filter(
     (o) => o.status === "PENDING" || o.status === "CONFIRMED",
   );
@@ -131,12 +135,12 @@ export default function OrderListSheet({
           <div className="flex items-center justify-between">
             <SheetTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
               <ClipboardList className="h-4 w-4" />
-              ລາຍການສັ່ງຂອງທ່ານ
+              {t.customer.orders.title}
             </SheetTitle>
             <button
               onClick={onRefresh}
               className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-              aria-label="Refresh orders"
+              aria-label={t.customer.orders.refreshAria}
             >
               <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             </button>
@@ -146,12 +150,12 @@ export default function OrderListSheet({
         <div className="flex-1 overflow-y-auto px-5">
           {loading ? (
             <div className="flex items-center justify-center h-32 text-slate-400 text-sm">
-              ກຳລັງໂຫຼດ...
+              {t.customer.orders.loading}
             </div>
           ) : activeOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-3 text-slate-400">
               <ClipboardList size={36} strokeWidth={1.2} />
-              <p className="text-sm">ບໍ່ມີລາຍການສັ່ງ</p>
+              <p className="text-sm">{t.customer.orders.noOrders}</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">

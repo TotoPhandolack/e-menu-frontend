@@ -19,6 +19,7 @@ import { OrderHistoryTab } from "./components/orderHistoryTab";
 
 import { useSession, signOut } from "next-auth/react";
 import { useSocket } from "@/hooks/useSocket";
+import { useTranslations } from "@/lib/i18n";
 import {
   getMenuItems,
   cashierGetMenuItems,
@@ -38,6 +39,7 @@ import {
 export default function CashierPage() {
   const { data: session } = useSession();
   const admin = session?.admin ?? null;
+  const t = useTranslations();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [tables, setTables] = useState<TableInfo[]>([]);
@@ -85,9 +87,9 @@ export default function CashierPage() {
         setMenuItems(menuRes.data);
         setTables(tableRes.data);
       })
-      .catch(() => toast.error("ໂຫຼດຂໍ້ມູນເມນູບໍ່ສຳເລັດ"))
+      .catch(() => toast.error(t.cashier.toasts.menuLoadFailed))
       .finally(() => setMenuLoading(false));
-  }, [admin]);
+  }, [admin, t]);
 
   // Eagerly load live orders on mount; also poll every 10 s as WebSocket fallback.
   useEffect(() => {
@@ -104,11 +106,11 @@ export default function CashierPage() {
       const res = await cashierGetLiveOrders();
       setLiveOrders(res.data);
     } catch {
-      toast.error("ໂຫຼດອໍເດີ້ບໍ່ສຳເລັດ");
+      toast.error(t.cashier.toasts.ordersLoadFailed);
     } finally {
       if (!silent) setLiveLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const fetchHistory = useCallback(async () => {
     setHistoryLoading(true);
@@ -116,11 +118,11 @@ export default function CashierPage() {
       const res = await cashierGetOrderHistory();
       setHistoryOrders(res.data);
     } catch {
-      toast.error("ໂຫຼດປະຫວັດອໍເດີ້ບໍ່ສຳເລັດ");
+      toast.error(t.cashier.toasts.historyLoadFailed);
     } finally {
       setHistoryLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const fetchManageItems = useCallback(async () => {
     setManageLoading(true);
@@ -128,11 +130,11 @@ export default function CashierPage() {
       const res = await cashierGetMenuItems();
       setManageItems(res.data);
     } catch {
-      toast.error("ໂຫຼດລາຍການເມນູບໍ່ສຳເລັດ");
+      toast.error(t.cashier.toasts.menuItemsLoadFailed);
     } finally {
       setManageLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const fetchManageTables = useCallback(async () => {
     if (!admin) return;
@@ -141,11 +143,11 @@ export default function CashierPage() {
       const res = await getTables(admin.restaurant_id);
       setManageTables(res.data);
     } catch {
-      toast.error("ໂຫຼດໂຕະບໍ່ສຳເລັດ");
+      toast.error(t.cashier.toasts.tablesLoadFailed);
     } finally {
       setManageTablesLoading(false);
     }
-  }, [admin]);
+  }, [admin, t]);
 
   useSocket(
     admin?.restaurant_id ?? null,
@@ -156,7 +158,9 @@ export default function CashierPage() {
       if (!newOrder.session_id?.startsWith("cashier-")) {
         playDing();
         toast.info(
-          `🔔 Order ໃໝ່! ໂຕະ ${newOrder.table?.table_number ?? "Takeaway"}`,
+          t.cashier.toasts.newOrder(
+            newOrder.table?.table_number ?? t.common.takeaway,
+          ),
           { position: "top-right", autoClose: 6000, theme: "colored" },
         );
       }
@@ -221,7 +225,7 @@ export default function CashierPage() {
       if (orderType === "TAKEAWAY") {
         setPendingTakeawayOrder(res.data);
       } else {
-        toast.success("ສັ່ງອາຫານສຳເລັດແລ້ວ!");
+        toast.success(t.cashier.toasts.orderPlaced);
       }
       try {
         await cashierPrintKitchen(res.data.id);
@@ -250,7 +254,7 @@ export default function CashierPage() {
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed to place order";
+          ?.message ?? t.cashier.toasts.orderFailed;
       toast.error(msg);
     } finally {
       setCreating(false);
@@ -267,7 +271,7 @@ export default function CashierPage() {
     const order = pendingTakeawayOrder;
     closeTakeawayDialog();
     printBill(order, admin?.restaurant?.name ?? "");
-    toast.success(`ພິມໃບບິນສຳເລັດ! / Bill printed — #${order.queue_number}`);
+    toast.success(t.cashier.toasts.billPrinted(order.queue_number ?? ""));
     try { await updateOrderStatus(order.id, "PAID"); } catch { /* non-critical */ }
   };
 
@@ -345,8 +349,8 @@ export default function CashierPage() {
             >
               <div className="bg-background border-b px-4 md:px-7 py-2 shrink-0 flex items-center gap-3">
                 <TabsList className="h-8 bg-muted/40">
-                  <TabsTrigger value="live" className="text-xs font-semibold px-5">Live</TabsTrigger>
-                  <TabsTrigger value="history" className="text-xs font-semibold px-5">History</TabsTrigger>
+                  <TabsTrigger value="live" className="text-xs font-semibold px-5">{t.cashier.header.subTabLive}</TabsTrigger>
+                  <TabsTrigger value="history" className="text-xs font-semibold px-5">{t.cashier.header.subTabHistory}</TabsTrigger>
                 </TabsList>
               </div>
               <TabsContent value="live" className="flex-1 overflow-hidden mt-0">
@@ -369,8 +373,8 @@ export default function CashierPage() {
             >
               <div className="bg-background border-b px-4 md:px-7 py-2 shrink-0 flex items-center gap-3">
                 <TabsList className="h-8 bg-muted/40">
-                  <TabsTrigger value="food" className="text-xs font-semibold px-5">Food</TabsTrigger>
-                  <TabsTrigger value="table" className="text-xs font-semibold px-5">Table</TabsTrigger>
+                  <TabsTrigger value="food" className="text-xs font-semibold px-5">{t.cashier.header.subTabFood}</TabsTrigger>
+                  <TabsTrigger value="table" className="text-xs font-semibold px-5">{t.cashier.header.subTabTable}</TabsTrigger>
                 </TabsList>
               </div>
               <TabsContent value="food" className="flex flex-col flex-1 overflow-hidden mt-0">

@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { MenuItemCard } from "./menuItemCard";
+import { useTranslations } from "@/lib/i18n";
 import type { MenuItem } from "@/lib/api";
 
 interface Props {
@@ -22,6 +23,7 @@ export function MenuSection({
   cartItemIds,
   onAddToCart,
 }: Props) {
+  const t = useTranslations();
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
 
@@ -34,10 +36,10 @@ export function MenuSection({
       map.get(cat.id)!.count++;
     });
     return [
-      { id: "all", name: "All Menu", count: items.length },
+      { id: "all", name: t.cashier.menu.allMenu, count: items.length },
       ...Array.from(map.values()),
     ];
-  }, [items]);
+  }, [items, t]);
 
   const filtered = useMemo(() => {
     let base =
@@ -75,7 +77,7 @@ export function MenuSection({
                   <p className="font-semibold text-[12px] md:text-[13px] leading-none">
                     {name}
                   </p>
-                  <p className="text-[10px] md:text-[11px] opacity-70 mt-0.5">{count} items</p>
+                  <p className="text-[10px] md:text-[11px] opacity-70 mt-0.5">{t.cashier.menu.itemsCount(count)}</p>
                 </div>
               </button>
             );
@@ -90,7 +92,7 @@ export function MenuSection({
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
           />
           <Input
-            placeholder="Search items..."
+            placeholder={t.cashier.menu.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-8 h-9 w-full md:w-48 text-sm"
@@ -112,8 +114,8 @@ export function MenuSection({
               <LayoutGrid size={36} strokeWidth={1.2} />
               <p className="text-sm">
                 {search.trim()
-                  ? "No items match your search"
-                  : "No items in this category"}
+                  ? t.cashier.menu.noMatch
+                  : t.cashier.menu.noItemsInCategory}
               </p>
             </div>
           ) : (

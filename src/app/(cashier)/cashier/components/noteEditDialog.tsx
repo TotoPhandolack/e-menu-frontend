@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { useTranslations } from '@/lib/i18n';
 
 interface Props {
   open: boolean;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function NoteEditDialog({ open, itemName, currentNote, onSave, onClose }: Props) {
+  const t = useTranslations();
   const [note, setNote] = useState(currentNote);
 
   const handleSave = () => {
@@ -26,12 +28,12 @@ export function NoteEditDialog({ open, itemName, currentNote, onSave, onClose }:
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Note for {itemName}</DialogTitle>
+          <DialogTitle>{t.cashier.note.title(itemName)}</DialogTitle>
         </DialogHeader>
         <div className="py-2">
-          <Label className="text-sm mb-2 block">Special note</Label>
+          <Label className="text-sm mb-2 block">{t.cashier.note.label}</Label>
           <Textarea
-            placeholder="e.g. No sugar, ice on the side..."
+            placeholder={t.cashier.note.placeholder}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={3}
@@ -40,8 +42,8 @@ export function NoteEditDialog({ open, itemName, currentNote, onSave, onClose }:
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave}>Save</Button>
+          <Button variant="outline" onClick={onClose}>{t.common.cancel}</Button>
+          <Button onClick={handleSave}>{t.common.save}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

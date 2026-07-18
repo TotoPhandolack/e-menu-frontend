@@ -22,6 +22,8 @@ import OrderListSheet from "./components/orderListSheet";
 import { useCartStore } from "@/stores/cartStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
+import { useTranslations } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/languageSwitcher";
 import MenuItemCard from "./components/menuItemCard";
 import CategoryTabs from "./components/categoryTabs";
 import CartSheet from "./components/cartSheet";
@@ -41,6 +43,7 @@ import {
 } from "lucide-react";
 
 function MenuPageContent() {
+  const t = useTranslations();
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -111,7 +114,7 @@ function MenuPageContent() {
         setMenuItems(flat);
       } catch (err: unknown) {
         const error = err as { response?: { data?: { message?: string } } };
-        const msg = error.response?.data?.message || "Failed to load menu";
+        const msg = error.response?.data?.message || t.customer.menu.loadFailed;
         toast.error(msg);
       } finally {
         setLoading(false);
@@ -121,7 +124,7 @@ function MenuPageContent() {
 
     // ── Table QR (normal ordering mode) ──
     if (!token) {
-      toast.error("QR Code ບໍ່ຖືກຕ້ອງ");
+      toast.error(t.customer.menu.invalidQR);
       setLoading(false);
       return;
     }
@@ -138,12 +141,12 @@ function MenuPageContent() {
       applyTheme(profileRes.data.theme_color || "forest");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      const msg = error.response?.data?.message || "Failed to load menu";
+      const msg = error.response?.data?.message || t.customer.menu.loadFailed;
       toast.error(msg);
     } finally {
       setLoading(false);
     }
-  }, [token, restaurantIdParam, setTableInfo, setRestaurantInfo]);
+  }, [token, restaurantIdParam, setTableInfo, setRestaurantInfo, t]);
 
   useEffect(() => {
     init();
@@ -196,7 +199,7 @@ function MenuPageContent() {
 
   // Build category list
   const categories = [
-    { id: "all", name: "ທັງໝົດ" },
+    { id: "all", name: t.customer.menu.all },
     ...Array.from(
       new Map(menuItems.map((m) => [m.category.id, m.category])).values(),
     ),
@@ -275,7 +278,7 @@ function MenuPageContent() {
   const handleOrder = () => {
     if (items.length === 0) return;
     if (!table_id || !session_id) {
-      toast.error("ບໍ່ພົບຂໍ້ມູນໂຕະ. ກະລຸນາ scan QR code ໃໝ່.");
+      toast.error(t.customer.menu.tableNotFound);
       return;
     }
     setCartOpen(false);
@@ -329,7 +332,7 @@ function MenuPageContent() {
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       const msg =
-        error.response?.data?.message || "Order failed. Please try again.";
+        error.response?.data?.message || t.customer.menu.orderFailed;
       toast.error(msg);
     } finally {
       setOrdering(false);
@@ -409,16 +412,18 @@ function MenuPageContent() {
                 {restaurantProfile?.name ?? ""}
               </h1>
             </div>
-            {table_id && !browseMode && (
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher align="right" />
+              {table_id && !browseMode && (
+              <>
                 <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
-                  Table #{table_id.slice(-4)}
+                  {t.customer.menu.table} #{table_id.slice(-4)}
                 </span>
                 {/* Orders icon — opens order list sheet */}
                 <button
                   onClick={() => setOrdersOpen(true)}
                   className="relative p-1.5 rounded-xl bg-primary/10 text-primary active:bg-primary/20 transition-colors"
-                  aria-label="ລາຍການສັ່ງຂອງທ່ານ"
+                  aria-label={t.customer.menu.yourOrdersAria}
                 >
                   <ClipboardList className="h-5 w-5" />
                   {tableOrders.filter(
@@ -434,8 +439,9 @@ function MenuPageContent() {
                     </span>
                   )}
                 </button>
-              </div>
+              </>
             )}
+            </div>
           </div>
         </div>
 
@@ -447,7 +453,7 @@ function MenuPageContent() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ຄົ້ນຫາເມນູ…"
+              placeholder={t.customer.menu.searchPlaceholder}
               className="w-full bg-primary/10 rounded-xl pl-9 pr-9 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
             />
             {searchQuery && (
@@ -503,14 +509,14 @@ function MenuPageContent() {
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <Search className="h-12 w-12 text-slate-200" />
             <p className="text-slate-400 text-sm">
-              {searchQuery ? `ບໍ່ພົວ "${searchQuery}"` : "ບໍ່ມີລາຍການ"}
+              {searchQuery ? t.customer.menu.noResults(searchQuery) : t.customer.menu.noItems}
             </p>
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
                 className="text-primary text-sm font-medium"
               >
-                ລ້າງການຄົ້ນຫາ
+                {t.common.clearSearch}
               </button>
             )}
           </div>
@@ -528,7 +534,7 @@ function MenuPageContent() {
                       className="text-2xl text-slate-700 mb-3 pb-1"
                       style={{ fontFamily: "'Phetsarath', cursive" }}
                     >
-                      ⭐ ແນະນຳ
+                      {t.customer.menu.recommended}
                     </h2>
                     <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
                       {recommended.map((item) => (
@@ -597,7 +603,7 @@ function MenuPageContent() {
                   {totalItems()}
                 </span>
               </div>
-              <span className="text-sm font-semibold">ເບິ່ງຕະກ້າ</span>
+              <span className="text-sm font-semibold">{t.customer.menu.viewCart}</span>
             </div>
             {/* Total */}
             <span className="text-sm font-bold">
@@ -641,16 +647,16 @@ function MenuPageContent() {
               <ShoppingCart className="h-7 w-7 text-primary" />
             </div>
             <SheetTitle className="text-lg font-bold text-slate-800">
-              ຢືນຢັນການສັ່ງ?
+              {t.customer.menu.confirmTitle}
             </SheetTitle>
           </SheetHeader>
 
           <p className="text-center text-sm text-slate-500 mb-6">
-            ທ່ານຕ້ອງການສັ່ງ{" "}
+            {t.customer.menu.confirmPrefix}{" "}
             <strong className="text-primary">
-              {items.reduce((s, i) => s + i.quantity, 0)} ລາຍການ
-            </strong>{" "}
-            ແທ້ບໍ?
+              {items.reduce((s, i) => s + i.quantity, 0)} {t.customer.menu.itemsUnit}
+            </strong>
+            {t.customer.menu.confirmSuffix}
           </p>
 
           <div className="flex gap-3">
@@ -660,7 +666,7 @@ function MenuPageContent() {
               onClick={() => setConfirmOpen(false)}
               className="flex-1 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-semibold active:bg-slate-50 transition-colors"
             >
-              ບໍ່
+              {t.common.no}
             </button>
 
             {/* Yes */}
@@ -669,7 +675,7 @@ function MenuPageContent() {
               onClick={handleConfirmOrder}
               className="flex-1 py-3 rounded-xl bg-primary hover:bg-primary/90 active:bg-primary/80 text-primary-foreground text-sm font-bold transition-colors shadow-md"
             >
-              ແມ່ນ
+              {t.common.yes}
             </button>
           </div>
         </SheetContent>
@@ -678,15 +684,18 @@ function MenuPageContent() {
   );
 }
 
+function MenuLoadingFallback() {
+  const t = useTranslations();
+  return (
+    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+      <div className="text-slate-400 text-sm">{t.customer.menu.loadingMenu}</div>
+    </div>
+  );
+}
+
 export default function MenuPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
-          <div className="text-slate-400 text-sm">Loading menu…</div>
-        </div>
-      }
-    >
+    <Suspense fallback={<MenuLoadingFallback />}>
       <MenuPageContent />
     </Suspense>
   );

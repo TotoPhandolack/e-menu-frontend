@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useTranslations } from '@/lib/i18n';
 import { type Order } from '@/lib/api';
 
 interface Props {
@@ -80,6 +81,7 @@ function FilterPill({
 // ─── Expandable table rows ────────────────────────────────────────────────────
 
 function OrderRow({ order }: { order: Order }) {
+  const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
   const isCashier = order.session_id?.startsWith('cashier-');
   const isPaid = order.status === 'PAID';
@@ -95,8 +97,8 @@ function OrderRow({ order }: { order: Order }) {
         {/* Order label */}
         <TableCell className="font-medium text-slate-800">
           {order.order_type === 'TAKEAWAY'
-            ? `Takeaway #${order.queue_number ?? '-'}`
-            : `ໂຕະ ${order.table?.table_number ?? '-'}`}
+            ? `${t.common.takeaway} #${order.queue_number ?? '-'}`
+            : t.cashier.order.tableLabel(order.table?.table_number ?? '-')}
         </TableCell>
 
         {/* Type */}
@@ -108,7 +110,7 @@ function OrderRow({ order }: { order: Order }) {
                 : 'bg-indigo-100 text-indigo-700'
             }`}
           >
-            {order.order_type === 'TAKEAWAY' ? 'Takeaway' : 'Dine-in'}
+            {order.order_type === 'TAKEAWAY' ? t.cashier.history.takeaway : t.cashier.history.dineIn}
           </span>
         </TableCell>
 
@@ -121,7 +123,7 @@ function OrderRow({ order }: { order: Order }) {
                 : 'bg-sky-100 text-sky-700'
             }`}
           >
-            {isCashier ? 'Cashier' : 'Customer'}
+            {isCashier ? t.cashier.history.cashier : t.cashier.history.customer}
           </span>
         </TableCell>
 
@@ -139,7 +141,7 @@ function OrderRow({ order }: { order: Order }) {
                 : 'bg-red-100 text-red-600'
             }`}
           >
-            {isPaid ? 'PAID' : 'CANCELLED'}
+            {isPaid ? t.cashier.history.paid : t.cashier.history.cancelled}
           </span>
         </TableCell>
 
@@ -188,6 +190,7 @@ function OrderRow({ order }: { order: Order }) {
 // ─── Main tab ─────────────────────────────────────────────────────────────────
 
 export function OrderHistoryTab({ orders, loading, onRefresh }: Props) {
+  const t = useTranslations();
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
@@ -229,23 +232,23 @@ export function OrderHistoryTab({ orders, loading, onRefresh }: Props) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-wrap gap-1.5 items-center">
             {/* Date */}
-            <FilterPill label="ມື້ນີ້"    active={dateFilter === 'today'}     onClick={() => setDateFilter('today')} />
-            <FilterPill label="ມື້ວານ"   active={dateFilter === 'yesterday'} onClick={() => setDateFilter('yesterday')} />
-            <FilterPill label="ທັງໝົດ"   active={dateFilter === 'all'}       onClick={() => setDateFilter('all')} />
+            <FilterPill label={t.cashier.history.today}     active={dateFilter === 'today'}     onClick={() => setDateFilter('today')} />
+            <FilterPill label={t.cashier.history.yesterday} active={dateFilter === 'yesterday'} onClick={() => setDateFilter('yesterday')} />
+            <FilterPill label={t.cashier.history.all}       active={dateFilter === 'all'}       onClick={() => setDateFilter('all')} />
 
             <span className="w-px h-4 bg-border mx-0.5" />
 
             {/* Order type */}
-            <FilterPill label="ທຸກປະເພດ" active={typeFilter === 'all'}      onClick={() => setTypeFilter('all')} />
-            <FilterPill label="ໂຕະ"      active={typeFilter === 'TABLE'}    onClick={() => setTypeFilter('TABLE')} />
-            <FilterPill label="Takeaway"  active={typeFilter === 'TAKEAWAY'} onClick={() => setTypeFilter('TAKEAWAY')} />
+            <FilterPill label={t.cashier.history.allTypes} active={typeFilter === 'all'}      onClick={() => setTypeFilter('all')} />
+            <FilterPill label={t.cashier.history.table}    active={typeFilter === 'TABLE'}    onClick={() => setTypeFilter('TABLE')} />
+            <FilterPill label={t.cashier.history.takeaway} active={typeFilter === 'TAKEAWAY'} onClick={() => setTypeFilter('TAKEAWAY')} />
 
             <span className="w-px h-4 bg-border mx-0.5" />
 
             {/* Source */}
-            <FilterPill label="ທຸກ Source" active={sourceFilter === 'all'}      onClick={() => setSourceFilter('all')} />
-            <FilterPill label="Cashier"    active={sourceFilter === 'cashier'}   onClick={() => setSourceFilter('cashier')} />
-            <FilterPill label="Customer"   active={sourceFilter === 'customer'}  onClick={() => setSourceFilter('customer')} />
+            <FilterPill label={t.cashier.history.allSources} active={sourceFilter === 'all'}      onClick={() => setSourceFilter('all')} />
+            <FilterPill label={t.cashier.history.cashier}    active={sourceFilter === 'cashier'}   onClick={() => setSourceFilter('cashier')} />
+            <FilterPill label={t.cashier.history.customer}   active={sourceFilter === 'customer'}  onClick={() => setSourceFilter('customer')} />
           </div>
 
           <Button
@@ -255,20 +258,20 @@ export function OrderHistoryTab({ orders, loading, onRefresh }: Props) {
             onClick={onRefresh}
           >
             <RefreshCw size={13} strokeWidth={2} />
-            Refresh
+            {t.common.refresh}
           </Button>
         </div>
 
         {/* Summary */}
         <div className="flex gap-4 text-xs text-muted-foreground">
           <span>
-            <span className="font-semibold text-slate-700">{filtered.length}</span> orders
+            <span className="font-semibold text-slate-700">{filtered.length}</span> {t.cashier.history.ordersWord}
           </span>
           <span>
-            <span className="font-semibold text-emerald-700">{paidCount}</span> paid
+            <span className="font-semibold text-emerald-700">{paidCount}</span> {t.cashier.history.paidWord}
           </span>
           <span>
-            Revenue:{' '}
+            {t.cashier.history.revenue}{' '}
             <span className="font-bold text-slate-800">{formatKip(paidRevenue)}</span>
           </span>
         </div>
@@ -284,7 +287,7 @@ export function OrderHistoryTab({ orders, loading, onRefresh }: Props) {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-56 text-muted-foreground gap-3">
           <History size={44} strokeWidth={1.2} />
-          <p className="text-sm">ບໍ່ພົບ order ປະຫວັດ</p>
+          <p className="text-sm">{t.cashier.history.noHistory}</p>
         </div>
       ) : (
         <ScrollArea className="flex-1">
@@ -292,12 +295,12 @@ export function OrderHistoryTab({ orders, loading, onRefresh }: Props) {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead>Order</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead>{t.cashier.history.colOrder}</TableHead>
+                  <TableHead>{t.cashier.history.colType}</TableHead>
+                  <TableHead>{t.cashier.history.colSource}</TableHead>
+                  <TableHead>{t.cashier.history.colTime}</TableHead>
+                  <TableHead>{t.cashier.history.colStatus}</TableHead>
+                  <TableHead className="text-right">{t.cashier.history.colTotal}</TableHead>
                   <TableHead className="w-8" />
                 </TableRow>
               </TableHeader>

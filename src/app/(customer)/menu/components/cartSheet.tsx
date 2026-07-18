@@ -3,6 +3,7 @@
 
 import { resolveImageUrl } from "@/lib/api";
 import { useCartStore } from "@/stores/cartStore";
+import { useTranslations } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function CartSheet({ open, onClose, onOrder, ordering, browseMode }: Props) {
+  const t = useTranslations();
   const { items, updateQuantity, totalPrice } = useCartStore();
 
   return (
@@ -30,7 +32,7 @@ export default function CartSheet({ open, onClose, onOrder, ordering, browseMode
         <SheetHeader className="pb-2 border-b border-slate-100">
           <SheetTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" />
-            Your Order
+            {t.customer.cart.yourOrder}
           </SheetTitle>
         </SheetHeader>
 
@@ -40,7 +42,7 @@ export default function CartSheet({ open, onClose, onOrder, ordering, browseMode
               <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
                 <ChefHat className="h-8 w-8 text-slate-300" />
               </div>
-              <p className="text-sm text-slate-400">ຍັງບໍ່ມີລາຍການ</p>
+              <p className="text-sm text-slate-400">{t.customer.cart.empty}</p>
             </div>
           ) : (
             <ul className="divide-y divide-slate-100">
@@ -100,14 +102,14 @@ export default function CartSheet({ open, onClose, onOrder, ordering, browseMode
 
         <SheetFooter className="flex-col gap-3 pt-3 border-t border-slate-100">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-slate-500">ລວມທັງໝົດ</span>
+            <span className="text-sm text-slate-500">{t.customer.cart.total}</span>
             <span className="text-base font-bold text-slate-900">
               ₭{totalPrice().toLocaleString()}
             </span>
           </div>
           {browseMode ? (
             <div className="w-full h-12 flex items-center justify-center rounded-xl bg-primary/10 text-primary text-sm font-semibold">
-              ແຈ້ງລາຍການນີ້ກັບພະນັກງານ
+              {t.customer.cart.tellStaff}
             </div>
           ) : (
             <Button
@@ -115,7 +117,7 @@ export default function CartSheet({ open, onClose, onOrder, ordering, browseMode
               disabled={items.length === 0 || ordering}
               onClick={onOrder}
             >
-              {ordering ? "ກຳລັງສັ່ງ..." : "ສັ່ງອາຫານ"}
+              {ordering ? t.customer.cart.ordering : t.customer.cart.orderFood}
             </Button>
           )}
         </SheetFooter>

@@ -4,9 +4,11 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useCartStore } from "@/stores/cartStore";
+import { useTranslations } from "@/lib/i18n";
 import { ShoppingCart } from "lucide-react";
 
 function OrderSuccessContent() {
+  const t = useTranslations();
   const searchParams = useSearchParams();
   const router = useRouter();
   const table_id = searchParams.get("table_id");
@@ -137,7 +139,7 @@ function OrderSuccessContent() {
               letterSpacing: "-0.3px",
             }}
           >
-            Oh Yeah!
+            {t.customer.status.title}
           </h1>
           <p
             style={{
@@ -147,9 +149,9 @@ function OrderSuccessContent() {
               marginBottom: "16px",
             }}
           >
-            Your order is successful,
+            {t.customer.status.body1}
             <br />
-            please wait a moment.
+            {t.customer.status.body2}
           </p>
 
           {/* Order summary pill */}
@@ -170,7 +172,7 @@ function OrderSuccessContent() {
               }}
             >
               <ShoppingCart size={13} />
-              Ordered {qty} items
+              {t.customer.status.orderedItems(qty)}
             </div>
           )}
 
@@ -208,7 +210,7 @@ function OrderSuccessContent() {
                   "scale(1)")
               }
             >
-              Ok
+              {t.customer.status.ok}
             </button>
           </div>
         </div>
@@ -222,23 +224,26 @@ function OrderSuccessContent() {
   );
 }
 
+function OrderStatusFallback() {
+  const t = useTranslations();
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#f5f5f5",
+      }}
+    >
+      <p style={{ color: "#999" }}>{t.customer.status.loading}</p>
+    </div>
+  );
+}
+
 export default function OrderStatusPage() {
   return (
-    <Suspense
-      fallback={
-        <div
-          style={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#f5f5f5",
-          }}
-        >
-          <p style={{ color: "#999" }}>ກຳລັງໂຫຼດ...</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<OrderStatusFallback />}>
       <OrderSuccessContent />
     </Suspense>
   );

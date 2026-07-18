@@ -4,6 +4,7 @@ import { Plus, Check, EyeOff, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/lib/i18n";
 import { resolveImageUrl, type MenuItem } from "@/lib/api";
 
 interface Props {
@@ -17,6 +18,7 @@ function formatRp(n: number | string) {
 }
 
 export function MenuItemCard({ item, inCart, onAdd }: Props) {
+  const t = useTranslations();
   const imageUrl = resolveImageUrl(item.imge_url ?? item.image_url);
 
   return (
@@ -33,7 +35,7 @@ export function MenuItemCard({ item, inCart, onAdd }: Props) {
         <div className="absolute inset-0 rounded-2xl bg-background/50 z-10 flex items-center justify-center">
           <Badge variant="secondary" className="gap-1.5 text-xs font-medium">
             <EyeOff size={11} />
-            Sold Out
+            {t.cashier.menu.soldOut}
           </Badge>
         </div>
       )}

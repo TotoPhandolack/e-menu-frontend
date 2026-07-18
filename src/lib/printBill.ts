@@ -1,90 +1,38 @@
 import type { Order } from './api';
+import { BILL_CSS, buildBillModel, renderBillInner } from './bill';
 
+/**
+ * Print an 80mm thermal receipt for an order.
+ *
+ * The layout and stylesheet are shared with the on-screen <BillReceipt> component
+ * (see src/lib/bill.ts), so the printout matches the preview exactly. The receipt
+ * is written into a hidden iframe; we wait for its web fonts to load before firing
+ * print so Lao glyphs never fall back to a boxy system face.
+ */
 export function printBill(order: Order, restaurantName: string): Promise<void> {
   return new Promise((resolve) => {
-    const date = new Date(order.created_at);
-    const dateStr = date.toLocaleDateString('en-GB');
-    const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-
-    const title =
-      order.order_type === 'TAKEAWAY'
-        ? `Takeaway #${order.queue_number}`
-        : `ໂຕະ ${order.table?.table_number ?? '-'}`;
-
-    const rows = order.orderItems
-      .map((oi) => {
-        const subtotal = oi.quantity * Number(oi.unit_price);
-        return `
-        <tr>
-          <td>${oi.menuItem.name}${oi.special_note ? `<br/><span class="note">(${oi.special_note})</span>` : ''}</td>
-          <td class="center">${oi.quantity}</td>
-          <td class="right">₭${Number(oi.unit_price).toLocaleString('en-US')}</td>
-          <td class="right">₭${subtotal.toLocaleString('en-US')}</td>
-        </tr>`;
-      })
-      .join('');
+    const model = buildBillModel(order, restaurantName);
 
     const html = `<!DOCTYPE html>
 <html lang="lo">
 <head>
   <meta charset="UTF-8"/>
-  <title>Bill - ${title}</title>
+  <title>Bill — ${model.restaurantName}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;700&family=Outfit:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      width: 80mm;
-      padding: 6mm 4mm;
-      color: #111;
-    }
-    .center { text-align: center; }
-    .right   { text-align: right; }
-    h1 { font-size: 16px; text-align: center; margin-bottom: 2px; }
-    .subtitle { text-align: center; font-size: 11px; color: #555; margin-bottom: 8px; }
-    .divider { border: none; border-top: 1px dashed #999; margin: 6px 0; }
-    .meta { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
-    table { width: 100%; border-collapse: collapse; margin: 4px 0; }
-    th { font-size: 11px; border-bottom: 1px solid #999; padding: 2px 0; text-align: left; }
-    th.center { text-align: center; }
-    th.right  { text-align: right; }
-    td { padding: 3px 0; vertical-align: top; }
-    td.center { text-align: center; }
-    td.right  { text-align: right; }
-    .note { font-size: 10px; color: #e85; }
-    .total-row { font-weight: bold; font-size: 14px; }
-    .thank { text-align: center; font-size: 12px; margin-top: 10px; }
-    @media print {
-      body { width: 100%; }
-    }
+    html, body { background: #fff; }
+    body { width: 80mm; margin: 0 auto; padding: 4mm 2mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    /* Print variant of the receipt: full paper width, no card chrome. */
+    .bill { width: 100% !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; }
+    @media print { body { width: 100%; } }
+    ${BILL_CSS}
   </style>
 </head>
 <body>
-  <h1>${restaurantName}</h1>
-  <p class="subtitle">ໃບບິນ / Receipt</p>
-  <hr class="divider"/>
-  <div class="meta"><span>${title}</span><span>${dateStr} ${timeStr}</span></div>
-  <hr class="divider"/>
-  <table>
-    <thead>
-      <tr>
-        <th>ລາຍການ</th>
-        <th class="center">ຈຳນວນ</th>
-        <th class="right">ລາຄາ</th>
-        <th class="right">ລວມ</th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>
-  <hr class="divider"/>
-  <table>
-    <tr class="total-row">
-      <td>ລວມທັງໝົດ</td>
-      <td class="right">₭${Number(order.total_amount).toLocaleString('en-US')}</td>
-    </tr>
-  </table>
-  <hr class="divider"/>
-  <p class="thank">ຂອບໃຈທີ່ໃຊ້ບໍລິການ 🙏</p>
+  <div class="bill">${renderBillInner(model)}</div>
 </body>
 </html>`;
 
@@ -93,18 +41,41 @@ export function printBill(order: Order, restaurantName: string): Promise<void> {
     document.body.appendChild(iframe);
 
     const iframeDoc = iframe.contentDocument ?? iframe.contentWindow?.document;
-    if (!iframeDoc) { document.body.removeChild(iframe); resolve(); return; }
+    if (!iframeDoc) {
+      document.body.removeChild(iframe);
+      resolve();
+      return;
+    }
 
     iframeDoc.open();
     iframeDoc.write(html);
     iframeDoc.close();
 
     const iframeWin = iframe.contentWindow!;
-    iframeWin.onafterprint = () => {
-      document.body.removeChild(iframe);
+    let cleaned = false;
+    const cleanup = () => {
+      if (cleaned) return;
+      cleaned = true;
+      if (iframe.parentNode) document.body.removeChild(iframe);
       resolve();
     };
 
-    setTimeout(() => iframeWin.print(), 100);
+    iframeWin.onafterprint = cleanup;
+
+    let printed = false;
+    const fire = () => {
+      if (printed) return;
+      printed = true;
+      iframeWin.focus();
+      iframeWin.print();
+      // Fallback: some browsers don't emit onafterprint (or the dialog is dismissed
+      // without it). Reap the iframe after a grace period so it never leaks.
+      setTimeout(cleanup, 60_000);
+    };
+
+    // Fire once fonts are ready; hard-cap the wait so a slow/failed font load
+    // never blocks printing.
+    iframeDoc.fonts?.ready?.then(() => setTimeout(fire, 80));
+    setTimeout(fire, 1500);
   });
 }

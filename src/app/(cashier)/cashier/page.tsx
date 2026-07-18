@@ -440,6 +440,7 @@ export default function CashierPage() {
 
       <TakeawayPaymentDialog
         order={pendingTakeawayOrder}
+        restaurantName={admin?.restaurant?.name ?? ""}
         payment={takeawayPayment}
         onPaymentChange={setTakeawayPayment}
         onClose={closeTakeawayDialog}

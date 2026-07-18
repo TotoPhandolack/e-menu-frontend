@@ -12,17 +12,19 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/lib/i18n";
+import { BillReceipt } from "@/components/billReceipt";
 import type { Order } from "@/lib/api";
 
 interface Props {
   order: Order | null;
+  restaurantName: string;
   payment: "CASH" | "QR";
   onPaymentChange: (p: "CASH" | "QR") => void;
   onClose: () => void;
   onPrint: () => void;
 }
 
-export function TakeawayPaymentDialog({ order, payment, onPaymentChange, onClose, onPrint }: Props) {
+export function TakeawayPaymentDialog({ order, restaurantName, payment, onPaymentChange, onClose, onPrint }: Props) {
   const t = useTranslations();
   return (
     <Dialog open={!!order} onOpenChange={() => {}}>
@@ -60,6 +62,12 @@ export function TakeawayPaymentDialog({ order, payment, onPaymentChange, onClose
             {t.cashier.takeaway.qrCode}
           </button>
         </div>
+
+        {order && (
+          <div className="max-h-[42vh] overflow-y-auto rounded-xl bg-muted/40 p-4">
+            <BillReceipt order={order} restaurantName={restaurantName} />
+          </div>
+        )}
 
         <DialogFooter>
           <Button

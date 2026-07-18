@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { updateOrderStatus, cashierPrintKitchen, type Order } from '@/lib/api';
 import { useSession } from 'next-auth/react';
 import { printBill } from '@/lib/printBill';
+import { BillReceipt } from '@/components/billReceipt';
 import { useTranslations, type Translations } from '@/lib/i18n';
 import {
   Dialog,
@@ -286,13 +287,16 @@ function ConfirmedCard({
 
       {/* Step 2 — Print receipt */}
       <Dialog open={printDialog} onOpenChange={(open) => { if (!open) handleSkipPrint(); }}>
-        <DialogContent showCloseButton={false}>
+        <DialogContent showCloseButton={false} className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t.cashier.live.printBillQuestion}</DialogTitle>
             <DialogDescription>
               {t.cashier.live.printBillPrompt}
             </DialogDescription>
           </DialogHeader>
+          <div className="max-h-[54vh] overflow-y-auto rounded-xl bg-muted/40 p-4">
+            <BillReceipt order={order} restaurantName={restaurantName} />
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleSkipPrint}>
               {t.common.cancel}

@@ -10,7 +10,7 @@ import { updateOrderStatus, cashierPrintKitchen, type Order } from "@/lib/api";
 interface Props {
   pendingOrders: Order[];
   onRefresh: () => void;
-  onOrderClick: () => void;
+  onOrderClick: (order: Order) => void;
 }
 
 function timeAgo(dateStr: string, t: Translations) {
@@ -73,9 +73,9 @@ export function NotificationBell({ pendingOrders, onRefresh, onOrderClick }: Pro
     }
   };
 
-  const handleOrderClick = () => {
+  const handleOrderClick = (order: Order) => {
     setOpen(false);
-    onOrderClick();
+    onOrderClick(order);
   };
 
   const handleCancel = async (order: Order) => {
@@ -155,20 +155,20 @@ export function NotificationBell({ pendingOrders, onRefresh, onOrderClick }: Pro
                 <p className="text-sm">{t.cashier.notif.noNew}</p>
               </div>
             ) : (
-              <div className="divide-y divide-border">
+              <div className="p-3 space-y-3">
                 {pendingOrders.map((order) => (
                   <div
                     key={order.id}
                     role="button"
                     tabIndex={0}
-                    onClick={handleOrderClick}
+                    onClick={() => handleOrderClick(order)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        handleOrderClick();
+                        handleOrderClick(order);
                       }
                     }}
-                    className="p-4 space-y-3 hover:bg-muted transition-colors cursor-pointer"
+                    className="rounded-2xl border border-border bg-card p-4 space-y-3 shadow-sm transition-all hover:shadow-md hover:border-ring/50 cursor-pointer"
                   >
                     {/* Order identity + time */}
                     <div className="flex items-center justify-between">

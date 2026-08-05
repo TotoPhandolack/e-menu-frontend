@@ -18,7 +18,7 @@ interface Props {
   onSignOut: () => void;
   fetchLiveOrders: () => void;
   onProfileClick: () => void;
-  onGoToLiveOrders: () => void;
+  onGoToLiveOrders: (order: Order) => void;
 }
 
 export function CashierHeader({ admin, initials, pendingOrders, onSignOut, fetchLiveOrders, onProfileClick, onGoToLiveOrders }: Props) {

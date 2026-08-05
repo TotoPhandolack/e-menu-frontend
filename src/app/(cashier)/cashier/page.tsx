@@ -72,6 +72,7 @@ export default function CashierPage() {
 
   const [mainTab, setMainTab] = useState("order");
   const [activitySubTab, setActivitySubTab] = useState("live");
+  const [highlightOrder, setHighlightOrder] = useState<{ orderId: string; nonce: number } | null>(null);
 
   // Keep localAdmin in sync with auth store and re-apply theme whenever it changes
   useEffect(() => {
@@ -81,18 +82,23 @@ export default function CashierPage() {
     }
   }, [admin]);
 
+  // Keyed on the restaurant id (a stable string), NOT the `admin` object —
+  // next-auth refetches the session on every window focus, which hands back a
+  // new object with identical contents. Depending on the object made this
+  // effect re-run (and re-show the skeleton) every time the tab regained focus.
+  const restaurantId = admin?.restaurant_id ?? null;
+
   useEffect(() => {
-    if (!admin) return;
-    const rid = admin.restaurant_id;
+    if (!restaurantId) return;
     setMenuLoading(true);
-    Promise.all([getMenuItems(rid), getTables(rid)])
+    Promise.all([getMenuItems(restaurantId), getTables(restaurantId)])
       .then(([menuRes, tableRes]) => {
         setMenuItems(menuRes.data);
         setTables(tableRes.data);
       })
       .catch(() => toast.error(t.cashier.toasts.menuLoadFailed))
       .finally(() => setMenuLoading(false));
-  }, [admin, t]);
+  }, [restaurantId, t]);
 
   // Eagerly load live orders on mount; also poll every 10 s as WebSocket fallback.
   useEffect(() => {
@@ -178,9 +184,10 @@ export default function CashierPage() {
     },
   );
 
-  const goToLiveOrders = useCallback(() => {
+  const goToLiveOrders = useCallback((order: Order) => {
     setMainTab("activity");
     setActivitySubTab("live");
+    setHighlightOrder({ orderId: order.id, nonce: Date.now() });
     fetchLiveOrders();
   }, [fetchLiveOrders]);
 
@@ -366,7 +373,7 @@ export default function CashierPage() {
                 </TabsList>
               </div>
               <TabsContent value="live" className="flex flex-col flex-1 overflow-hidden mt-0">
-                <LiveOrdersTab orders={liveOrders} loading={liveLoading} onRefresh={fetchLiveOrders} />
+                <LiveOrdersTab orders={liveOrders} loading={liveLoading} onRefresh={fetchLiveOrders} highlightOrder={highlightOrder} />
               </TabsContent>
               <TabsContent value="history" className="flex flex-col flex-1 overflow-hidden mt-0">
                 <OrderHistoryTab orders={historyOrders} loading={historyLoading} onRefresh={fetchHistory} />

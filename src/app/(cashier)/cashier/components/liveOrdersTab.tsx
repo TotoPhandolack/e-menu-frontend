@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ClipboardList, Clock, ChefHat, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -26,6 +26,7 @@ interface Props {
   orders: Order[];
   loading: boolean;
   onRefresh: () => void;
+  highlightOrder?: { orderId: string; nonce: number } | null;
 }
 
 // Vertical rule between columns — the shared Table primitive only draws row borders.
@@ -111,7 +112,7 @@ function ItemsCell({ order }: { order: Order }) {
 
 // ─── Table rows with actions ──────────────────────────────────────────────────
 
-function PendingRow({ order, onDone }: { order: Order; onDone: () => void }) {
+function PendingRow({ order, onDone, highlighted }: { order: Order; onDone: () => void; highlighted: boolean }) {
   const t = useTranslations();
   const [busy, setBusy] = useState(false);
 
@@ -144,7 +145,10 @@ function PendingRow({ order, onDone }: { order: Order; onDone: () => void }) {
   };
 
   return (
-    <TableRow className={COL_DIVIDER}>
+    <TableRow
+      id={`live-order-${order.id}`}
+      className={cn(COL_DIVIDER, highlighted && 'animate-row-highlight')}
+    >
       <TableCell className="align-top font-semibold text-foreground">
         {orderLabel(order, t)}
       </TableCell>
@@ -182,7 +186,7 @@ function PendingRow({ order, onDone }: { order: Order; onDone: () => void }) {
   );
 }
 
-function ConfirmedRow({ order, onDone }: { order: Order; onDone: () => void }) {
+function ConfirmedRow({ order, onDone, highlighted }: { order: Order; onDone: () => void; highlighted: boolean }) {
   const t = useTranslations();
   const { data: session } = useSession();
   const restaurantName = session?.admin?.restaurant?.name ?? '';
@@ -219,7 +223,10 @@ function ConfirmedRow({ order, onDone }: { order: Order; onDone: () => void }) {
 
   return (
     <>
-      <TableRow className={COL_DIVIDER}>
+      <TableRow
+        id={`live-order-${order.id}`}
+        className={cn(COL_DIVIDER, highlighted && 'animate-row-highlight')}
+      >
         <TableCell className="align-top font-semibold text-foreground">
           {orderLabel(order, t)}
         </TableCell>
@@ -272,8 +279,43 @@ function ConfirmedRow({ order, onDone }: { order: Order; onDone: () => void }) {
 
 // ─── Main tab component ───────────────────────────────────────────────────────
 
-export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
+export function LiveOrdersTab({ orders, loading, onRefresh, highlightOrder }: Props) {
   const t = useTranslations();
+  const [statusTab, setStatusTab] = useState<'pending' | 'confirmed'>('pending');
+  const [activeHighlight, setActiveHighlight] = useState<string | null>(null);
+
+  // Derive the tab-switch + highlight target during render when a new
+  // notification is clicked — React's documented pattern for state that's
+  // derived from a prop, instead of bouncing through an effect for it.
+  // Seeded with `null` (not `highlightOrder`) so this still fires the first
+  // time this component mounts with a highlight already pending — the Live
+  // tab's content unmounts whenever the cashier navigates away from it, so a
+  // fresh mount is the common case right after clicking a notification.
+  const [lastHighlightToken, setLastHighlightToken] = useState<typeof highlightOrder>(null);
+  if (highlightOrder !== lastHighlightToken) {
+    setLastHighlightToken(highlightOrder);
+    const target = highlightOrder ? orders.find((o) => o.id === highlightOrder.orderId) : undefined;
+    if (target) {
+      setStatusTab(target.status === 'CONFIRMED' ? 'confirmed' : 'pending');
+      setActiveHighlight(target.id);
+    }
+  }
+
+  // Scroll the highlighted row into view and auto-clear the highlight after a beat.
+  useEffect(() => {
+    if (!activeHighlight) return;
+    const raf = requestAnimationFrame(() => {
+      document
+        .getElementById(`live-order-${activeHighlight}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    const timer = setTimeout(() => setActiveHighlight(null), 2500);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  }, [activeHighlight]);
+
   if (loading) {
     return (
       <div className="p-6 space-y-2">
@@ -294,7 +336,11 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
           <EmptyState icon={ClipboardList} text={t.cashier.live.noActiveOrders} />
         </div>
       ) : (
-        <Tabs defaultValue="pending" className="flex flex-col flex-1 overflow-hidden">
+        <Tabs
+          value={statusTab}
+          onValueChange={(v) => setStatusTab(v as 'pending' | 'confirmed')}
+          className="flex flex-col flex-1 overflow-hidden"
+        >
           <div className="px-7 pt-4 shrink-0">
             <TabsList className="h-9 bg-muted/50">
               <TabsTrigger value="pending" className="gap-2 text-xs font-semibold px-4">
@@ -320,7 +366,12 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
                       <ColumnHeaderRow t={t} />
                       <TableBody>
                         {pending.map((order) => (
-                          <PendingRow key={order.id} order={order} onDone={onRefresh} />
+                          <PendingRow
+                            key={order.id}
+                            order={order}
+                            onDone={onRefresh}
+                            highlighted={order.id === activeHighlight}
+                          />
                         ))}
                       </TableBody>
                     </Table>
@@ -342,7 +393,12 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
                       <ColumnHeaderRow t={t} />
                       <TableBody>
                         {confirmed.map((order) => (
-                          <ConfirmedRow key={order.id} order={order} onDone={onRefresh} />
+                          <ConfirmedRow
+                            key={order.id}
+                            order={order}
+                            onDone={onRefresh}
+                            highlighted={order.id === activeHighlight}
+                          />
                         ))}
                       </TableBody>
                     </Table>

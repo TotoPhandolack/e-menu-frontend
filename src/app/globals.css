@@ -262,6 +262,18 @@
   display: inline-block;
 }
 
+/* Table row jumped to from a notification — pulses to draw the eye, then settles.
+   Animated declarations outrank the row's normal hover background, so the pulse
+   stays visible even with the cursor over the row. */
+@keyframes row-highlight-pulse {
+  0%, 100% { background-color: transparent; }
+  50%      { background-color: color-mix(in oklch, var(--primary) 60%, transparent); }
+}
+
+.animate-row-highlight {
+  animation: row-highlight-pulse 0.8s ease-in-out 3;
+}
+
 /* Hide number input spinners */
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {

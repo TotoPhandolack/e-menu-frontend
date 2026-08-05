@@ -59,9 +59,10 @@
 
 :root {
   /* ── Emenu — White Canvas palette ───────────────────────────────────────
-     60%  --background / --card / --secondary  #FFFFFF  the white ground
+     60%  --background / --card  #FFFFFF  the white ground
      30%  --muted  #F4F0E8  warm ghost surface — the only tonal layer left
      10%  --primary  #FEDB71  golden accent — FILL ONLY, never text
+          --secondary  #000000  black chips/buttons, with white text on top
           --foreground  #140F1F  ink
 
      Background and card are the SAME white (1.0:1). Every surface boundary
@@ -88,9 +89,10 @@
   /* Legible brand-tinted text on light surfaces — 5.62:1 on white */
   --primary-strong: oklch(0.52 0.115 75);
 
-  /* Secondary — the 30%. */
-  --secondary: oklch(1 0 0);
-  --secondary-foreground: oklch(0.1835 0.0327 297.47);
+  /* Secondary — pure black. Reserved for small emphatic chips and buttons;
+     it is not a surface colour, so it never competes with the white ground. */
+  --secondary: oklch(0 0 0);
+  --secondary-foreground: oklch(1 0 0);
 
   --muted: oklch(0.956 0.0115 84.58);
   --muted-foreground: oklch(0.5146 0.0233 307.96);
@@ -262,15 +264,25 @@
   display: inline-block;
 }
 
-/* Table row jumped to from a notification — pulses to draw the eye, then settles.
-   Animated declarations outrank the row's normal hover background, so the pulse
-   stays visible even with the cursor over the row. */
+/* Table row jumped to from a notification — pulses out and back in three times
+   to draw the eye, then settles. Animated declarations outrank the row's normal
+   hover background, so the pulse stays visible even with the cursor over it.
+
+   Driven from the CELLS, not the <tr>: preflight puts tables in
+   border-collapse: collapse, where a row's own background sits under the cells
+   and an inset ring on it is not painted at all. */
 @keyframes row-highlight-pulse {
-  0%, 100% { background-color: transparent; }
-  50%      { background-color: color-mix(in oklch, var(--primary) 60%, transparent); }
+  0%, 100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+  50% {
+    background-color: color-mix(in oklch, var(--primary) 65%, transparent);
+    box-shadow: inset 0 2px 0 0 var(--ring), inset 0 -2px 0 0 var(--ring);
+  }
 }
 
-.animate-row-highlight {
+.animate-row-highlight > td {
   animation: row-highlight-pulse 0.8s ease-in-out 3;
 }
 

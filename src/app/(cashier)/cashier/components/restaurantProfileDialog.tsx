@@ -32,6 +32,7 @@ import {
   Check,
   Eye,
   EyeOff,
+  LogOut,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useTranslations } from "@/lib/i18n";
@@ -46,7 +47,7 @@ import {
 } from "@/lib/api";
 
 export { applyTheme } from "@/lib/theme";
-import { THEME_PRESETS, applyTheme } from "@/lib/theme";
+import { THEME_PRESETS, applyTheme, resolveThemePreset } from "@/lib/theme";
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,7 @@ interface Props {
     theme_color?: string;
     name?: string;
   }) => void;
+  onSignOut: () => void;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -68,6 +70,7 @@ export function RestaurantProfileDialog({
   onOpenChange,
   admin,
   onProfileUpdated,
+  onSignOut,
 }: Props) {
   const t = useTranslations();
   const restaurantId = admin?.restaurant_id ?? "";
@@ -95,9 +98,10 @@ export function RestaurantProfileDialog({
   const [showPassword, setShowPassword] = useState(false);
   const [addingMember, setAddingMember] = useState(false);
 
-  // Theme tab state
+  // Theme tab state — resolved through the preset list so a legacy hex value
+  // shows the swatch that is actually painted rather than no swatch at all.
   const [selectedTheme, setSelectedTheme] = useState(
-    admin?.restaurant?.theme_color ?? "default",
+    () => resolveThemePreset(admin?.restaurant?.theme_color).key,
   );
   const [savingTheme, setSavingTheme] = useState(false);
 
@@ -105,7 +109,7 @@ export function RestaurantProfileDialog({
   useEffect(() => {
     setLogoPreview(resolveImageUrl(admin?.restaurant?.logo_url));
     setRestaurantName(admin?.restaurant?.name ?? "");
-    setSelectedTheme(admin?.restaurant?.theme_color ?? "default");
+    setSelectedTheme(resolveThemePreset(admin?.restaurant?.theme_color).key);
   }, [admin]);
 
   // Load team when tab becomes active
@@ -333,6 +337,19 @@ export function RestaurantProfileDialog({
                 {admin?.role}
               </Badge>
             </div>
+
+            {/* Sign out — lives with the account it ends, not in the header */}
+            <Button
+              variant="outline"
+              className="w-full h-9 gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => {
+                onOpenChange(false);
+                onSignOut();
+              }}
+            >
+              <LogOut size={14} strokeWidth={2} />
+              {t.cashier.header.signOut}
+            </Button>
           </TabsContent>
 
           {/* ─── Team Tab ─────────────────────────────────────────────── */}

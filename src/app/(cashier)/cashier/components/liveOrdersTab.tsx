@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toast } from "react-toastify";
-import { updateOrderStatus, cashierPrintKitchen, type Order } from '@/lib/api';
+import { updateOrderStatus, cashierPrintKitchen, type Order, type OrderStatus } from '@/lib/api';
 import { useSession } from 'next-auth/react';
 import { printBill } from '@/lib/printBill';
 import { useTranslations, type Translations } from '@/lib/i18n';
@@ -26,11 +26,17 @@ interface Props {
   orders: Order[];
   loading: boolean;
   onRefresh: () => void;
-  highlightOrder?: { orderId: string; nonce: number } | null;
+  highlightOrder?: { orderId: string; status: OrderStatus; nonce: number } | null;
 }
 
 // Vertical rule between columns — the shared Table primitive only draws row borders.
 const COL_DIVIDER = '[&>*:not(:last-child)]:border-r';
+
+// Must outlast `.animate-row-highlight` (0.8s × 3) so the pulse plays in full.
+const HIGHLIGHT_MS = 2600;
+// The row only exists once the refetch resolves and the tab swaps out its
+// skeletons. Keep looking for roughly five seconds, then give up.
+const HIGHLIGHT_MAX_FRAMES = 300;
 
 function timeAgo(dateStr: string, t: Translations) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -294,25 +300,44 @@ export function LiveOrdersTab({ orders, loading, onRefresh, highlightOrder }: Pr
   const [lastHighlightToken, setLastHighlightToken] = useState<typeof highlightOrder>(null);
   if (highlightOrder !== lastHighlightToken) {
     setLastHighlightToken(highlightOrder);
-    const target = highlightOrder ? orders.find((o) => o.id === highlightOrder.orderId) : undefined;
-    if (target) {
-      setStatusTab(target.status === 'CONFIRMED' ? 'confirmed' : 'pending');
-      setActiveHighlight(target.id);
+    if (highlightOrder) {
+      // Prefer the status we can see; fall back to the one captured at click
+      // time, since `orders` may still be the pre-refetch list — or empty.
+      const target = orders.find((o) => o.id === highlightOrder.orderId);
+      const status = target?.status ?? highlightOrder.status;
+      setStatusTab(status === 'CONFIRMED' ? 'confirmed' : 'pending');
+      setActiveHighlight(highlightOrder.orderId);
     }
   }
 
-  // Scroll the highlighted row into view and auto-clear the highlight after a beat.
+  // Scroll the highlighted row into view, then auto-clear once it has pulsed.
+  // Both steps wait for the row to actually be in the DOM: clicking a
+  // notification triggers a refetch, so the first frames after this effect
+  // fires are still skeletons and a one-shot lookup finds nothing.
   useEffect(() => {
     if (!activeHighlight) return;
-    const raf = requestAnimationFrame(() => {
-      document
-        .getElementById(`live-order-${activeHighlight}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-    const timer = setTimeout(() => setActiveHighlight(null), 2500);
+    let raf = 0;
+    let clearTimer: ReturnType<typeof setTimeout> | undefined;
+    let frames = 0;
+
+    const waitForRow = () => {
+      const el = document.getElementById(`live-order-${activeHighlight}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        clearTimer = setTimeout(() => setActiveHighlight(null), HIGHLIGHT_MS);
+        return;
+      }
+      if (frames++ < HIGHLIGHT_MAX_FRAMES) {
+        raf = requestAnimationFrame(waitForRow);
+      } else {
+        setActiveHighlight(null);
+      }
+    };
+    raf = requestAnimationFrame(waitForRow);
+
     return () => {
       cancelAnimationFrame(raf);
-      clearTimeout(timer);
+      clearTimeout(clearTimer);
     };
   }, [activeHighlight]);
 

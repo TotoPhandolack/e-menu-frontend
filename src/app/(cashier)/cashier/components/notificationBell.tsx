@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Bell, X, ChevronUp, ChevronDown } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { Bell, X, Check, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "react-toastify";
-import { Button } from "@/components/ui/button";
 import { useTranslations, type Translations } from "@/lib/i18n";
 import { updateOrderStatus, cashierPrintKitchen, type Order } from "@/lib/api";
 
@@ -29,6 +28,17 @@ export function NotificationBell({ pendingOrders, onRefresh, onOrderClick }: Pro
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const count = pendingOrders.length;
+
+  // The API hands back live orders oldest-first; a notification list reads
+  // newest-first, so sort here rather than relying on arrival order.
+  const orders = useMemo(
+    () =>
+      [...pendingOrders].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      ),
+    [pendingOrders],
+  );
 
   const updateScrollState = () => {
     const el = listRef.current;
@@ -118,7 +128,7 @@ export function NotificationBell({ pendingOrders, onRefresh, onOrderClick }: Pro
 
       {/* ── Dropdown panel ── */}
       {open && (
-        <div className="absolute left-0 top-full mt-2 w-[340px] bg-card rounded-2xl shadow-2xl border border-border z-50 overflow-hidden">
+        <div className="absolute left-0 top-full mt-2 w-90 bg-card rounded-2xl shadow-2xl border border-border z-50 overflow-hidden">
           {/* Panel header 1*/}
           <div className="flex items-center justify-between px-4 py-3 bg-muted border-b border-border shrink-0">
             <div className="flex items-center gap-2">
@@ -147,7 +157,7 @@ export function NotificationBell({ pendingOrders, onRefresh, onOrderClick }: Pro
           <div
             ref={listRef}
             onScroll={updateScrollState}
-            className="max-h-[460px] overflow-y-auto"
+            className="max-h-96 overflow-y-auto"
           >
             {count === 0 ? (
               <div className="flex flex-col items-center justify-center py-14 text-muted-foreground gap-3">
@@ -155,89 +165,78 @@ export function NotificationBell({ pendingOrders, onRefresh, onOrderClick }: Pro
                 <p className="text-sm">{t.cashier.notif.noNew}</p>
               </div>
             ) : (
-              <div className="p-3 space-y-3">
-                {pendingOrders.map((order) => (
-                  <div
-                    key={order.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => handleOrderClick(order)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        handleOrderClick(order);
-                      }
-                    }}
-                    className="rounded-2xl border border-border bg-card p-4 space-y-3 shadow-sm transition-all hover:shadow-md hover:border-ring/50 cursor-pointer"
-                  >
-                    {/* Order identity + time */}
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-foreground">
-                        {order.order_type === "TAKEAWAY"
-                          ? `${t.common.takeaway} #${order.queue_number}`
-                          : t.cashier.order.tableLabel(order.table?.table_number ?? "-")}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground tabular-nums">
-                        {timeAgo(order.created_at, t)}
-                      </span>
-                    </div>
+              <ul className="divide-y divide-border">
+                {orders.map((order) => (
+                  <li key={order.id}>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleOrderClick(order)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleOrderClick(order);
+                        }
+                      }}
+                      className="flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors hover:bg-muted focus-visible:bg-muted outline-none"
+                    >
+                      {/* Identity + one-line item summary */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-bold text-[13px] text-foreground truncate">
+                            {order.order_type === "TAKEAWAY"
+                              ? `${t.common.takeaway} #${order.queue_number}`
+                              : t.cashier.order.tableLabel(order.table?.table_number ?? "-")}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground tabular-nums shrink-0 ml-auto">
+                            {timeAgo(order.created_at, t)}
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-[11px] text-muted-foreground truncate">
+                            {order.orderItems
+                              .map((item) => `${item.quantity}× ${item.menuItem.name}`)
+                              .join(", ")}
+                          </p>
+                          <p className="text-[11px] font-semibold text-foreground tabular-nums shrink-0 ml-auto">
+                            ₭{Number(order.total_amount).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
 
-                    {/* Items list */}
-                    <ul className="space-y-1">
-                      {order.orderItems.map((item) => (
-                        <li
-                          key={item.id}
-                          className="flex items-start gap-1.5 text-xs"
+                      {/* Inline actions — icon-only to keep the row compact */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          title={t.cashier.notif.confirmAndSend}
+                          aria-label={t.cashier.notif.confirmAndSend}
+                          disabled={busyId === order.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleConfirm(order);
+                          }}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg bg-status-complete text-status-complete-foreground transition-colors hover:bg-status-complete-foreground hover:text-white disabled:opacity-50"
                         >
-                          <span className="shrink-0 font-bold text-muted-foreground w-5 text-right">
-                            {item.quantity}×
-                          </span>
-                          <span className="font-medium text-foreground">
-                            {item.menuItem.name}
-                          </span>
-                          {item.special_note && (
-                            <span className="text-status-preparing-foreground italic truncate">
-                              — {item.special_note}
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* Total */}
-                    <p className="text-xs font-semibold text-muted-foreground">
-                      ₭{Number(order.total_amount).toLocaleString()}
-                    </p>
-
-                    {/* Action buttons */}
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        className="flex-1 h-8 text-xs bg-status-complete-foreground hover:bg-status-complete-foreground text-white rounded-lg"
-                        disabled={busyId === order.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleConfirm(order);
-                        }}
-                      >
-                        {t.cashier.notif.confirmAndSend}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 px-3 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 rounded-lg"
-                        disabled={busyId === order.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCancel(order);
-                        }}
-                      >
-                        {t.cashier.notif.cancel}
-                      </Button>
+                          <Check size={14} strokeWidth={2.5} />
+                        </button>
+                        <button
+                          type="button"
+                          title={t.cashier.notif.cancel}
+                          aria-label={t.cashier.notif.cancel}
+                          disabled={busyId === order.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCancel(order);
+                          }}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg bg-destructive/10 text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50"
+                        >
+                          <X size={14} strokeWidth={2.5} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </div>
 

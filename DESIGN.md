@@ -121,7 +121,8 @@ Because the page and its cards are the same white, this palette has no tonal sep
 - **Gold Ring** (`oklch(0.655 0.13 91.36)`, `#AE8D12`): `--ring`. Focus rings and selected-state strokes. Clears the 3:1 non-text floor (3.18:1 on white) where the raw accent cannot.
 
 ### Neutral
-- **Chalk White** (`oklch(1 0 0)`, `#FFFFFF`): `--background`, `--card`, `--popover`, `--secondary`, `--sidebar`. The page and everything on it. The 60%.
+- **Chalk White** (`oklch(1 0 0)`, `#FFFFFF`): `--background`, `--card`, `--popover`, `--sidebar`. The page and everything on it. The 60%.
+- **True Black** (`oklch(0 0 0)`, `#000000`): `--secondary`, with Chalk White as `--secondary-foreground` (21:1). Small emphatic chips and buttons only — it is not a surface colour and must never take a panel.
 - **Deep Ink** (`oklch(0.1835 0.0327 297.47)`, `#140F1F`): Body text and icon fills. 18.8:1 on white. Also the foreground *on* Gold Accent (13.9:1).
 - **Ghost Surface** (`oklch(0.956 0.0115 84.58)`, `#F4F0E8`): `--muted`. The only tonal layer in the system — chips, card footers, hover states, and any panel that must read as recessed. Carries the 30% alongside the hairlines.
 - **Slate Gray** (`oklch(0.5146 0.0233 307.96)`, `#6B6472`): Muted foreground. 5.69:1 on white, 5.00:1 on Ghost Surface. Do not go lighter for body text.
@@ -193,7 +194,7 @@ Precise and efficient — tight padding, clean edges, no decorative weight. Ever
 - **Hover:** fill drops to `--primary/90` — no transform, no lift
 - **Focus:** 3px ring at `--ring/50`, 1px border in Gold Ring
 - **Active:** `translateY(1px)` — confirms the action physically
-- **Secondary:** Chalk White fill, Deep Ink text
+- **Secondary:** True Black fill, Chalk White text; stays dark on hover (`--secondary/85`)
 - **Outline:** Chalk White fill, Hairline border, Deep Ink text; Ghost Surface on hover
 - **Ghost:** No fill, no border; Ghost Surface on hover
 - **Link:** Gold Strong text, underline on hover — never Gold Accent

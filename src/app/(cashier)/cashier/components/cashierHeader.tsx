@@ -1,10 +1,8 @@
 // src/app/(cashier)/cashier/components/cashierHeader.tsx
 "use client";
 
-import { LogOut } from "lucide-react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./notificationBell";
 import { LanguageSwitcher } from "@/components/languageSwitcher";
 import { useTranslations } from "@/lib/i18n";
@@ -15,19 +13,18 @@ interface Props {
   admin: Admin | null;
   initials: string;
   pendingOrders: Order[];
-  onSignOut: () => void;
   fetchLiveOrders: () => void;
   onProfileClick: () => void;
   onGoToLiveOrders: (order: Order) => void;
 }
 
-export function CashierHeader({ admin, initials, pendingOrders, onSignOut, fetchLiveOrders, onProfileClick, onGoToLiveOrders }: Props) {
+export function CashierHeader({ admin, initials, pendingOrders, fetchLiveOrders, onProfileClick, onGoToLiveOrders }: Props) {
   const t = useTranslations();
   const logoUrl = resolveImageUrl(admin?.restaurant?.logo_url);
 
   return (
     <div className="bg-background border-b px-4 md:px-7 py-3 md:py-3.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-4 shrink-0">
-      {/* Row 1 (mobile) / Left (desktop): user info + sign out */}
+      {/* Row 1 (mobile) / Left (desktop): user info + notifications */}
       <div className="flex items-center justify-between md:justify-start gap-3">
         <div className="flex items-center gap-3">
           <button
@@ -60,17 +57,9 @@ export function CashierHeader({ admin, initials, pendingOrders, onSignOut, fetch
           />
         </div>
 
+        {/* Sign out now lives in the restaurant profile dialog (avatar → Profile) */}
         <div className="flex items-center gap-1.5">
           <LanguageSwitcher align="right" />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1.5 text-muted-foreground hover:text-destructive"
-            onClick={onSignOut}
-          >
-            <LogOut size={15} strokeWidth={2} />
-            <span className="hidden md:inline">{t.cashier.header.signOut}</span>
-          </Button>
         </div>
       </div>
 

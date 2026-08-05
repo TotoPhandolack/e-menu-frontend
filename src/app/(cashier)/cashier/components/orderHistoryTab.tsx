@@ -32,6 +32,11 @@ const PAGE_SIZE = 10;
 // Vertical rule between columns — the shared Table primitive only draws row borders.
 const COL_DIVIDER = '[&>*:not(:last-child)]:border-r';
 
+// Alternating fills for the expanded item list. Literal hexes rather than
+// palette tokens: the stripe has to hold against the row's own muted tint,
+// which every neutral token in the system sits too close to.
+const ZEBRA_ROW = 'odd:bg-white even:bg-[#e3e3e3]';
+
 function formatKip(n: number | string) {
   return `₭${Number(n).toLocaleString('en-US')}`;
 }
@@ -165,26 +170,38 @@ function OrderRow({ order }: { order: Order }) {
       {/* Expanded items sub-row */}
       {expanded && (
         <TableRow className="bg-muted/30 hover:bg-muted/30">
-          <TableCell colSpan={COLS} className="py-2 px-4">
-            <div className="space-y-1 py-1">
-              {order.orderItems.map((oi) => (
-                <div
-                  key={oi.id}
-                  className="flex justify-between text-[12px] text-muted-foreground"
-                >
-                  <span>
-                    {oi.quantity}× {oi.menuItem.name}
-                    {oi.special_note && (
-                      <span className="ml-1 text-status-preparing-foreground italic">
-                        ({oi.special_note})
-                      </span>
-                    )}
-                  </span>
-                  <span className="tabular-nums">
-                    {formatKip(Number(oi.unit_price) * oi.quantity)}
-                  </span>
-                </div>
-              ))}
+          <TableCell colSpan={COLS} className="p-0 whitespace-normal">
+            <div className="px-4 py-3">
+              {/* Full width so Price lands under the parent table's Total column. */}
+              <table className="w-full text-[12px] rounded-md overflow-hidden">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="py-1.5 px-3 text-left font-semibold text-foreground">
+                      {t.cashier.history.colItem}
+                    </th>
+                    <th className="py-1.5 px-3 text-right font-semibold text-foreground w-32">
+                      {t.cashier.history.colPrice}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {order.orderItems.map((oi) => (
+                    <tr key={oi.id} className={ZEBRA_ROW}>
+                      <td className="py-1.5 px-3 text-left text-muted-foreground">
+                        {oi.quantity}× {oi.menuItem.name}
+                        {oi.special_note && (
+                          <span className="ml-1 text-status-preparing-foreground italic">
+                            ({oi.special_note})
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-1.5 px-3 text-right tabular-nums text-foreground">
+                        {formatKip(Number(oi.unit_price) * oi.quantity)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </TableCell>
         </TableRow>

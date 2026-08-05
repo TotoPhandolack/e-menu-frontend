@@ -33,6 +33,7 @@ import {
   type MenuItem,
   type TableInfo,
   type Order,
+  type OrderStatus,
   type OrderType,
 } from "@/lib/api";
 
@@ -72,14 +73,16 @@ export default function CashierPage() {
 
   const [mainTab, setMainTab] = useState("order");
   const [activitySubTab, setActivitySubTab] = useState("live");
-  const [highlightOrder, setHighlightOrder] = useState<{ orderId: string; nonce: number } | null>(null);
+  const [highlightOrder, setHighlightOrder] = useState<
+    { orderId: string; status: OrderStatus; nonce: number } | null
+  >(null);
 
   // Keep localAdmin in sync with auth store and re-apply theme whenever it changes
   useEffect(() => {
     setLocalAdmin(admin);
-    if (admin?.restaurant?.theme_color) {
-      applyTheme(admin.restaurant.theme_color);
-    }
+    // Always apply — an unset theme_color has to reset --primary back to the
+    // default gold, not leave whatever a previously visited page injected.
+    applyTheme(admin?.restaurant?.theme_color);
   }, [admin]);
 
   // Keyed on the restaurant id (a stable string), NOT the `admin` object —
@@ -187,8 +190,10 @@ export default function CashierPage() {
   const goToLiveOrders = useCallback((order: Order) => {
     setMainTab("activity");
     setActivitySubTab("live");
-    setHighlightOrder({ orderId: order.id, nonce: Date.now() });
-    fetchLiveOrders();
+    // Carry the status along: the refetch below flips the Live tab into its
+    // loading state, so it can't look the order up in its own list yet.
+    setHighlightOrder({ orderId: order.id, status: order.status, nonce: Date.now() });
+    fetchLiveOrders(true);
   }, [fetchLiveOrders]);
 
   const cartItemIds = useMemo(() => new Set(cart.map((c) => c.menuItem.id)), [cart]);
@@ -313,6 +318,7 @@ export default function CashierPage() {
         open={profileOpen}
         onOpenChange={setProfileOpen}
         admin={localAdmin}
+        onSignOut={() => signOut({ callbackUrl: "/login" })}
         onProfileUpdated={(updates) => {
           setLocalAdmin((prev) =>
             prev
@@ -341,7 +347,6 @@ export default function CashierPage() {
             admin={localAdmin}
             initials={initials}
             pendingOrders={pendingOrders}
-            onSignOut={() => signOut({ callbackUrl: "/login" })}
             fetchLiveOrders={fetchLiveOrders}
             onProfileClick={() => setProfileOpen(true)}
             onGoToLiveOrders={goToLiveOrders}

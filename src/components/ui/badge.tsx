@@ -10,9 +10,10 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
-        // --secondary is pure white; the hairline is what makes it read on a card.
+        // --secondary is pure black, so it needs no hairline to read on a card
+        // and must not hover to a light surface — the text is white.
         secondary:
-          "border-border bg-secondary text-secondary-foreground [a]:hover:bg-muted",
+          "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/85",
         destructive:
           "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 [a]:hover:bg-destructive/20",
         outline:

@@ -107,7 +107,7 @@ function MenuPageContent() {
         setRestaurantInfo(data.restaurant_id);
         setBrowseMode(true);
         setRestaurantProfile(profileRes.data);
-        applyTheme(profileRes.data.theme_color || "forest");
+        applyTheme(profileRes.data.theme_color);
 
         const flat = data.categories.flatMap((cat) =>
           cat.menuItems.map((item) => ({ ...item, category: cat })),
@@ -139,7 +139,7 @@ function MenuPageContent() {
       ]);
       setMenuItems(menuData);
       setRestaurantProfile(profileRes.data);
-      applyTheme(profileRes.data.theme_color || "forest");
+      applyTheme(profileRes.data.theme_color);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       const msg = error.response?.data?.message || t.customer.menu.loadFailed;

@@ -98,8 +98,27 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
 ];
 
-export function applyTheme(themeKey: string) {
-  const preset = THEME_PRESETS.find((p) => p.key === themeKey) ?? THEME_PRESETS[0];
+/**
+ * The gold in `globals.css`. Every surface that has no saved `theme_color`
+ * must land here — a hard-coded fallback to any other preset makes the app
+ * disagree with the swatch the profile dialog shows as "Default".
+ */
+export const DEFAULT_THEME_KEY = "default";
+
+/**
+ * Restaurants created before the preset list existed store a raw hex in
+ * `theme_color` (the seed still writes `#E23744`). Anything that isn't a known
+ * preset key resolves to the default so the UI and the saved value agree.
+ */
+export function resolveThemePreset(themeKey?: string | null): ThemePreset {
+  return (
+    THEME_PRESETS.find((p) => p.key === themeKey) ??
+    THEME_PRESETS.find((p) => p.key === DEFAULT_THEME_KEY)!
+  );
+}
+
+export function applyTheme(themeKey?: string | null) {
+  const preset = resolveThemePreset(themeKey);
   const root = document.documentElement;
   root.style.setProperty("--primary", preset.primary);
   root.style.setProperty("--primary-foreground", preset.primaryForeground);

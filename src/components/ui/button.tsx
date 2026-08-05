@@ -12,10 +12,10 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
-        // --secondary is pure white; without the hairline it is invisible on
-        // the warm canvas (1.04:1) and on cards (1.0:1).
+        // --secondary is pure black, so it carries its own edge and must stay
+        // dark on hover/expand — its foreground is white.
         secondary:
-          "border-border bg-secondary text-secondary-foreground hover:bg-muted aria-expanded:bg-muted aria-expanded:text-secondary-foreground",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/85 aria-expanded:bg-secondary/85 aria-expanded:text-secondary-foreground",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
         destructive:

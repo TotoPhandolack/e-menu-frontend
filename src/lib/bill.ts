@@ -15,7 +15,7 @@ import type { Order } from './api';
 
 /** Kip has no minor unit in practice — round and group with thousands separators. */
 export function formatKip(n: number | string): string {
-  return `₭${Math.round(Number(n)).toLocaleString('en-US')}`;
+  return `${Math.round(Number(n)).toLocaleString('en-US')}<span class="bill-currency">₭</span>`;
 }
 
 /** Escape user-supplied strings before they enter the HTML string renderer. */
@@ -245,6 +245,8 @@ export const BILL_CSS = `
 .bill-grand-k .lo { font-family: var(--bill-lao); font-size: 14px; font-weight: 700; color: var(--bill-ink); }
 .bill-grand-k .en { font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em; color: var(--bill-slate); }
 .bill-grand-v { font-family: var(--bill-mono); font-size: 19px; font-weight: 700; color: var(--bill-ink); white-space: nowrap; }
+
+.bill-currency { font-size: 0.65em; font-weight: 500; margin-left: 1px; }
 
 .bill-stamp { width: fit-content; margin: 16px auto 0; font-family: var(--bill-mono); font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; color: var(--bill-ink); border: 1.5px solid var(--bill-ink); border-radius: 8px; padding: 4px 14px; transform: rotate(-2.5deg); opacity: 0.9; }
 

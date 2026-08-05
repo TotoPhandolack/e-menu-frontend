@@ -5,11 +5,20 @@ import { RefreshCw, ClipboardList, Clock, ChefHat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { toast } from "react-toastify";
 import { updateOrderStatus, cashierPrintKitchen, type Order } from '@/lib/api';
 import { useSession } from 'next-auth/react';
 import { printBill } from '@/lib/printBill';
 import { useTranslations, type Translations } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 import { PaymentDialog } from './paymentDialog';
 
 interface Props {
@@ -17,6 +26,9 @@ interface Props {
   loading: boolean;
   onRefresh: () => void;
 }
+
+// Vertical rule between columns — the shared Table primitive only draws row borders.
+const COL_DIVIDER = '[&>*:not(:last-child)]:border-r';
 
 function timeAgo(dateStr: string, t: Translations) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -30,9 +42,30 @@ function formatKip(n: number | string) {
   return `₭${Number(n).toLocaleString('en-US')}`;
 }
 
-// ─── Individual order card with actions ──────────────────────────────────────
+function orderLabel(order: Order, t: Translations) {
+  return order.order_type === 'TAKEAWAY'
+    ? `${t.common.takeaway} #${order.queue_number}`
+    : t.cashier.order.tableLabel(order.table?.table_number ?? '-');
+}
 
-function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
+function ItemsCell({ order }: { order: Order }) {
+  return (
+    <div className="space-y-1">
+      {order.orderItems.map((oi) => (
+        <div key={oi.id} className="text-[12px] text-foreground">
+          <span className="font-medium">{oi.quantity}× {oi.menuItem.name}</span>
+          {oi.special_note && (
+            <span className="ml-1 text-status-preparing-foreground italic">({oi.special_note})</span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Table rows with actions ──────────────────────────────────────────────────
+
+function PendingRow({ order, onDone }: { order: Order; onDone: () => void }) {
   const t = useTranslations();
   const [busy, setBusy] = useState(false);
 
@@ -65,69 +98,45 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
   };
 
   return (
-    <div className="bg-card rounded-2xl border-2 border-status-preparing-foreground/40 p-4 space-y-3 shadow-sm">
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="font-bold text-sm text-foreground">
-            {order.order_type === 'TAKEAWAY'
-              ? `${t.common.takeaway} #${order.queue_number}`
-              : t.cashier.order.tableLabel(order.table?.table_number ?? '-')}
-          </p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
-            {timeAgo(order.created_at, t)}
-          </p>
+    <TableRow className={COL_DIVIDER}>
+      <TableCell className="align-top font-semibold text-foreground">
+        {orderLabel(order, t)}
+      </TableCell>
+      <TableCell className="align-top">
+        <ItemsCell order={order} />
+      </TableCell>
+      <TableCell className="align-top text-xs text-muted-foreground whitespace-nowrap">
+        {timeAgo(order.created_at, t)}
+      </TableCell>
+      <TableCell className="align-top text-right font-semibold text-foreground whitespace-nowrap">
+        {formatKip(order.total_amount)}
+      </TableCell>
+      <TableCell className="align-top">
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            className="bg-status-complete-foreground hover:bg-status-complete-foreground text-white text-xs h-8"
+            disabled={busy}
+            onClick={handleConfirm}
+          >
+            {t.cashier.live.confirmAndSend}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8"
+            disabled={busy}
+            onClick={handleCancel}
+          >
+            {t.common.cancel}
+          </Button>
         </div>
-        <span className="bg-status-preparing text-status-preparing-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-          {t.cashier.live.pending}
-        </span>
-      </div>
-
-      <div className="space-y-1 border-t pt-2">
-        {order.orderItems.map((oi) => (
-          <div key={oi.id} className="text-[12px] text-foreground">
-            <span className="font-medium">{oi.quantity}× {oi.menuItem.name}</span>
-            {oi.special_note && (
-              <span className="ml-1 text-status-preparing-foreground italic">({oi.special_note})</span>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="flex justify-between text-xs text-muted-foreground border-t pt-2">
-        <span>{t.cashier.live.total}</span>
-        <span className="font-semibold text-foreground">{formatKip(order.total_amount)}</span>
-      </div>
-
-      <div className="flex gap-2 pt-1">
-        <Button
-          size="sm"
-          className="flex-1 bg-status-complete-foreground hover:bg-status-complete-foreground text-white text-xs h-8"
-          disabled={busy}
-          onClick={handleConfirm}
-        >
-          {t.cashier.live.confirmAndSend}
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8"
-          disabled={busy}
-          onClick={handleCancel}
-        >
-          {t.common.cancel}
-        </Button>
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }
 
-function ConfirmedCard({
-  order,
-  onDone,
-}: {
-  order: Order;
-  onDone: () => void;
-}) {
+function ConfirmedRow({ order, onDone }: { order: Order; onDone: () => void }) {
   const t = useTranslations();
   const { data: session } = useSession();
   const restaurantName = session?.admin?.restaurant?.name ?? '';
@@ -142,7 +151,7 @@ function ConfirmedCard({
       setPaymentDialog(false);
       toast.success(t.cashier.live.orderPaid);
       printBill(order, restaurantName);
-      onDone(); // refresh parent — card unmounts after this
+      onDone(); // refresh parent — row unmounts after this
     } catch {
       toast.error(t.cashier.live.markPaidFailed);
       setBusy(false);
@@ -164,59 +173,41 @@ function ConfirmedCard({
 
   return (
     <>
-      <div className="bg-card rounded-2xl border-2 border-status-confirmed-foreground/30 p-4 space-y-3 shadow-sm">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="font-bold text-sm text-foreground">
-              {order.order_type === 'TAKEAWAY'
-                ? `${t.common.takeaway} #${order.queue_number}`
-                : t.cashier.order.tableLabel(order.table?.table_number ?? '-')}
-            </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {timeAgo(order.created_at, t)}
-            </p>
+      <TableRow className={COL_DIVIDER}>
+        <TableCell className="align-top font-semibold text-foreground">
+          {orderLabel(order, t)}
+        </TableCell>
+        <TableCell className="align-top">
+          <ItemsCell order={order} />
+        </TableCell>
+        <TableCell className="align-top text-xs text-muted-foreground whitespace-nowrap">
+          {timeAgo(order.created_at, t)}
+        </TableCell>
+        <TableCell className="align-top text-right font-semibold text-foreground whitespace-nowrap">
+          {formatKip(order.total_amount)}
+        </TableCell>
+        <TableCell className="align-top">
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="bg-foreground hover:bg-foreground text-white text-xs h-8"
+              disabled={busy}
+              onClick={() => { setSelectedMethod('CASH'); setPaymentDialog(true); }}
+            >
+              {t.cashier.live.markPaid}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8"
+              disabled={busy}
+              onClick={handleCancel}
+            >
+              {t.common.cancel}
+            </Button>
           </div>
-          <span className="bg-status-confirmed text-status-confirmed-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-            {t.cashier.live.inKitchen}
-          </span>
-        </div>
-
-        <div className="space-y-1 border-t pt-2">
-          {order.orderItems.map((oi) => (
-            <div key={oi.id} className="text-[12px] text-foreground">
-              <span className="font-medium">{oi.quantity}× {oi.menuItem.name}</span>
-              {oi.special_note && (
-                <span className="ml-1 text-status-preparing-foreground italic">({oi.special_note})</span>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div className="flex justify-between text-xs text-muted-foreground border-t pt-2">
-          <span>{t.cashier.live.total}</span>
-          <span className="font-semibold text-foreground">{formatKip(order.total_amount)}</span>
-        </div>
-
-        <div className="flex gap-2 mt-1">
-          <Button
-            size="sm"
-            className="flex-1 bg-foreground hover:bg-foreground text-white text-xs h-8"
-            disabled={busy}
-            onClick={() => { setSelectedMethod('CASH'); setPaymentDialog(true); }}
-          >
-            {t.cashier.live.markPaid}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8"
-            disabled={busy}
-            onClick={handleCancel}
-          >
-            {t.common.cancel}
-          </Button>
-        </div>
-      </div>
+        </TableCell>
+      </TableRow>
 
       <PaymentDialog
         open={paymentDialog}
@@ -239,9 +230,9 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
   const t = useTranslations();
   if (loading) {
     return (
-      <div className="p-6 grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+      <div className="p-6 space-y-2">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-52 rounded-2xl" />
+          <Skeleton key={i} className="h-14 w-full rounded-md" />
         ))}
       </div>
     );
@@ -292,10 +283,23 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
                   <h3 className="text-xs font-bold uppercase tracking-widest text-status-preparing-foreground mb-3">
                     {t.cashier.live.pendingSection}
                   </h3>
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-                    {pending.map((order) => (
-                      <PendingCard key={order.id} order={order} onDone={onRefresh} />
-                    ))}
+                  <div className="rounded-lg border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className={cn("hover:bg-transparent", COL_DIVIDER)}>
+                          <TableHead>{t.cashier.live.colOrder}</TableHead>
+                          <TableHead>{t.cashier.live.colItems}</TableHead>
+                          <TableHead>{t.cashier.live.colTime}</TableHead>
+                          <TableHead className="text-right">{t.cashier.live.colTotal}</TableHead>
+                          <TableHead>{t.cashier.live.colActions}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pending.map((order) => (
+                          <PendingRow key={order.id} order={order} onDone={onRefresh} />
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </section>
               )}
@@ -306,14 +310,27 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
                   <h3 className="text-xs font-bold uppercase tracking-widest text-status-confirmed-foreground mb-3">
                     {t.cashier.live.confirmedSection}
                   </h3>
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-                    {confirmed.map((order) => (
-                      <ConfirmedCard
-                        key={order.id}
-                        order={order}
-                        onDone={onRefresh}
-                      />
-                    ))}
+                  <div className="rounded-lg border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className={cn("hover:bg-transparent", COL_DIVIDER)}>
+                          <TableHead>{t.cashier.live.colOrder}</TableHead>
+                          <TableHead>{t.cashier.live.colItems}</TableHead>
+                          <TableHead>{t.cashier.live.colTime}</TableHead>
+                          <TableHead className="text-right">{t.cashier.live.colTotal}</TableHead>
+                          <TableHead>{t.cashier.live.colActions}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {confirmed.map((order) => (
+                          <ConfirmedRow
+                            key={order.id}
+                            order={order}
+                            onDone={onRefresh}
+                          />
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </section>
               )}

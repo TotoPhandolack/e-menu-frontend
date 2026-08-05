@@ -11,6 +11,7 @@ import { updateOrderStatus, cashierPrintKitchen, type Order } from "@/lib/api";
 interface Props {
   pendingOrders: Order[];
   onRefresh: () => void;
+  onOrderClick: () => void;
 }
 
 function timeAgo(dateStr: string, t: Translations) {
@@ -20,7 +21,7 @@ function timeAgo(dateStr: string, t: Translations) {
   return t.cashier.time.hoursAgo(Math.floor(mins / 60));
 }
 
-export function NotificationBell({ pendingOrders, onRefresh }: Props) {
+export function NotificationBell({ pendingOrders, onRefresh, onOrderClick }: Props) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -52,6 +53,11 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
     } finally {
       setBusyId(null);
     }
+  };
+
+  const handleOrderClick = () => {
+    setOpen(false);
+    onOrderClick();
   };
 
   const handleCancel = async (order: Order) => {
@@ -127,7 +133,16 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                 {pendingOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 space-y-3 hover:bg-muted transition-colors"
+                    role="button"
+                    tabIndex={0}
+                    onClick={handleOrderClick}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleOrderClick();
+                      }
+                    }}
+                    className="p-4 space-y-3 hover:bg-muted transition-colors cursor-pointer"
                   >
                     {/* Order identity + time */}
                     <div className="flex items-center justify-between">
@@ -174,7 +189,10 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                         size="sm"
                         className="flex-1 h-8 text-xs bg-status-complete-foreground hover:bg-status-complete-foreground text-white rounded-lg"
                         disabled={busyId === order.id}
-                        onClick={() => handleConfirm(order)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleConfirm(order);
+                        }}
                       >
                         {t.cashier.notif.confirmAndSend}
                       </Button>
@@ -183,7 +201,10 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                         variant="outline"
                         className="h-8 px-3 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 rounded-lg"
                         disabled={busyId === order.id}
-                        onClick={() => handleCancel(order)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCancel(order);
+                        }}
                       >
                         {t.cashier.notif.cancel}
                       </Button>

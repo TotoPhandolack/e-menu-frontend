@@ -70,6 +70,9 @@ export default function CashierPage() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [localAdmin, setLocalAdmin] = useState(admin);
 
+  const [mainTab, setMainTab] = useState("order");
+  const [activitySubTab, setActivitySubTab] = useState("live");
+
   // Keep localAdmin in sync with auth store and re-apply theme whenever it changes
   useEffect(() => {
     setLocalAdmin(admin);
@@ -174,6 +177,12 @@ export default function CashierPage() {
       });
     },
   );
+
+  const goToLiveOrders = useCallback(() => {
+    setMainTab("activity");
+    setActivitySubTab("live");
+    fetchLiveOrders();
+  }, [fetchLiveOrders]);
 
   const cartItemIds = useMemo(() => new Set(cart.map((c) => c.menuItem.id)), [cart]);
   const cartItemCount = useMemo(() => cart.reduce((s, i) => s + i.quantity, 0), [cart]);
@@ -313,12 +322,13 @@ export default function CashierPage() {
       {/* LEFT — Main content */}
       <div className="flex flex-col flex-1 overflow-hidden min-w-0">
         <Tabs
-          defaultValue="order"
-          className="flex flex-col flex-1 overflow-hidden"
+          value={mainTab}
           onValueChange={(v) => {
+            setMainTab(v);
             if (v === "activity") fetchLiveOrders();
             if (v === "manage") fetchManageItems();
           }}
+          className="flex flex-col flex-1 overflow-hidden"
         >
           <CashierHeader
             admin={localAdmin}
@@ -327,6 +337,7 @@ export default function CashierPage() {
             onSignOut={() => signOut({ callbackUrl: "/login" })}
             fetchLiveOrders={fetchLiveOrders}
             onProfileClick={() => setProfileOpen(true)}
+            onGoToLiveOrders={goToLiveOrders}
           />
 
           <TabsContent value="order" className="flex flex-col flex-1 overflow-hidden mt-0">
@@ -340,12 +351,13 @@ export default function CashierPage() {
 
           <TabsContent value="activity" className="flex flex-col flex-1 overflow-hidden mt-0">
             <Tabs
-              defaultValue="live"
-              className="flex flex-col flex-1 overflow-hidden"
+              value={activitySubTab}
               onValueChange={(v) => {
+                setActivitySubTab(v);
                 if (v === "live") fetchLiveOrders();
                 if (v === "history") fetchHistory();
               }}
+              className="flex flex-col flex-1 overflow-hidden"
             >
               <div className="bg-background border-b px-4 md:px-7 py-2 shrink-0 flex items-center gap-3">
                 <TabsList className="h-8 bg-muted/40">

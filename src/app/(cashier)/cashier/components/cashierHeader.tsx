@@ -18,9 +18,10 @@ interface Props {
   onSignOut: () => void;
   fetchLiveOrders: () => void;
   onProfileClick: () => void;
+  onGoToLiveOrders: () => void;
 }
 
-export function CashierHeader({ admin, initials, pendingOrders, onSignOut, fetchLiveOrders, onProfileClick }: Props) {
+export function CashierHeader({ admin, initials, pendingOrders, onSignOut, fetchLiveOrders, onProfileClick, onGoToLiveOrders }: Props) {
   const t = useTranslations();
   const logoUrl = resolveImageUrl(admin?.restaurant?.logo_url);
 
@@ -55,6 +56,7 @@ export function CashierHeader({ admin, initials, pendingOrders, onSignOut, fetch
           <NotificationBell
             pendingOrders={pendingOrders}
             onRefresh={fetchLiveOrders}
+            onOrderClick={onGoToLiveOrders}
           />
         </div>
 

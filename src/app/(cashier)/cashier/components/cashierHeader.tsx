@@ -89,8 +89,11 @@ export function CashierHeader({ admin, initials, pendingOrders, onSignOut, fetch
           >
             {t.cashier.header.tabActivity}
             {pendingOrders.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-destructive text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-1 leading-none">
-                {pendingOrders.length}
+              <span className="absolute -top-1 -right-1 inline-flex">
+                <span className="absolute inset-0 rounded-full bg-destructive opacity-75 animate-ping" />
+                <span className="relative bg-destructive text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-1 leading-none">
+                  {pendingOrders.length}
+                </span>
               </span>
             )}
           </TabsTrigger>

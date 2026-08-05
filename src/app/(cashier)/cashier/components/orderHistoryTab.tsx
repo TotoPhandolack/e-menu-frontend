@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { RefreshCw, History, ChevronDown, ChevronUp } from 'lucide-react';
+import { RefreshCw, History, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,7 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useTranslations } from '@/lib/i18n';
+import { useTranslations, type Translations } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 import { type Order } from '@/lib/api';
 
 interface Props {
@@ -25,6 +26,11 @@ interface Props {
 type DateFilter = 'today' | 'yesterday' | 'all';
 type TypeFilter = 'all' | 'TABLE' | 'TAKEAWAY';
 type SourceFilter = 'all' | 'cashier' | 'customer';
+
+const PAGE_SIZE = 10;
+
+// Vertical rule between columns — the shared Table primitive only draws row borders.
+const COL_DIVIDER = '[&>*:not(:last-child)]:border-r';
 
 function formatKip(n: number | string) {
   return `₭${Number(n).toLocaleString('en-US')}`;
@@ -91,7 +97,7 @@ function OrderRow({ order }: { order: Order }) {
     <>
       <TableRow
         aria-expanded={expanded}
-        className="cursor-pointer select-none"
+        className={cn('cursor-pointer select-none', COL_DIVIDER)}
         onClick={() => setExpanded((v) => !v)}
       >
         {/* Order label */}
@@ -146,12 +152,12 @@ function OrderRow({ order }: { order: Order }) {
         </TableCell>
 
         {/* Total */}
-        <TableCell className="text-right font-semibold text-foreground">
+        <TableCell className="font-semibold text-foreground">
           {formatKip(order.total_amount)}
         </TableCell>
 
         {/* Expand toggle */}
-        <TableCell className="text-muted-foreground text-right pr-4">
+        <TableCell className="text-muted-foreground">
           {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </TableCell>
       </TableRow>
@@ -225,6 +231,18 @@ export function OrderHistoryTab({ orders, loading, onRefresh }: Props) {
     [filtered],
   );
 
+  const [page, setPage] = useState(1);
+  const changeDateFilter = (f: DateFilter) => { setDateFilter(f); setPage(1); };
+  const changeTypeFilter = (f: TypeFilter) => { setTypeFilter(f); setPage(1); };
+  const changeSourceFilter = (f: SourceFilter) => { setSourceFilter(f); setPage(1); };
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const paginated = useMemo(
+    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filtered, currentPage],
+  );
+
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Filter & summary bar */}
@@ -232,23 +250,23 @@ export function OrderHistoryTab({ orders, loading, onRefresh }: Props) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-wrap gap-1.5 items-center">
             {/* Date */}
-            <FilterPill label={t.cashier.history.today}     active={dateFilter === 'today'}     onClick={() => setDateFilter('today')} />
-            <FilterPill label={t.cashier.history.yesterday} active={dateFilter === 'yesterday'} onClick={() => setDateFilter('yesterday')} />
-            <FilterPill label={t.cashier.history.all}       active={dateFilter === 'all'}       onClick={() => setDateFilter('all')} />
+            <FilterPill label={t.cashier.history.today}     active={dateFilter === 'today'}     onClick={() => changeDateFilter('today')} />
+            <FilterPill label={t.cashier.history.yesterday} active={dateFilter === 'yesterday'} onClick={() => changeDateFilter('yesterday')} />
+            <FilterPill label={t.cashier.history.all}       active={dateFilter === 'all'}       onClick={() => changeDateFilter('all')} />
 
             <span className="w-px h-4 bg-border mx-0.5" />
 
             {/* Order type */}
-            <FilterPill label={t.cashier.history.allTypes} active={typeFilter === 'all'}      onClick={() => setTypeFilter('all')} />
-            <FilterPill label={t.cashier.history.table}    active={typeFilter === 'TABLE'}    onClick={() => setTypeFilter('TABLE')} />
-            <FilterPill label={t.cashier.history.takeaway} active={typeFilter === 'TAKEAWAY'} onClick={() => setTypeFilter('TAKEAWAY')} />
+            <FilterPill label={t.cashier.history.allTypes} active={typeFilter === 'all'}      onClick={() => changeTypeFilter('all')} />
+            <FilterPill label={t.cashier.history.table}    active={typeFilter === 'TABLE'}    onClick={() => changeTypeFilter('TABLE')} />
+            <FilterPill label={t.cashier.history.takeaway} active={typeFilter === 'TAKEAWAY'} onClick={() => changeTypeFilter('TAKEAWAY')} />
 
             <span className="w-px h-4 bg-border mx-0.5" />
 
             {/* Source */}
-            <FilterPill label={t.cashier.history.allSources} active={sourceFilter === 'all'}      onClick={() => setSourceFilter('all')} />
-            <FilterPill label={t.cashier.history.cashier}    active={sourceFilter === 'cashier'}   onClick={() => setSourceFilter('cashier')} />
-            <FilterPill label={t.cashier.history.customer}   active={sourceFilter === 'customer'}  onClick={() => setSourceFilter('customer')} />
+            <FilterPill label={t.cashier.history.allSources} active={sourceFilter === 'all'}      onClick={() => changeSourceFilter('all')} />
+            <FilterPill label={t.cashier.history.cashier}    active={sourceFilter === 'cashier'}   onClick={() => changeSourceFilter('cashier')} />
+            <FilterPill label={t.cashier.history.customer}   active={sourceFilter === 'customer'}  onClick={() => changeSourceFilter('customer')} />
           </div>
 
           <Button
@@ -284,35 +302,102 @@ export function OrderHistoryTab({ orders, loading, onRefresh }: Props) {
             <Skeleton key={i} className="h-10 w-full rounded-md" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-56 text-muted-foreground gap-3">
-          <History size={44} strokeWidth={1.2} />
-          <p className="text-sm">{t.cashier.history.noHistory}</p>
-        </div>
       ) : (
-        <ScrollArea className="flex-1">
-          <div className="px-4 md:px-7 py-4">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead>{t.cashier.history.colOrder}</TableHead>
-                  <TableHead>{t.cashier.history.colType}</TableHead>
-                  <TableHead>{t.cashier.history.colSource}</TableHead>
-                  <TableHead>{t.cashier.history.colTime}</TableHead>
-                  <TableHead>{t.cashier.history.colStatus}</TableHead>
-                  <TableHead className="text-right">{t.cashier.history.colTotal}</TableHead>
-                  <TableHead className="w-8" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((order) => (
-                  <OrderRow key={order.id} order={order} />
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </ScrollArea>
+        <>
+          {filtered.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center text-muted-foreground gap-3">
+              <History size={44} strokeWidth={1.2} />
+              <p className="text-sm">{t.cashier.history.noHistory}</p>
+            </div>
+          ) : (
+            <ScrollArea className="flex-1">
+              <div className="px-4 md:px-7 py-4">
+                <div className="rounded-lg border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className={cn('hover:bg-transparent', COL_DIVIDER)}>
+                        <TableHead>{t.cashier.history.colOrder}</TableHead>
+                        <TableHead>{t.cashier.history.colType}</TableHead>
+                        <TableHead>{t.cashier.history.colSource}</TableHead>
+                        <TableHead>{t.cashier.history.colTime}</TableHead>
+                        <TableHead>{t.cashier.history.colStatus}</TableHead>
+                        <TableHead>{t.cashier.history.colTotal}</TableHead>
+                        <TableHead className="w-8" />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginated.map((order) => (
+                        <OrderRow key={order.id} order={order} />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+
+          <PaginationBar
+            t={t}
+            page={currentPage}
+            pageCount={pageCount}
+            total={filtered.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        </>
       )}
+    </div>
+  );
+}
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+function PaginationBar({
+  t,
+  page,
+  pageCount,
+  total,
+  pageSize,
+  onPageChange,
+}: {
+  t: Translations;
+  page: number;
+  pageCount: number;
+  total: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+}) {
+  const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+
+  return (
+    <div className="px-4 md:px-7 py-3 border-t shrink-0 flex items-center justify-between">
+      <p className="text-xs text-muted-foreground">{t.cashier.history.pageInfo(from, to, total)}</p>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 w-8 p-0"
+          disabled={page <= 1}
+          onClick={() => onPageChange(page - 1)}
+          aria-label={t.cashier.history.prevPage}
+        >
+          <ChevronLeft size={14} />
+        </Button>
+        <span className="text-xs font-semibold text-foreground tabular-nums min-w-[3.5rem] text-center">
+          {page} / {pageCount}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 w-8 p-0"
+          disabled={page >= pageCount}
+          onClick={() => onPageChange(page + 1)}
+          aria-label={t.cashier.history.nextPage}
+        >
+          <ChevronRight size={14} />
+        </Button>
+      </div>
     </div>
   );
 }

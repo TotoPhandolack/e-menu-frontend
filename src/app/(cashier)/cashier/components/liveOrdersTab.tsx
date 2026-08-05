@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { RefreshCw, ClipboardList, Clock, ChefHat } from 'lucide-react';
+import { ClipboardList, Clock, ChefHat, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -46,6 +47,51 @@ function orderLabel(order: Order, t: Translations) {
   return order.order_type === 'TAKEAWAY'
     ? `${t.common.takeaway} #${order.queue_number}`
     : t.cashier.order.tableLabel(order.table?.table_number ?? '-');
+}
+
+function CountBadge({ n, tone }: { n: number; tone: 'pending' | 'confirmed' }) {
+  const toneClasses =
+    tone === 'pending'
+      ? 'bg-status-preparing text-status-preparing-foreground'
+      : 'bg-status-confirmed text-status-confirmed-foreground';
+  return (
+    <span className="relative inline-flex">
+      {n > 0 && (
+        <span className={cn('absolute inset-0 rounded-full opacity-75 animate-ping', toneClasses)} />
+      )}
+      <span
+        className={cn(
+          'relative inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold',
+          n > 0 ? toneClasses : 'bg-muted text-muted-foreground',
+        )}
+      >
+        {n}
+      </span>
+    </span>
+  );
+}
+
+function EmptyState({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-56 text-muted-foreground gap-3">
+      <Icon size={44} strokeWidth={1.2} />
+      <p className="text-sm">{text}</p>
+    </div>
+  );
+}
+
+function ColumnHeaderRow({ t }: { t: Translations }) {
+  return (
+    <TableHeader>
+      <TableRow className={cn('hover:bg-transparent', COL_DIVIDER)}>
+        <TableHead>{t.cashier.live.colOrder}</TableHead>
+        <TableHead>{t.cashier.live.colItems}</TableHead>
+        <TableHead>{t.cashier.live.colTime}</TableHead>
+        <TableHead>{t.cashier.live.colTotal}</TableHead>
+        <TableHead>{t.cashier.live.colActions}</TableHead>
+      </TableRow>
+    </TableHeader>
+  );
 }
 
 function ItemsCell({ order }: { order: Order }) {
@@ -108,11 +154,11 @@ function PendingRow({ order, onDone }: { order: Order; onDone: () => void }) {
       <TableCell className="align-top text-xs text-muted-foreground whitespace-nowrap">
         {timeAgo(order.created_at, t)}
       </TableCell>
-      <TableCell className="align-top text-right font-semibold text-foreground whitespace-nowrap">
+      <TableCell className="align-top font-semibold text-foreground whitespace-nowrap">
         {formatKip(order.total_amount)}
       </TableCell>
       <TableCell className="align-top">
-        <div className="flex gap-2">
+        <div className="flex justify-center gap-2">
           <Button
             size="sm"
             className="bg-status-complete-foreground hover:bg-status-complete-foreground text-white text-xs h-8"
@@ -183,11 +229,11 @@ function ConfirmedRow({ order, onDone }: { order: Order; onDone: () => void }) {
         <TableCell className="align-top text-xs text-muted-foreground whitespace-nowrap">
           {timeAgo(order.created_at, t)}
         </TableCell>
-        <TableCell className="align-top text-right font-semibold text-foreground whitespace-nowrap">
+        <TableCell className="align-top font-semibold text-foreground whitespace-nowrap">
           {formatKip(order.total_amount)}
         </TableCell>
         <TableCell className="align-top">
-          <div className="flex gap-2">
+          <div className="flex justify-center gap-2">
             <Button
               size="sm"
               className="bg-foreground hover:bg-foreground text-white text-xs h-8"
@@ -243,57 +289,35 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      {/* Toolbar */}
-      <div className="px-7 py-3.5 border-b flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          {pending.length > 0 && (
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-status-preparing-foreground bg-status-preparing px-2.5 py-1 rounded-full">
-              <Clock size={11} />
-              {t.cashier.live.waitingCount(pending.length)}
-            </span>
-          )}
-          {confirmed.length > 0 && (
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-status-confirmed-foreground bg-status-confirmed px-2.5 py-1 rounded-full">
-              <ChefHat size={11} />
-              {t.cashier.live.inKitchenCount(confirmed.length)}
-            </span>
-          )}
-          {orders.length === 0 && (
-            <p className="text-sm text-muted-foreground">{t.cashier.live.noActiveOrdersShort}</p>
-          )}
+      {orders.length === 0 ? (
+        <div className="flex-1 overflow-hidden">
+          <EmptyState icon={ClipboardList} text={t.cashier.live.noActiveOrders} />
         </div>
-        <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs" onClick={onRefresh}>
-          <RefreshCw size={13} strokeWidth={2} />
-          {t.common.refresh}
-        </Button>
-      </div>
+      ) : (
+        <Tabs defaultValue="pending" className="flex flex-col flex-1 overflow-hidden">
+          <div className="px-7 pt-4 shrink-0">
+            <TabsList className="h-9 bg-muted/50">
+              <TabsTrigger value="pending" className="gap-2 text-xs font-semibold px-4">
+                {t.cashier.live.pendingSection}
+                <CountBadge n={pending.length} tone="pending" />
+              </TabsTrigger>
+              <TabsTrigger value="confirmed" className="gap-2 text-xs font-semibold px-4">
+                {t.cashier.live.confirmedSection}
+                <CountBadge n={confirmed.length} tone="confirmed" />
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-      <ScrollArea className="flex-1">
-        <div className="p-7 space-y-8">
-          {orders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-56 text-muted-foreground gap-3">
-              <ClipboardList size={44} strokeWidth={1.2} />
-              <p className="text-sm">{t.cashier.live.noActiveOrders}</p>
-            </div>
-          ) : (
-            <>
-              {/* ── PENDING section ── */}
-              {pending.length > 0 && (
-                <section>
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-status-preparing-foreground mb-3">
-                    {t.cashier.live.pendingSection}
-                  </h3>
+          {/* ── PENDING tab ── */}
+          <TabsContent value="pending" className="flex flex-col flex-1 overflow-hidden mt-0">
+            <ScrollArea className="flex-1">
+              <div className="p-7">
+                {pending.length === 0 ? (
+                  <EmptyState icon={Clock} text={t.cashier.live.noPending} />
+                ) : (
                   <div className="rounded-lg border overflow-hidden">
                     <Table>
-                      <TableHeader>
-                        <TableRow className={cn("hover:bg-transparent", COL_DIVIDER)}>
-                          <TableHead>{t.cashier.live.colOrder}</TableHead>
-                          <TableHead>{t.cashier.live.colItems}</TableHead>
-                          <TableHead>{t.cashier.live.colTime}</TableHead>
-                          <TableHead className="text-right">{t.cashier.live.colTotal}</TableHead>
-                          <TableHead>{t.cashier.live.colActions}</TableHead>
-                        </TableRow>
-                      </TableHeader>
+                      <ColumnHeaderRow t={t} />
                       <TableBody>
                         {pending.map((order) => (
                           <PendingRow key={order.id} order={order} onDone={onRefresh} />
@@ -301,44 +325,34 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
                       </TableBody>
                     </Table>
                   </div>
-                </section>
-              )}
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
 
-              {/* ── CONFIRMED section ── */}
-              {confirmed.length > 0 && (
-                <section>
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-status-confirmed-foreground mb-3">
-                    {t.cashier.live.confirmedSection}
-                  </h3>
+          {/* ── CONFIRMED tab ── */}
+          <TabsContent value="confirmed" className="flex flex-col flex-1 overflow-hidden mt-0">
+            <ScrollArea className="flex-1">
+              <div className="p-7">
+                {confirmed.length === 0 ? (
+                  <EmptyState icon={ChefHat} text={t.cashier.live.noConfirmed} />
+                ) : (
                   <div className="rounded-lg border overflow-hidden">
                     <Table>
-                      <TableHeader>
-                        <TableRow className={cn("hover:bg-transparent", COL_DIVIDER)}>
-                          <TableHead>{t.cashier.live.colOrder}</TableHead>
-                          <TableHead>{t.cashier.live.colItems}</TableHead>
-                          <TableHead>{t.cashier.live.colTime}</TableHead>
-                          <TableHead className="text-right">{t.cashier.live.colTotal}</TableHead>
-                          <TableHead>{t.cashier.live.colActions}</TableHead>
-                        </TableRow>
-                      </TableHeader>
+                      <ColumnHeaderRow t={t} />
                       <TableBody>
                         {confirmed.map((order) => (
-                          <ConfirmedRow
-                            key={order.id}
-                            order={order}
-                            onDone={onRefresh}
-                          />
+                          <ConfirmedRow key={order.id} order={order} onDone={onRefresh} />
                         ))}
                       </TableBody>
                     </Table>
                   </div>
-                </section>
-              )}
-            </>
-          )}
-        </div>
-      </ScrollArea>
-
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }

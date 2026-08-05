@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bell, X } from "lucide-react";
+import { Bell, X, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "react-toastify";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useTranslations, type Translations } from "@/lib/i18n";
 import { updateOrderStatus, cashierPrintKitchen, type Order } from "@/lib/api";
@@ -26,7 +25,26 @@ export function NotificationBell({ pendingOrders, onRefresh, onOrderClick }: Pro
   const [open, setOpen] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [canScrollDown, setCanScrollDown] = useState(false);
   const count = pendingOrders.length;
+
+  const updateScrollState = () => {
+    const el = listRef.current;
+    if (!el) return;
+    setCanScrollUp(el.scrollTop > 4);
+    setCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+  };
+
+  // Recompute after the panel opens or the order list changes size
+  useEffect(() => {
+    if (open) updateScrollState();
+  }, [open, count]);
+
+  const scrollBy = (delta: number) => {
+    listRef.current?.scrollBy({ top: delta, behavior: "smooth" });
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -89,8 +107,11 @@ export function NotificationBell({ pendingOrders, onRefresh, onOrderClick }: Pro
       >
         <Bell size={20} className={count > 0 ? "animate-bell-ring" : ""} />
         {count > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 bg-destructive text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-1 leading-none pointer-events-none">
-            {count}
+          <span className="absolute -top-0.5 -right-0.5 inline-flex pointer-events-none">
+            <span className="absolute inset-0 rounded-full bg-destructive opacity-75 animate-ping" />
+            <span className="relative bg-destructive text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-1 leading-none">
+              {count}
+            </span>
           </span>
         )}
       </button>
@@ -122,7 +143,12 @@ export function NotificationBell({ pendingOrders, onRefresh, onOrderClick }: Pro
           </div>
 
           {/* Order list */}
-          <ScrollArea className="max-h-[460px]">
+          <div className="relative">
+          <div
+            ref={listRef}
+            onScroll={updateScrollState}
+            className="max-h-[460px] overflow-y-auto"
+          >
             {count === 0 ? (
               <div className="flex flex-col items-center justify-center py-14 text-muted-foreground gap-3">
                 <Bell size={32} strokeWidth={1.2} />
@@ -213,7 +239,29 @@ export function NotificationBell({ pendingOrders, onRefresh, onOrderClick }: Pro
                 ))}
               </div>
             )}
-          </ScrollArea>
+          </div>
+
+          {canScrollUp && (
+            <button
+              type="button"
+              onClick={() => scrollBy(-160)}
+              aria-label={t.cashier.notif.scrollUp}
+              className="absolute top-1.5 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card/95 text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <ChevronUp size={14} />
+            </button>
+          )}
+          {canScrollDown && (
+            <button
+              type="button"
+              onClick={() => scrollBy(160)}
+              aria-label={t.cashier.notif.scrollDown}
+              className="absolute bottom-1.5 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card/95 text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <ChevronDown size={14} />
+            </button>
+          )}
+          </div>
         </div>
       )}
     </div>

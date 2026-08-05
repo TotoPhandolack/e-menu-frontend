@@ -104,6 +104,8 @@ const lo = {
       colTime: "ເວລາ",
       colTotal: "ລວມ",
       colActions: "ຈັດການ",
+      noPending: "ບໍ່ມີອໍເດີ້ລໍຖ້າຢືນຢັນ",
+      noConfirmed: "ບໍ່ມີອໍເດີ້ໃນຄົວ",
     },
     history: {
       today: "ມື້ນີ້",
@@ -128,6 +130,9 @@ const lo = {
       paid: "ຊຳລະແລ້ວ",
       cancelled: "ຍົກເລີກ",
       noHistory: "ບໍ່ພົບປະຫວັດອໍເດີ້",
+      pageInfo: (from: number, to: number, total: number) => `ສະແດງ ${from}–${to} ຈາກ ${total}`,
+      prevPage: "ໜ້າກ່ອນ",
+      nextPage: "ໜ້າຖັດໄປ",
     },
     notif: {
       title: "ລໍຖ້າການຢືນຢັນ",
@@ -136,6 +141,8 @@ const lo = {
       confirmAndSend: "✓ ຢືນຢັນ & ສົ່ງຄົວ",
       cancel: "✕ ຍົກເລີກ",
       ariaLabel: "ການແຈ້ງເຕືອນອໍເດີ້",
+      scrollUp: "ເລື່ອນຂຶ້ນ",
+      scrollDown: "ເລື່ອນລົງ",
     },
     takeaway: {
       title: "ຊຳລະເງິນ",
@@ -458,6 +465,8 @@ const th: Messages = {
       colTime: "เวลา",
       colTotal: "รวม",
       colActions: "จัดการ",
+      noPending: "ไม่มีออเดอร์รอยืนยัน",
+      noConfirmed: "ไม่มีออเดอร์ในครัว",
     },
     history: {
       today: "วันนี้",
@@ -482,6 +491,9 @@ const th: Messages = {
       paid: "ชำระแล้ว",
       cancelled: "ยกเลิก",
       noHistory: "ไม่พบประวัติออเดอร์",
+      pageInfo: (from: number, to: number, total: number) => `แสดง ${from}–${to} จาก ${total}`,
+      prevPage: "หน้าก่อนหน้า",
+      nextPage: "หน้าถัดไป",
     },
     notif: {
       title: "รอการยืนยัน",
@@ -490,6 +502,8 @@ const th: Messages = {
       confirmAndSend: "✓ ยืนยัน & ส่งครัว",
       cancel: "✕ ยกเลิก",
       ariaLabel: "การแจ้งเตือนออเดอร์",
+      scrollUp: "เลื่อนขึ้น",
+      scrollDown: "เลื่อนลง",
     },
     takeaway: {
       title: "ชำระเงิน",
@@ -807,6 +821,8 @@ const en: Messages = {
       colTime: "Time",
       colTotal: "Total",
       colActions: "Actions",
+      noPending: "No orders waiting to confirm",
+      noConfirmed: "No orders in the kitchen",
     },
     history: {
       today: "Today",
@@ -831,6 +847,9 @@ const en: Messages = {
       paid: "PAID",
       cancelled: "CANCELLED",
       noHistory: "No order history found",
+      pageInfo: (from: number, to: number, total: number) => `Showing ${from}–${to} of ${total}`,
+      prevPage: "Previous page",
+      nextPage: "Next page",
     },
     notif: {
       title: "Waiting for confirmation",
@@ -839,6 +858,8 @@ const en: Messages = {
       confirmAndSend: "✓ Confirm & Send to Kitchen",
       cancel: "✕ Cancel",
       ariaLabel: "Order notifications",
+      scrollUp: "Scroll up",
+      scrollDown: "Scroll down",
     },
     takeaway: {
       title: "Payment",

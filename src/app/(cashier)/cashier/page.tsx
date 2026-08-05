@@ -365,7 +365,7 @@ export default function CashierPage() {
                   <TabsTrigger value="history" className="text-xs font-semibold px-5">{t.cashier.header.subTabHistory}</TabsTrigger>
                 </TabsList>
               </div>
-              <TabsContent value="live" className="flex-1 overflow-hidden mt-0">
+              <TabsContent value="live" className="flex flex-col flex-1 overflow-hidden mt-0">
                 <LiveOrdersTab orders={liveOrders} loading={liveLoading} onRefresh={fetchLiveOrders} />
               </TabsContent>
               <TabsContent value="history" className="flex flex-col flex-1 overflow-hidden mt-0">

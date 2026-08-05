@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { RefreshCw, ClipboardList, Clock, ChefHat, Banknote, QrCode, Printer } from 'lucide-react';
+import { RefreshCw, ClipboardList, Clock, ChefHat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,16 +9,8 @@ import { toast } from "react-toastify";
 import { updateOrderStatus, cashierPrintKitchen, type Order } from '@/lib/api';
 import { useSession } from 'next-auth/react';
 import { printBill } from '@/lib/printBill';
-import { BillReceipt } from '@/components/billReceipt';
 import { useTranslations, type Translations } from '@/lib/i18n';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { PaymentDialog } from './paymentDialog';
 
 interface Props {
   orders: Order[];
@@ -141,14 +133,13 @@ function ConfirmedCard({
   const restaurantName = session?.admin?.restaurant?.name ?? '';
   const [busy, setBusy] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<'CASH' | 'QR' | null>(null);
-  const [printDialog, setPrintDialog] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<'CASH' | 'QR'>('CASH');
 
   const handlePrint = async () => {
-    setPrintDialog(false);
     setBusy(true);
     try {
       await updateOrderStatus(order.id, 'PAID');
+      setPaymentDialog(false);
       toast.success(t.cashier.live.orderPaid);
       printBill(order, restaurantName);
       onDone(); // refresh parent — card unmounts after this
@@ -156,11 +147,6 @@ function ConfirmedCard({
       toast.error(t.cashier.live.markPaidFailed);
       setBusy(false);
     }
-  };
-
-  const handleSkipPrint = () => {
-    setPrintDialog(false);
-    // no API call, no refresh — order stays CONFIRMED
   };
 
   const handleCancel = async () => {
@@ -216,7 +202,7 @@ function ConfirmedCard({
             size="sm"
             className="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs h-8"
             disabled={busy}
-            onClick={() => { setSelectedMethod(null); setPaymentDialog(true); }}
+            onClick={() => { setSelectedMethod('CASH'); setPaymentDialog(true); }}
           >
             {t.cashier.live.markPaid}
           </Button>
@@ -232,82 +218,17 @@ function ConfirmedCard({
         </div>
       </div>
 
-      {/* Step 1 — Payment method */}
-      <Dialog
+      <PaymentDialog
         open={paymentDialog}
-        onOpenChange={(open) => { if (!open) { setSelectedMethod(null); setPaymentDialog(false); } }}
-      >
-        <DialogContent showCloseButton>
-          <DialogHeader>
-            <DialogTitle>{t.cashier.live.paymentMethod}</DialogTitle>
-            <DialogDescription>{t.cashier.live.paymentMethodQuestion}</DialogDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-2 gap-3 py-1">
-            <button
-              onClick={() => setSelectedMethod('CASH')}
-              className={`flex flex-col items-center gap-2 rounded-xl border-2 p-5 transition-colors ${
-                selectedMethod === 'CASH'
-                  ? 'border-emerald-500 bg-emerald-50'
-                  : 'border-slate-200 hover:border-emerald-400 hover:bg-emerald-50'
-              }`}
-            >
-              <Banknote size={28} className="text-emerald-600" />
-              <span className="font-semibold text-sm">{t.cashier.live.cash}</span>
-            </button>
-            <button
-              onClick={() => setSelectedMethod('QR')}
-              className={`flex flex-col items-center gap-2 rounded-xl border-2 p-5 transition-colors ${
-                selectedMethod === 'QR'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50'
-              }`}
-            >
-              <QrCode size={28} className="text-blue-600" />
-              <span className="font-semibold text-sm">{t.cashier.live.qrCode}</span>
-            </button>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => { setSelectedMethod(null); setPaymentDialog(false); }}
-            >
-              {t.common.cancel}
-            </Button>
-            <Button
-              disabled={!selectedMethod}
-              onClick={() => { setPaymentDialog(false); setPrintDialog(true); }}
-            >
-              {t.common.yes}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Step 2 — Print receipt */}
-      <Dialog open={printDialog} onOpenChange={(open) => { if (!open) handleSkipPrint(); }}>
-        <DialogContent showCloseButton={false} className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t.cashier.live.printBillQuestion}</DialogTitle>
-            <DialogDescription>
-              {t.cashier.live.printBillPrompt}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="max-h-[54vh] overflow-y-auto rounded-xl bg-muted/40 p-4">
-            <BillReceipt order={order} restaurantName={restaurantName} />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleSkipPrint}>
-              {t.common.cancel}
-            </Button>
-            <Button onClick={handlePrint} className="gap-1.5" disabled={busy}>
-              <Printer size={15} />
-              {t.common.print}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        order={order}
+        restaurantName={restaurantName}
+        subtitle={t.cashier.order.tableLabel(order.table?.table_number ?? '-')}
+        payment={selectedMethod}
+        onPaymentChange={setSelectedMethod}
+        onClose={() => setPaymentDialog(false)}
+        onPrint={handlePrint}
+        printing={busy}
+      />
     </>
   );
 }

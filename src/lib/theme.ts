@@ -6,7 +6,7 @@ export interface ThemePreset {
   /**
    * Brand-tinted TEXT on a light surface. Never assume `primary` is safe for
    * text — a light accent like the default gold is ~1.35:1 on white. Every
-   * value here clears 4.5:1 on both #FFFFFF and the #FCFAF8 canvas.
+   * value here clears 4.5:1 on both #FFFFFF and the #F4F0E8 ghost surface.
    */
   primaryStrong: string;
   ring: string;
@@ -17,7 +17,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     key: "default",
     label: "Default",
-    // Warm Canvas gold. Light accent, so the foreground is ink, not white.
+    // White Canvas gold. Light accent, so the foreground is ink, not white.
     primary: "oklch(0.9001 0.131 91.36)",
     primaryForeground: "oklch(0.1835 0.0327 297.47)",
     primaryStrong: "oklch(0.52 0.115 75)",

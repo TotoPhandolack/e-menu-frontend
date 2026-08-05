@@ -70,7 +70,7 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-svh flex items-center justify-center bg-muted/40 px-4 py-12">
+        <div className="min-h-svh flex items-center justify-center bg-background px-4 py-12">
             <div className="w-full max-w-sm animate-slideUp">
                 <div className="rounded-2xl border bg-background shadow-sm p-8">
                     {/* Logo */}

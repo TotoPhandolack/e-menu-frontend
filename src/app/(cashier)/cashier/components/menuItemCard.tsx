@@ -27,7 +27,7 @@ export function MenuItemCard({ item, inCart, onAdd }: Props) {
         "group relative bg-card rounded-2xl p-3.5 border transition-all duration-150",
         "hover:-translate-y-0.5 hover:shadow-md ",
         !item.is_available && "opacity-60",
-        inCart && "border-ring ring-1 ring-ring/40",
+        inCart && "border-primary/60 glow-selected",
       )}
     >
       {/* availability badge */}

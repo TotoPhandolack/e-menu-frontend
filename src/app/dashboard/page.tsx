@@ -70,7 +70,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-card border-b px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">

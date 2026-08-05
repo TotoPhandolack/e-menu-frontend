@@ -101,7 +101,7 @@ export function PaymentDialog({
                     className={cn(
                       "relative flex w-full flex-1 flex-col items-center justify-center gap-3 rounded-xl bg-background px-4 py-8 text-base font-semibold text-foreground ring-1 ring-border transition-colors",
                       selected
-                        ? "bg-primary/10 text-primary-strong ring-2 ring-ring"
+                        ? "bg-primary/10 text-primary-strong glow-selected"
                         : "hover:bg-muted/50",
                     )}
                   >

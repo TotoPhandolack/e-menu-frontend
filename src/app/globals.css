@@ -58,19 +58,23 @@
 }
 
 :root {
-  /* ── Emenu — Warm Canvas palette ────────────────────────────────────────
-     60%  --background  #FCFAF8  warm paper, the canvas
-     30%  --card/--secondary  #FFFFFF  pure white surfaces that sit on it
-     10%  --primary     #FEDB71  golden accent — FILL ONLY, never text
+  /* ── Emenu — White Canvas palette ───────────────────────────────────────
+     60%  --background / --card / --secondary  #FFFFFF  the white ground
+     30%  --muted  #F4F0E8  warm ghost surface — the only tonal layer left
+     10%  --primary  #FEDB71  golden accent — FILL ONLY, never text
           --foreground  #140F1F  ink
 
-     Accent contrast is 1.29:1 on the canvas. It can never carry text, an
-     icon, or a hairline. Use --primary as a fill with --primary-foreground
-     on top (13.9:1), or use --primary-strong when brand-tinted TEXT is
-     needed on a light surface (5.6:1).
+     Background and card are the SAME white (1.0:1). Every surface boundary
+     is carried by --border, never by a fill difference. A card without a
+     ring or border is an invisible card. Tonal separation, where a design
+     needs it, comes from --muted.
+
+     Accent is 1.35:1 on white. It can never carry text, an icon, or a
+     hairline. Use --primary as a fill with --primary-foreground on top
+     (13.9:1), or --primary-strong for brand-tinted TEXT (5.6:1).
      ──────────────────────────────────────────────────────────────────── */
 
-  --background: oklch(0.9861 0.0034 67.78);
+  --background: oklch(1 0 0);
   --foreground: oklch(0.1835 0.0327 297.47);
 
   --card: oklch(1 0 0);
@@ -144,6 +148,35 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ── Selected-state affordance ──────────────────────────────────────────
+   A soft accent glow instead of a hard stroke. --ring is a dark mustard
+   sized for the 3:1 focus-indicator floor; as a resting border it reads
+   muddy next to the clean gold. This is deliberately low-contrast — every
+   component using it ALSO carries its state in a check badge, fill, or
+   icon, so the glow never has to pass 3:1 on its own.
+
+   Tune these four percentages to adjust every selected state at once. */
+.glow-selected {
+  box-shadow:
+    /* crisp inner edge so the shape stays defined … */
+    0 0 0 1px color-mix(in oklch, var(--primary) 70%, transparent),
+    /* … softened by a halo … */
+    0 0 0 4px color-mix(in oklch, var(--primary) 20%, transparent),
+    /* … and a diffuse warm lift */
+    0 6px 18px color-mix(in oklch, var(--primary) 28%, transparent);
+}
+
+/* Same family, lighter touch — for hover hints. */
+.glow-hover {
+  transition: box-shadow 150ms ease;
+}
+
+.glow-hover:hover {
+  box-shadow:
+    0 0 0 2px color-mix(in oklch, var(--primary) 16%, transparent),
+    0 4px 12px color-mix(in oklch, var(--primary) 20%, transparent);
 }
 
 /* Hide scrollbar but keep scroll behaviour */

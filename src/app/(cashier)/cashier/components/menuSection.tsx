@@ -69,7 +69,7 @@ export function MenuSection({
                   "shrink-0 flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 rounded-xl border-2 transition-all duration-150 text-left",
                   active
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background text-foreground hover:border-ring",
+                    : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-accent glow-hover",
                 )}
               >
                 <LayoutGrid size={14} strokeWidth={1.8} className="shrink-0" />

@@ -110,7 +110,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-svh flex items-center justify-center bg-muted/40 px-4 py-12">
+    <div className="min-h-svh flex items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-4xl animate-slideUp">
         <div className="relative grid overflow-hidden rounded-2xl ring-1 ring-foreground/10 bg-background md:grid-cols-2">
           {/* Language switcher */}

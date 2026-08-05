@@ -245,7 +245,7 @@ export default function RestaurantRegisterPage() {
               type="button"
               onClick={handleGetLocation}
               disabled={geoLoading || loading}
-              className="w-full px-3.5 py-2.5 text-sm font-medium bg-muted text-foreground border-2 border-input rounded-xl hover:enabled:bg-accent hover:enabled:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="w-full px-3.5 py-2.5 text-sm font-medium bg-muted text-foreground border-2 border-input rounded-xl hover:enabled:bg-accent hover:enabled:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {geoLoading ? (
                 <Loader2 size={14} className="animate-spin-custom" />
@@ -260,7 +260,7 @@ export default function RestaurantRegisterPage() {
               onClick={handleMockLocation}
               disabled={loading}
               title="Bangkok, Thailand test location"
-              className="w-full px-3.5 py-2.5 text-xs font-medium bg-primary/8 text-primary-strong border-2 border-border rounded-xl hover:enabled:bg-accent hover:enabled:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="w-full px-3.5 py-2.5 text-xs font-medium bg-primary/8 text-primary-strong border-2 border-border rounded-xl hover:enabled:bg-accent hover:enabled:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               <Map size={14} />
               Use Mock Location (Testing)

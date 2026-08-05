@@ -284,7 +284,7 @@ export default function CashierPage() {
       .toUpperCase() ?? "K";
 
   return (
-    <div className="flex h-screen overflow-hidden bg-muted/30">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Mobile order panel backdrop */}
       {mobileOrderOpen && (
         <div

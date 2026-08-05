@@ -291,8 +291,8 @@ export function ItemFormDialog({
                   className={cn(
                     "relative h-36 rounded-xl border-2 border-dashed flex items-center justify-center cursor-pointer transition-colors overflow-hidden",
                     dragOver
-                      ? "border-ring bg-primary/15"
-                      : "border-border hover:border-ring hover:bg-muted/40",
+                      ? "border-primary/60 bg-primary/15 glow-selected"
+                      : "border-border hover:border-primary/50 hover:bg-muted/40",
                   )}
                 >
                   {uploadPreview ? (

@@ -11,10 +11,15 @@ export interface CartItem {
 interface CartStore {
   items: CartItem[];
   table_id: string | null;
+  table_number: string | null;
   restaurant_id: string | null;
   session_id: string | null;
 
-  setTableInfo: (table_id: string, restaurant_id: string) => void;
+  setTableInfo: (
+    table_id: string,
+    restaurant_id: string,
+    table_number?: string | null,
+  ) => void;
   setRestaurantInfo: (restaurant_id: string) => void;
   addItem: (menuItem: MenuItem) => void;
   removeItem: (menu_item_id: string) => void;
@@ -28,12 +33,14 @@ interface CartStore {
 export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
   table_id: null,
+  table_number: null,
   restaurant_id: null,
   session_id: null,
 
-  setTableInfo: (table_id, restaurant_id) =>
+  setTableInfo: (table_id, restaurant_id, table_number = null) =>
     set({
       table_id,
+      table_number,
       restaurant_id,
       session_id: `session-${Date.now()}`,
     }),
@@ -41,6 +48,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
   setRestaurantInfo: (restaurant_id) =>
     set({
       table_id: null,
+      table_number: null,
       restaurant_id,
       session_id: `session-${Date.now()}`,
     }),

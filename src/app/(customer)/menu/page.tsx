@@ -53,6 +53,7 @@ function MenuPageContent() {
     setTableInfo,
     setRestaurantInfo,
     table_id,
+    table_number,
     restaurant_id,
     session_id,
     items,
@@ -131,7 +132,7 @@ function MenuPageContent() {
 
     try {
       const { data: table } = await scanQRNoLocation(token);
-      setTableInfo(table.id, table.restaurant_id);
+      setTableInfo(table.id, table.restaurant_id, table.table_number);
       const [{ data: menuData }, profileRes] = await Promise.all([
         getMenuItems(table.restaurant_id),
         getRestaurant(table.restaurant_id),
@@ -417,7 +418,7 @@ function MenuPageContent() {
               {table_id && !browseMode && (
               <>
                 <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                  {t.customer.menu.table} #{table_id.slice(-4)}
+                  {t.customer.menu.table} #{table_number ?? table_id.slice(-4)}
                 </span>
                 {/* Orders icon — opens order list sheet */}
                 <button

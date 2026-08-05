@@ -140,6 +140,7 @@ const lo = {
     },
     takeaway: {
       title: "ຊຳລະເງິນ",
+      paymentType: "ປະເພດການຊຳລະ",
       cash: "ເງິນສົດ",
       qrCode: "QR Code",
       printBill: "ພິມໃບບິນ",
@@ -494,6 +495,7 @@ const th: Messages = {
     },
     takeaway: {
       title: "ชำระเงิน",
+      paymentType: "ประเภทการชำระ",
       cash: "เงินสด",
       qrCode: "QR Code",
       printBill: "พิมพ์ใบเสร็จ",
@@ -843,6 +845,7 @@ const en: Messages = {
     },
     takeaway: {
       title: "Payment",
+      paymentType: "Payment type",
       cash: "Cash",
       qrCode: "QR Code",
       printBill: "Print Bill",

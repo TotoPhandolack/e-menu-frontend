@@ -10,6 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Banknote, CreditCard, QrCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/lib/i18n";
 import { BillReceipt } from "@/components/billReceipt";
@@ -28,7 +29,7 @@ export function TakeawayPaymentDialog({ order, restaurantName, payment, onPaymen
   const t = useTranslations();
   return (
     <Dialog open={!!order} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg">{t.cashier.takeaway.title}</DialogTitle>
           <DialogDescription>
@@ -36,35 +37,43 @@ export function TakeawayPaymentDialog({ order, restaurantName, payment, onPaymen
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-4 my-4">
-          <button
-            onClick={() => onPaymentChange("CASH")}
-            className={cn(
-              "flex-1 py-8 rounded-2xl border-2 font-bold text-base transition-colors flex flex-col items-center gap-2",
-              payment === "CASH"
-                ? "border-slate-800 bg-slate-800 text-white"
-                : "border-muted text-muted-foreground hover:border-slate-400",
-            )}
-          >
-            <span className="text-3xl">💵</span>
-            {t.cashier.takeaway.cash}
-          </button>
-          <button
-            onClick={() => onPaymentChange("QR")}
-            className={cn(
-              "flex-1 py-8 rounded-2xl border-2 font-bold text-base transition-colors flex flex-col items-center gap-2",
-              payment === "QR"
-                ? "border-slate-800 bg-slate-800 text-white"
-                : "border-muted text-muted-foreground hover:border-slate-400",
-            )}
-          >
-            <span className="text-3xl">📱</span>
-            {t.cashier.takeaway.qrCode}
-          </button>
+        <div className="my-3 space-y-2">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <CreditCard size={18} className="text-muted-foreground" />
+            {t.cashier.takeaway.paymentType}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {([
+              { method: "CASH", icon: Banknote, label: t.cashier.takeaway.cash },
+              { method: "QR", icon: QrCode, label: t.cashier.takeaway.qrCode },
+            ] as const).map(({ method, icon: Icon, label }) => {
+              const selected = payment === method;
+              return (
+                <button
+                  key={method}
+                  onClick={() => onPaymentChange(method)}
+                  aria-pressed={selected}
+                  className={cn(
+                    "relative flex flex-col items-center gap-1.5 rounded-xl border py-5 text-sm font-bold transition-colors",
+                    selected
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card text-foreground hover:border-primary/40",
+                  )}
+                >
+                  {selected && (
+                    <span className="absolute top-2.5 right-2.5 size-2.5 rounded-full bg-primary-foreground" />
+                  )}
+                  <Icon size={24} />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {order && (
-          <div className="max-h-[42vh] overflow-y-auto rounded-xl bg-muted/40 p-4">
+          <div className="rounded-xl bg-muted/40 p-4">
             <BillReceipt order={order} restaurantName={restaurantName} />
           </div>
         )}

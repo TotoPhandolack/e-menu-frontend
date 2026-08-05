@@ -70,20 +70,20 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-muted">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-4 flex justify-between items-center">
+      <div className="bg-card border-b px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <ChefHat className="h-5 w-5 text-slate-600" />
+          <ChefHat className="h-5 w-5 text-muted-foreground" />
           <h1 className="text-xl font-semibold">Kitchen Display</h1>
-          <span className="ml-2 bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">
+          <span className="ml-2 bg-status-confirmed text-status-confirmed-foreground text-xs font-bold px-2 py-0.5 rounded-full">
             {orders.length} in kitchen
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-slate-500">{admin?.name}</span>
+          <span className="text-sm text-muted-foreground">{admin?.name}</span>
           <select
-            className="border rounded-lg px-3 py-1.5 text-sm bg-white"
+            className="border rounded-lg px-3 py-1.5 text-sm bg-card"
             value={selectedRestaurant}
             onChange={(e) => setSelectedRestaurant(e.target.value)}
           >
@@ -100,10 +100,10 @@ export default function DashboardPage() {
       {/* Kitchen order grid */}
       {isPending ? (
         <div className="flex items-center justify-center h-64">
-          <p className="text-slate-500">ກຳລັງໂຫຼດ...</p>
+          <p className="text-muted-foreground">ກຳລັງໂຫຼດ...</p>
         </div>
       ) : orders.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 gap-3 text-slate-400">
+        <div className="flex flex-col items-center justify-center h-64 gap-3 text-muted-foreground">
           <ChefHat className="h-12 w-12" />
           <p className="text-sm">ບໍ່ມີ order ໃນຄົວ</p>
         </div>

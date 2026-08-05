@@ -74,16 +74,16 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
         onClick={() => setOpen((v) => !v)}
         className={`relative p-2 rounded-xl transition-colors ${
           open
-            ? "bg-slate-100 text-slate-700"
+            ? "bg-muted text-foreground"
             : count > 0
-              ? "hover:bg-red-50 text-red-500"
-              : "hover:bg-slate-100 text-muted-foreground"
+              ? "hover:bg-destructive/10 text-destructive"
+              : "hover:bg-muted text-muted-foreground"
         }`}
         aria-label={t.cashier.notif.ariaLabel}
       >
         <Bell size={20} className={count > 0 ? "animate-bell-ring" : ""} />
         {count > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-1 leading-none pointer-events-none">
+          <span className="absolute -top-0.5 -right-0.5 bg-destructive text-white text-[9px] font-bold min-w-4 h-4 rounded-full flex items-center justify-center px-1 leading-none pointer-events-none">
             {count}
           </span>
         )}
@@ -91,24 +91,24 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
 
       {/* ── Dropdown panel ── */}
       {open && (
-        <div className="absolute left-0 top-full mt-2 w-[340px] bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
+        <div className="absolute left-0 top-full mt-2 w-[340px] bg-card rounded-2xl shadow-2xl border border-border z-50 overflow-hidden">
           {/* Panel header 1*/}
-          <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100 shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 bg-muted border-b border-border shrink-0">
             <div className="flex items-center gap-2">
-              <Bell size={13} className="text-slate-500" />
-              <span className="text-sm font-bold text-slate-700">
+              <Bell size={13} className="text-muted-foreground" />
+              <span className="text-sm font-bold text-foreground">
                 {t.cashier.notif.title}
               </span>
             </div>
             <div className="flex items-center gap-2">
               {count > 0 && (
-                <span className="bg-red-100 text-red-600 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                <span className="bg-destructive/15 text-destructive text-[11px] font-bold px-2 py-0.5 rounded-full">
                   {t.cashier.notif.ordersCount(count)}
                 </span>
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="p-0.5 rounded-md hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors"
+                className="p-0.5 rounded-md hover:bg-muted text-muted-foreground hover:text-muted-foreground transition-colors"
               >
                 <X size={14} />
               </button>
@@ -118,25 +118,25 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
           {/* Order list */}
           <ScrollArea className="max-h-[460px]">
             {count === 0 ? (
-              <div className="flex flex-col items-center justify-center py-14 text-slate-400 gap-3">
+              <div className="flex flex-col items-center justify-center py-14 text-muted-foreground gap-3">
                 <Bell size={32} strokeWidth={1.2} />
                 <p className="text-sm">{t.cashier.notif.noNew}</p>
               </div>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-border">
                 {pendingOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 space-y-3 hover:bg-slate-50 transition-colors"
+                    className="p-4 space-y-3 hover:bg-muted transition-colors"
                   >
                     {/* Order identity + time */}
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-slate-800">
+                      <span className="font-bold text-sm text-foreground">
                         {order.order_type === "TAKEAWAY"
                           ? `${t.common.takeaway} #${order.queue_number}`
                           : t.cashier.order.tableLabel(order.table?.table_number ?? "-")}
                       </span>
-                      <span className="text-[11px] text-slate-400 tabular-nums">
+                      <span className="text-[11px] text-muted-foreground tabular-nums">
                         {timeAgo(order.created_at, t)}
                       </span>
                     </div>
@@ -148,14 +148,14 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                           key={item.id}
                           className="flex items-start gap-1.5 text-xs"
                         >
-                          <span className="shrink-0 font-bold text-slate-400 w-5 text-right">
+                          <span className="shrink-0 font-bold text-muted-foreground w-5 text-right">
                             {item.quantity}×
                           </span>
-                          <span className="font-medium text-slate-700">
+                          <span className="font-medium text-foreground">
                             {item.menuItem.name}
                           </span>
                           {item.special_note && (
-                            <span className="text-orange-500 italic truncate">
+                            <span className="text-status-preparing-foreground italic truncate">
                               — {item.special_note}
                             </span>
                           )}
@@ -164,7 +164,7 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                     </ul>
 
                     {/* Total */}
-                    <p className="text-xs font-semibold text-slate-500">
+                    <p className="text-xs font-semibold text-muted-foreground">
                       ₭{Number(order.total_amount).toLocaleString()}
                     </p>
 
@@ -172,7 +172,7 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg"
+                        className="flex-1 h-8 text-xs bg-status-complete-foreground hover:bg-status-complete-foreground text-white rounded-lg"
                         disabled={busyId === order.id}
                         onClick={() => handleConfirm(order)}
                       >
@@ -181,7 +181,7 @@ export function NotificationBell({ pendingOrders, onRefresh }: Props) {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 px-3 text-xs text-red-500 border-red-200 hover:bg-red-50 rounded-lg"
+                        className="h-8 px-3 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 rounded-lg"
                         disabled={busyId === order.id}
                         onClick={() => handleCancel(order)}
                       >

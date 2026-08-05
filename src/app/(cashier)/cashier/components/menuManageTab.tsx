@@ -192,7 +192,7 @@ export function MenuManageTab({
               {search.trim() ? (
                 <>
                   <p className="text-sm">{t.cashier.manage.noMatch(search)}</p>
-                  <button onClick={() => setSearch("")} className="text-sm text-primary font-medium">
+                  <button onClick={() => setSearch("")} className="text-sm text-primary-strong font-medium">
                     {t.common.clearSearch}
                   </button>
                 </>
@@ -329,11 +329,11 @@ function ManageItemCard({
         )}
 
         {item.is_recommended && (
-          <div className="absolute top-2 right-2 text-yellow-400 text-lg">⭐</div>
+          <div className="absolute top-2 right-2 text-status-preparing-foreground text-lg">⭐</div>
         )}
 
         {/* action buttons overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+        <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
           <button
             onClick={onEdit}
             className="bg-background/90 rounded-full p-2 shadow hover:bg-background"
@@ -346,8 +346,8 @@ function ManageItemCard({
             className={cn(
               "bg-background/90 rounded-full p-2 shadow transition-colors",
               item.is_available
-                ? "hover:bg-orange-500 hover:text-white"
-                : "hover:bg-green-500 hover:text-white",
+                ? "hover:bg-status-preparing-foreground hover:text-white"
+                : "hover:bg-status-complete-foreground hover:text-white",
             )}
             title={item.is_available ? t.cashier.manage.disableItem : t.cashier.manage.enableItem}
           >
@@ -358,8 +358,8 @@ function ManageItemCard({
             className={cn(
               "bg-background/90 rounded-full p-2 shadow transition-colors",
               item.is_recommended
-                ? "hover:bg-yellow-500 hover:text-white"
-                : "hover:bg-gray-500 hover:text-white",
+                ? "hover:bg-status-preparing-foreground hover:text-white"
+                : "hover:bg-muted-foreground hover:text-white",
             )}
             title={item.is_recommended ? t.cashier.manage.unmarkRecommended : t.cashier.manage.markRecommended}
           >

@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -37,6 +35,15 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-status-pending: var(--status-pending);
+  --color-status-pending-foreground: var(--status-pending-foreground);
+  --color-status-confirmed: var(--status-confirmed);
+  --color-status-confirmed-foreground: var(--status-confirmed-foreground);
+  --color-status-preparing: var(--status-preparing);
+  --color-status-preparing-foreground: var(--status-preparing-foreground);
+  --color-status-complete: var(--status-complete);
+  --color-status-complete-foreground: var(--status-complete-foreground);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -51,73 +58,78 @@
 }
 
 :root {
-  /* blocks.so — neutral zinc */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.6 0 0);
-  --chart-2: oklch(0.5 0 0);
-  --chart-3: oklch(0.4 0 0);
-  --chart-4: oklch(0.3 0 0);
-  --chart-5: oklch(0.2 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.97 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
+  /* ── Emenu — Warm Canvas palette ────────────────────────────────────────
+     60%  --background  #FCFAF8  warm paper, the canvas
+     30%  --card/--secondary  #FFFFFF  pure white surfaces that sit on it
+     10%  --primary     #FEDB71  golden accent — FILL ONLY, never text
+          --foreground  #140F1F  ink
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+     Accent contrast is 1.29:1 on the canvas. It can never carry text, an
+     icon, or a hairline. Use --primary as a fill with --primary-foreground
+     on top (13.9:1), or use --primary-strong when brand-tinted TEXT is
+     needed on a light surface (5.6:1).
+     ──────────────────────────────────────────────────────────────────── */
+
+  --background: oklch(0.9861 0.0034 67.78);
+  --foreground: oklch(0.1835 0.0327 297.47);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.1835 0.0327 297.47);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.1835 0.0327 297.47);
+
+  /* Accent — the 10%. Fill only. */
+  --primary: oklch(0.9001 0.131 91.36);
+  --primary-foreground: oklch(0.1835 0.0327 297.47);
+  /* Legible brand-tinted text on light surfaces — 5.62:1 on white */
+  --primary-strong: oklch(0.52 0.115 75);
+
+  /* Secondary — the 30%. */
+  --secondary: oklch(1 0 0);
+  --secondary-foreground: oklch(0.1835 0.0327 297.47);
+
+  --muted: oklch(0.956 0.0115 84.58);
+  --muted-foreground: oklch(0.5146 0.0233 307.96);
+
+  /* Faint gold wash for hover/active surfaces */
+  --accent: oklch(0.965 0.0236 88.23);
+  --accent-foreground: oklch(0.1835 0.0327 297.47);
+
+  --destructive: oklch(0.546 0.1826 32.13);
+  --destructive-foreground: oklch(1 0 0);
+
+  --border: oklch(0.9239 0.0149 80.71);
+  /* Form-control borders clear the 3:1 WCAG 1.4.11 floor */
+  --input: oklch(0.66 0.02 80);
+  --ring: oklch(0.655 0.13 91.36);
+
+  /* Order status — four distinct hues, each ≥4.5:1 for its own text.
+     All held clear of the gold accent so the accent keeps meaning "tap me". */
+  --status-pending: oklch(0.948 0.004 80);
+  --status-pending-foreground: oklch(0.515 0.015 300);
+  --status-confirmed: oklch(0.942 0.03 248);
+  --status-confirmed-foreground: oklch(0.396 0.09 250);
+  --status-preparing: oklch(0.915 0.075 58);
+  --status-preparing-foreground: oklch(0.46 0.125 45);
+  --status-complete: oklch(0.938 0.04 150);
+  --status-complete-foreground: oklch(0.439 0.095 153);
+
+  --chart-1: oklch(0.9001 0.131 91.36);
+  --chart-2: oklch(0.52 0.115 75);
+  --chart-3: oklch(0.5146 0.0233 307.96);
+  --chart-4: oklch(0.66 0.02 80);
+  --chart-5: oklch(0.1835 0.0327 297.47);
+
+  --radius: 0.625rem;
+
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.1835 0.0327 297.47);
+  --sidebar-primary: oklch(0.9001 0.131 91.36);
+  --sidebar-primary-foreground: oklch(0.1835 0.0327 297.47);
+  --sidebar-accent: oklch(0.965 0.0236 88.23);
+  --sidebar-accent-foreground: oklch(0.1835 0.0327 297.47);
+  --sidebar-border: oklch(0.9239 0.0149 80.71);
+  --sidebar-ring: oklch(0.655 0.13 91.36);
 }
 
 @layer base {

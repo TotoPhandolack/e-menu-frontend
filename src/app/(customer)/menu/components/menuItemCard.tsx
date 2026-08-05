@@ -22,7 +22,7 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
     return (
       <div className="flex flex-col">
         {/* Image — standalone with border radius */}
-        <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-slate-100">
+        <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-muted">
           {resolveImageUrl(item.imge_url ?? item.image_url) ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -32,29 +32,29 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <ChefHat className="h-10 w-10 text-slate-300" />
+              <ChefHat className="h-10 w-10 text-muted-foreground" />
             </div>
           )}
 
           {/* Unavailable overlay */}
           {!item.is_available && (
-            <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-              <span className="text-xs font-medium text-slate-400">{t.customer.item.soldOut}</span>
+            <div className="absolute inset-0 bg-card/70 flex items-center justify-center">
+              <span className="text-xs font-medium text-muted-foreground">{t.customer.item.soldOut}</span>
             </div>
           )}
 
           {/* + / qty controls — overlaid bottom-right */}
           <div className="absolute bottom-2 right-2">
             {quantity > 0 ? (
-              <div className="flex items-center gap-1 bg-white rounded-full px-1.5 py-1 shadow-md">
+              <div className="flex items-center gap-1 bg-card rounded-full px-1.5 py-1 shadow-md">
                 <button
-                  className="w-6 h-6 rounded-full border border-slate-200 text-slate-500 flex items-center justify-center active:bg-slate-50 transition-colors"
+                  className="w-6 h-6 rounded-full border border-border text-muted-foreground flex items-center justify-center active:bg-muted transition-colors"
                   onClick={() => updateQuantity(item.id, quantity - 1)}
                   aria-label="Decrease"
                 >
                   <Minus className="h-3 w-3" />
                 </button>
-                <span className="text-xs font-bold text-slate-800 w-4 text-center">
+                <span className="text-xs font-bold text-foreground w-4 text-center">
                   {quantity}
                 </span>
                 <button
@@ -82,17 +82,17 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
         {/* Text — outside the image, below */}
         <div className="pt-2 pb-2">
           <div className="flex flex-row gap-2">
-            <p className="text-lg font-semibold text-slate-800 leading-snug line-clamp-2">
+            <p className="text-lg font-semibold text-foreground leading-snug line-clamp-2">
               {item.name}
             </p>
             {item.description && (
-              <p className="text-lg text-slate-400 line-clamp-1">
+              <p className="text-lg text-muted-foreground line-clamp-1">
                 {item.description}
               </p>
             )}
           </div>
 
-          <p className="text-sm font-bold text-primary">
+          <p className="text-sm font-bold text-primary-strong">
             ₭{Number(item.price).toLocaleString()}
           </p>
         </div>
@@ -102,9 +102,9 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
 
   // ── List Row (horizontal) ───────────────────────────────────────
   return (
-    <div className="flex items-center gap-4 py-4 border-b border-slate-100 last:border-0">
+    <div className="flex items-center gap-4 py-4 border-b border-border last:border-0">
       {/* Photo */}
-      <div className="relative flex-shrink-0 w-[104px] h-[104px] rounded-2xl overflow-hidden bg-slate-100">
+      <div className="relative flex-shrink-0 w-[104px] h-[104px] rounded-2xl overflow-hidden bg-muted">
         {resolveImageUrl(item.imge_url ?? item.image_url) ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -114,27 +114,27 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <ChefHat className="h-10 w-10 text-slate-300" />
+            <ChefHat className="h-10 w-10 text-muted-foreground" />
           </div>
         )}
         {!item.is_available && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-            <span className="text-xs font-medium text-slate-400">ໝົດ</span>
+          <div className="absolute inset-0 bg-card/70 flex items-center justify-center">
+            <span className="text-xs font-medium text-muted-foreground">ໝົດ</span>
           </div>
         )}
       </div>
 
       {/* Text */}
       <div className="flex-1 min-w-0 self-center">
-        <p className="text-[15px] font-semibold text-slate-800 leading-snug line-clamp-2">
+        <p className="text-[15px] font-semibold text-foreground leading-snug line-clamp-2">
           {item.name}
         </p>
         {item.description && (
-          <p className="text-xs text-slate-400 mt-0.5 line-clamp-2 leading-snug">
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-snug">
             {item.description}
           </p>
         )}
-        <p className="text-[15px] font-bold text-primary mt-1.5">
+        <p className="text-[15px] font-bold text-primary-strong mt-1.5">
           ₭{Number(item.price).toLocaleString()}
         </p>
       </div>
@@ -144,13 +144,13 @@ export default function MenuItemCard({ item, viewMode = "list" }: Props) {
         {quantity > 0 ? (
           <>
             <button
-              className="w-8 h-8 rounded-full border border-slate-200 text-slate-500 flex items-center justify-center active:bg-slate-50 transition-colors"
+              className="w-8 h-8 rounded-full border border-border text-muted-foreground flex items-center justify-center active:bg-muted transition-colors"
               onClick={() => updateQuantity(item.id, quantity - 1)}
               aria-label="Decrease quantity"
             >
               <Minus className="h-3.5 w-3.5" />
             </button>
-            <span className="text-sm font-bold text-slate-800 w-5 text-center">
+            <span className="text-sm font-bold text-foreground w-5 text-center">
               {quantity}
             </span>
             <button

@@ -342,9 +342,9 @@ function MenuPageContent() {
   // ── Loading State ──────────────────────────────────────────────
   if (loading)
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         {/* Sticky skeleton block */}
-        <div className="sticky top-0 z-20 bg-white border-b border-primary/20">
+        <div className="sticky top-0 z-20 bg-card border-b border-border">
           {/* Header row */}
           <div className="px-4 py-3.5">
             <Skeleton className="h-5 w-32 rounded-md" />
@@ -383,9 +383,9 @@ function MenuPageContent() {
 
   // ── Main Page ──────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-white pb-32">
+    <div className="min-h-screen bg-background pb-32">
       {/* ── Sticky top block: Header + Search + Category Tabs ── */}
-      <div className="sticky top-0 z-20 bg-white border-b border-primary/20">
+      <div className="sticky top-0 z-20 bg-card border-b border-border">
         {/* Header row — collapses on scroll */}
         <div
           className="overflow-hidden transition-all duration-300 ease-in-out"
@@ -408,7 +408,7 @@ function MenuPageContent() {
                   {(restaurantProfile?.name ?? "R").slice(0, 2).toUpperCase()}
                 </div>
               )}
-              <h1 className="text-base font-bold text-slate-800 tracking-tight">
+              <h1 className="text-base font-bold text-foreground tracking-tight">
                 {restaurantProfile?.name ?? ""}
               </h1>
             </div>
@@ -416,13 +416,13 @@ function MenuPageContent() {
               <LanguageSwitcher align="right" />
               {table_id && !browseMode && (
               <>
-                <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                   {t.customer.menu.table} #{table_id.slice(-4)}
                 </span>
                 {/* Orders icon — opens order list sheet */}
                 <button
                   onClick={() => setOrdersOpen(true)}
-                  className="relative p-1.5 rounded-xl bg-primary/10 text-primary active:bg-primary/20 transition-colors"
+                  className="relative p-1.5 rounded-xl bg-primary/10 text-primary-strong active:bg-primary/20 transition-colors"
                   aria-label={t.customer.menu.yourOrdersAria}
                 >
                   <ClipboardList className="h-5 w-5" />
@@ -448,18 +448,18 @@ function MenuPageContent() {
         {/* Search bar */}
         <div className="px-4 pt-2 pb-3">
           <div className="relative flex items-center">
-            <Search className="absolute left-3 h-4 w-4 text-slate-400 pointer-events-none" />
+            <Search className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t.customer.menu.searchPlaceholder}
-              className="w-full bg-primary/10 rounded-xl pl-9 pr-9 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+              className="w-full bg-primary/10 rounded-xl pl-9 pr-9 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 text-muted-foreground hover:text-muted-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -485,7 +485,7 @@ function MenuPageContent() {
               className={`p-1.5 rounded-lg transition-all ${
                 viewMode === "grid"
                   ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-primary hover:text-primary/80"
+                  : "text-primary-strong hover:text-primary-strong/80"
               }`}
               aria-label="Grid view"
             >
@@ -496,7 +496,7 @@ function MenuPageContent() {
               className={`p-1.5 rounded-lg transition-all ${
                 viewMode === "list"
                   ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-primary hover:text-primary/80"
+                  : "text-primary-strong hover:text-primary-strong/80"
               }`}
               aria-label="List view"
             >
@@ -507,14 +507,14 @@ function MenuPageContent() {
 
         {visibleGroups.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
-            <Search className="h-12 w-12 text-slate-200" />
-            <p className="text-slate-400 text-sm">
+            <Search className="h-12 w-12 text-muted-foreground" />
+            <p className="text-muted-foreground text-sm">
               {searchQuery ? t.customer.menu.noResults(searchQuery) : t.customer.menu.noItems}
             </p>
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="text-primary text-sm font-medium"
+                className="text-primary-strong text-sm font-medium"
               >
                 {t.common.clearSearch}
               </button>
@@ -531,7 +531,7 @@ function MenuPageContent() {
                 return recommended.length > 0 ? (
                   <div className="pb-4 mb-2">
                     <h2
-                      className="text-2xl text-slate-700 mb-3 pb-1"
+                      className="text-2xl text-foreground mb-3 pb-1"
                       style={{ fontFamily: "'Phetsarath', cursive" }}
                     >
                       {t.customer.menu.recommended}
@@ -562,7 +562,7 @@ function MenuPageContent() {
               >
                 {/* Category heading — handwriting-style */}
                 <h2
-                  className="text-2xl text-slate-700 mb-3 pb-1"
+                  className="text-2xl text-foreground mb-3 pb-1"
                   style={{ fontFamily: "'Caveat', cursive" }}
                 >
                   {group.category.name}
@@ -576,7 +576,7 @@ function MenuPageContent() {
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-white rounded-2xl px-4 shadow-sm border border-slate-100">
+                  <div className="bg-card rounded-2xl px-4 shadow-sm border border-border">
                     {group.items.map((item) => (
                       <MenuItemCard key={item.id} item={item} viewMode="list" />
                     ))}
@@ -599,7 +599,7 @@ function MenuPageContent() {
             <div className="flex items-center gap-2">
               <div className="relative">
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-2 -right-2 bg-white text-primary text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                <span className="absolute -top-2 -right-2 bg-foreground text-background text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
                   {totalItems()}
                 </span>
               </div>
@@ -644,16 +644,16 @@ function MenuPageContent() {
           <SheetHeader className="items-center pb-4">
             {/* Icon */}
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-              <ShoppingCart className="h-7 w-7 text-primary" />
+              <ShoppingCart className="h-7 w-7 text-primary-strong" />
             </div>
-            <SheetTitle className="text-lg font-bold text-slate-800">
+            <SheetTitle className="text-lg font-bold text-foreground">
               {t.customer.menu.confirmTitle}
             </SheetTitle>
           </SheetHeader>
 
-          <p className="text-center text-sm text-slate-500 mb-6">
+          <p className="text-center text-sm text-muted-foreground mb-6">
             {t.customer.menu.confirmPrefix}{" "}
-            <strong className="text-primary">
+            <strong className="text-primary-strong">
               {items.reduce((s, i) => s + i.quantity, 0)} {t.customer.menu.itemsUnit}
             </strong>
             {t.customer.menu.confirmSuffix}
@@ -664,7 +664,7 @@ function MenuPageContent() {
             <button
               id="confirm-order-no"
               onClick={() => setConfirmOpen(false)}
-              className="flex-1 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-semibold active:bg-slate-50 transition-colors"
+              className="flex-1 py-3 rounded-xl border border-border bg-card text-muted-foreground text-sm font-semibold active:bg-muted transition-colors"
             >
               {t.common.no}
             </button>
@@ -687,8 +687,8 @@ function MenuPageContent() {
 function MenuLoadingFallback() {
   const t = useTranslations();
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
-      <div className="text-slate-400 text-sm">{t.customer.menu.loadingMenu}</div>
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-muted-foreground text-sm">{t.customer.menu.loadingMenu}</div>
     </div>
   );
 }

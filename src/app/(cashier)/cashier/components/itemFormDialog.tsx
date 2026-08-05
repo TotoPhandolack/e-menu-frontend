@@ -291,8 +291,8 @@ export function ItemFormDialog({
                   className={cn(
                     "relative h-36 rounded-xl border-2 border-dashed flex items-center justify-center cursor-pointer transition-colors overflow-hidden",
                     dragOver
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50 hover:bg-muted/40",
+                      ? "border-ring bg-primary/15"
+                      : "border-border hover:border-ring hover:bg-muted/40",
                   )}
                 >
                   {uploadPreview ? (
@@ -321,7 +321,7 @@ export function ItemFormDialog({
                       <p className="text-xs font-medium text-destructive/70">{t.cashier.itemForm.imageWillBeRemoved}</p>
                       <button
                         onClick={(e) => { e.stopPropagation(); setRemoveImage(false); }}
-                        className="text-[11px] text-primary underline-offset-2 hover:underline"
+                        className="text-[11px] text-primary-strong underline-offset-2 hover:underline"
                       >
                         {t.cashier.itemForm.undo}
                       </button>

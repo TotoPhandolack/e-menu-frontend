@@ -65,10 +65,10 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-yellow-300 p-4 space-y-3 shadow-sm">
+    <div className="bg-card rounded-2xl border-2 border-status-preparing-foreground/40 p-4 space-y-3 shadow-sm">
       <div className="flex justify-between items-start">
         <div>
-          <p className="font-bold text-sm text-slate-800">
+          <p className="font-bold text-sm text-foreground">
             {order.order_type === 'TAKEAWAY'
               ? `${t.common.takeaway} #${order.queue_number}`
               : t.cashier.order.tableLabel(order.table?.table_number ?? '-')}
@@ -77,17 +77,17 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
             {timeAgo(order.created_at, t)}
           </p>
         </div>
-        <span className="bg-yellow-100 text-yellow-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+        <span className="bg-status-preparing text-status-preparing-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
           {t.cashier.live.pending}
         </span>
       </div>
 
       <div className="space-y-1 border-t pt-2">
         {order.orderItems.map((oi) => (
-          <div key={oi.id} className="text-[12px] text-slate-700">
+          <div key={oi.id} className="text-[12px] text-foreground">
             <span className="font-medium">{oi.quantity}× {oi.menuItem.name}</span>
             {oi.special_note && (
-              <span className="ml-1 text-orange-500 italic">({oi.special_note})</span>
+              <span className="ml-1 text-status-preparing-foreground italic">({oi.special_note})</span>
             )}
           </div>
         ))}
@@ -95,13 +95,13 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
 
       <div className="flex justify-between text-xs text-muted-foreground border-t pt-2">
         <span>{t.cashier.live.total}</span>
-        <span className="font-semibold text-slate-800">{formatKip(order.total_amount)}</span>
+        <span className="font-semibold text-foreground">{formatKip(order.total_amount)}</span>
       </div>
 
       <div className="flex gap-2 pt-1">
         <Button
           size="sm"
-          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8"
+          className="flex-1 bg-status-complete-foreground hover:bg-status-complete-foreground text-white text-xs h-8"
           disabled={busy}
           onClick={handleConfirm}
         >
@@ -110,7 +110,7 @@ function PendingCard({ order, onDone }: { order: Order; onDone: () => void }) {
         <Button
           size="sm"
           variant="outline"
-          className="text-red-500 border-red-200 hover:bg-red-50 text-xs h-8"
+          className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8"
           disabled={busy}
           onClick={handleCancel}
         >
@@ -164,10 +164,10 @@ function ConfirmedCard({
 
   return (
     <>
-      <div className="bg-white rounded-2xl border-2 border-blue-300 p-4 space-y-3 shadow-sm">
+      <div className="bg-card rounded-2xl border-2 border-status-confirmed-foreground/30 p-4 space-y-3 shadow-sm">
         <div className="flex justify-between items-start">
           <div>
-            <p className="font-bold text-sm text-slate-800">
+            <p className="font-bold text-sm text-foreground">
               {order.order_type === 'TAKEAWAY'
                 ? `${t.common.takeaway} #${order.queue_number}`
                 : t.cashier.order.tableLabel(order.table?.table_number ?? '-')}
@@ -176,17 +176,17 @@ function ConfirmedCard({
               {timeAgo(order.created_at, t)}
             </p>
           </div>
-          <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+          <span className="bg-status-confirmed text-status-confirmed-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
             {t.cashier.live.inKitchen}
           </span>
         </div>
 
         <div className="space-y-1 border-t pt-2">
           {order.orderItems.map((oi) => (
-            <div key={oi.id} className="text-[12px] text-slate-700">
+            <div key={oi.id} className="text-[12px] text-foreground">
               <span className="font-medium">{oi.quantity}× {oi.menuItem.name}</span>
               {oi.special_note && (
-                <span className="ml-1 text-orange-500 italic">({oi.special_note})</span>
+                <span className="ml-1 text-status-preparing-foreground italic">({oi.special_note})</span>
               )}
             </div>
           ))}
@@ -194,13 +194,13 @@ function ConfirmedCard({
 
         <div className="flex justify-between text-xs text-muted-foreground border-t pt-2">
           <span>{t.cashier.live.total}</span>
-          <span className="font-semibold text-slate-800">{formatKip(order.total_amount)}</span>
+          <span className="font-semibold text-foreground">{formatKip(order.total_amount)}</span>
         </div>
 
         <div className="flex gap-2 mt-1">
           <Button
             size="sm"
-            className="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs h-8"
+            className="flex-1 bg-foreground hover:bg-foreground text-white text-xs h-8"
             disabled={busy}
             onClick={() => { setSelectedMethod('CASH'); setPaymentDialog(true); }}
           >
@@ -209,7 +209,7 @@ function ConfirmedCard({
           <Button
             size="sm"
             variant="outline"
-            className="text-red-500 border-red-200 hover:bg-red-50 text-xs h-8"
+            className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8"
             disabled={busy}
             onClick={handleCancel}
           >
@@ -256,13 +256,13 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
       <div className="px-7 py-3.5 border-b flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           {pending.length > 0 && (
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-yellow-700 bg-yellow-100 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-status-preparing-foreground bg-status-preparing px-2.5 py-1 rounded-full">
               <Clock size={11} />
               {t.cashier.live.waitingCount(pending.length)}
             </span>
           )}
           {confirmed.length > 0 && (
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-status-confirmed-foreground bg-status-confirmed px-2.5 py-1 rounded-full">
               <ChefHat size={11} />
               {t.cashier.live.inKitchenCount(confirmed.length)}
             </span>
@@ -289,7 +289,7 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
               {/* ── PENDING section ── */}
               {pending.length > 0 && (
                 <section>
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-yellow-600 mb-3">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-status-preparing-foreground mb-3">
                     {t.cashier.live.pendingSection}
                   </h3>
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
@@ -303,7 +303,7 @@ export function LiveOrdersTab({ orders, loading, onRefresh }: Props) {
               {/* ── CONFIRMED section ── */}
               {confirmed.length > 0 && (
                 <section>
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-status-confirmed-foreground mb-3">
                     {t.cashier.live.confirmedSection}
                   </h3>
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">

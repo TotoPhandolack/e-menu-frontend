@@ -49,15 +49,14 @@ function OrderSuccessContent() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#f5f5f5",
-        fontFamily: "'Inter', 'Segoe UI', sans-serif",
-        padding: "16px",
+        background: "var(--background)",
+                padding: "16px",
       }}
     >
       {/* Card */}
       <div
         style={{
-          background: "#ffffff",
+          background: "var(--card)",
           borderRadius: "24px",
           padding: "48px 40px 40px",
           maxWidth: "340px",
@@ -65,7 +64,7 @@ function OrderSuccessContent() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          boxShadow: "0 4px 32px rgba(0,0,0,0.08)",
+          boxShadow: "0 4px 32px color-mix(in oklch, var(--foreground) 10%, transparent)",
         }}
       >
         {/* Animated circle + checkmark */}
@@ -78,14 +77,14 @@ function OrderSuccessContent() {
             xmlns="http://www.w3.org/2000/svg"
           >
             {/* Background circle */}
-            <circle cx="60" cy="60" r="54" stroke="#e8f5e9" strokeWidth="6" />
+            <circle cx="60" cy="60" r="54" stroke="var(--status-complete)" strokeWidth="6" />
 
             {/* Animated green ring */}
             <circle
               cx="60"
               cy="60"
               r="54"
-              stroke="#2e7d32"
+              stroke="var(--status-complete-foreground)"
               strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray="339.3"
@@ -101,7 +100,7 @@ function OrderSuccessContent() {
             {/* Animated checkmark */}
             <polyline
               points="36,62 52,78 84,44"
-              stroke="#2e7d32"
+              stroke="var(--status-complete-foreground)"
               strokeWidth="7"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -134,7 +133,7 @@ function OrderSuccessContent() {
             style={{
               fontSize: "22px",
               fontWeight: "700",
-              color: "#2e7d32",
+              color: "var(--status-complete-foreground)",
               marginBottom: "10px",
               letterSpacing: "-0.3px",
             }}
@@ -144,7 +143,7 @@ function OrderSuccessContent() {
           <p
             style={{
               fontSize: "15px",
-              color: "#555",
+              color: "var(--muted-foreground)",
               lineHeight: "1.6",
               marginBottom: "16px",
             }}
@@ -161,13 +160,13 @@ function OrderSuccessContent() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
-                background: "#f0fdf4",
-                border: "1.5px solid #bbf7d0",
+                background: "var(--status-complete)",
+                border: "1.5px solid var(--status-complete-foreground)",
                 borderRadius: "99px",
                 padding: "6px 16px",
                 marginBottom: "24px",
                 fontSize: "13px",
-                color: "#15803d",
+                color: "var(--status-complete-foreground)",
                 fontWeight: 600,
               }}
             >
@@ -182,8 +181,8 @@ function OrderSuccessContent() {
               id="order-success-ok"
               onClick={handleOk}
               style={{
-                background: "#2e7d32",
-                color: "#ffffff",
+                background: "var(--primary)",
+                color: "var(--primary-foreground)",
                 border: "none",
                 borderRadius: "8px",
                 padding: "10px 36px",
@@ -195,11 +194,11 @@ function OrderSuccessContent() {
               }}
               onMouseEnter={(e) =>
                 ((e.currentTarget as HTMLButtonElement).style.background =
-                  "#1b5e20")
+                  "color-mix(in oklch, var(--primary) 88%, var(--foreground))")
               }
               onMouseLeave={(e) =>
                 ((e.currentTarget as HTMLButtonElement).style.background =
-                  "#2e7d32")
+                  "var(--primary)")
               }
               onMouseDown={(e) =>
                 ((e.currentTarget as HTMLButtonElement).style.transform =
@@ -215,11 +214,6 @@ function OrderSuccessContent() {
           </div>
         </div>
       </div>
-
-      {/* Google Font */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-      `}</style>
     </div>
   );
 }
@@ -233,10 +227,10 @@ function OrderStatusFallback() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#f5f5f5",
+        background: "var(--background)",
       }}
     >
-      <p style={{ color: "#999" }}>{t.customer.status.loading}</p>
+      <p style={{ color: "var(--muted-foreground)" }}>{t.customer.status.loading}</p>
     </div>
   );
 }

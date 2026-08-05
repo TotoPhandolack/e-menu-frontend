@@ -3,6 +3,12 @@ export interface ThemePreset {
   label: string;
   primary: string;
   primaryForeground: string;
+  /**
+   * Brand-tinted TEXT on a light surface. Never assume `primary` is safe for
+   * text — a light accent like the default gold is ~1.35:1 on white. Every
+   * value here clears 4.5:1 on both #FFFFFF and the #FCFAF8 canvas.
+   */
+  primaryStrong: string;
   ring: string;
   dot: string;
 }
@@ -11,16 +17,19 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     key: "default",
     label: "Default",
-    primary: "oklch(0.205 0 0)",
-    primaryForeground: "oklch(0.985 0 0)",
-    ring: "oklch(0.708 0 0)",
-    dot: "#1a1a1a",
+    // Warm Canvas gold. Light accent, so the foreground is ink, not white.
+    primary: "oklch(0.9001 0.131 91.36)",
+    primaryForeground: "oklch(0.1835 0.0327 297.47)",
+    primaryStrong: "oklch(0.52 0.115 75)",
+    ring: "oklch(0.655 0.13 91.36)",
+    dot: "#FEDB71",
   },
   {
     key: "forest",
     label: "Forest",
     primary: "oklch(0.38 0.067 148)",
     primaryForeground: "oklch(0.985 0 0)",
+    primaryStrong: "oklch(0.38 0.067 148)",
     ring: "oklch(0.38 0.067 148)",
     dot: "#3a5a40",
   },
@@ -29,6 +38,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     label: "Blue",
     primary: "oklch(0.546 0.245 264)",
     primaryForeground: "oklch(0.985 0 0)",
+    primaryStrong: "oklch(0.546 0.245 264)",
     ring: "oklch(0.546 0.245 264)",
     dot: "#3b82f6",
   },
@@ -37,6 +47,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     label: "Green",
     primary: "oklch(0.527 0.154 150)",
     primaryForeground: "oklch(0.985 0 0)",
+    primaryStrong: "oklch(0.527 0.154 150)",
     ring: "oklch(0.527 0.154 150)",
     dot: "#22c55e",
   },
@@ -45,6 +56,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     label: "Orange",
     primary: "oklch(0.65 0.2 55)",
     primaryForeground: "oklch(0.985 0 0)",
+    primaryStrong: "oklch(0.58 0.2 55)",
     ring: "oklch(0.65 0.2 55)",
     dot: "#f97316",
   },
@@ -53,6 +65,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     label: "Purple",
     primary: "oklch(0.491 0.27 292)",
     primaryForeground: "oklch(0.985 0 0)",
+    primaryStrong: "oklch(0.491 0.27 292)",
     ring: "oklch(0.491 0.27 292)",
     dot: "#a855f7",
   },
@@ -61,6 +74,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     label: "Rose",
     primary: "oklch(0.59 0.24 15)",
     primaryForeground: "oklch(0.985 0 0)",
+    primaryStrong: "oklch(0.59 0.24 15)",
     ring: "oklch(0.59 0.24 15)",
     dot: "#f43f5e",
   },
@@ -69,6 +83,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     label: "Teal",
     primary: "oklch(0.55 0.15 195)",
     primaryForeground: "oklch(0.985 0 0)",
+    primaryStrong: "oklch(0.53 0.15 195)",
     ring: "oklch(0.55 0.15 195)",
     dot: "#14b8a6",
   },
@@ -77,6 +92,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     label: "Amber",
     primary: "oklch(0.68 0.18 75)",
     primaryForeground: "oklch(0.2 0 0)",
+    primaryStrong: "oklch(0.57 0.18 75)",
     ring: "oklch(0.68 0.18 75)",
     dot: "#f59e0b",
   },
@@ -87,5 +103,6 @@ export function applyTheme(themeKey: string) {
   const root = document.documentElement;
   root.style.setProperty("--primary", preset.primary);
   root.style.setProperty("--primary-foreground", preset.primaryForeground);
+  root.style.setProperty("--primary-strong", preset.primaryStrong);
   root.style.setProperty("--ring", preset.ring);
 }

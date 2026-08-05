@@ -56,7 +56,7 @@ import {
 function buildQrUrl(token: string): string {
   const base =
     process.env.NEXT_PUBLIC_FRONTEND_URL ??
-    (typeof window !== "undefined" ? window.location.origin : "");
+    (typeof window !== "undefined"? window.location.origin :"");
   return `${base}/menu?token=${token}`;
 }
 
@@ -104,7 +104,7 @@ interface TableFormState {
   capacity: string;
 }
 
-const defaultForm: TableFormState = { table_number: "", capacity: "2" };
+const defaultForm: TableFormState = { table_number: "", capacity:"2" };
 
 export function TableManageTab({
   tables,
@@ -277,11 +277,11 @@ export function TableManageTab({
       <div className="bg-background border-b px-7 py-3.5 flex items-center gap-3 shrink-0">
         {/* Actions */}
         <div className="flex gap-2 shrink-0">
-          <Button variant="outline" size="sm" onClick={onRefresh} className="gap-1.5">
+          <Button variant="outline"size="sm"onClick={onRefresh} className="gap-1.5">
             <RefreshCw size={13} />
             {t.common.refresh}
           </Button>
-          <Button size="sm" onClick={openCreate} className="gap-1.5">
+          <Button size="sm"onClick={openCreate} className="gap-1.5">
             <Plus size={13} />
             {t.cashier.table.addTable}
           </Button>
@@ -342,14 +342,14 @@ export function TableManageTab({
               {search.trim() ? (
                 <>
                   <p className="text-sm">{t.cashier.table.noMatch(search)}</p>
-                  <button onClick={() => setSearch("")} className="text-sm text-primary font-medium">
+                  <button onClick={() => setSearch("")} className="text-sm text-primary-strong font-medium">
                     {t.common.clearSearch}
                   </button>
                 </>
               ) : (
                 <>
                   <p className="text-sm">{t.cashier.table.noTablesYet}</p>
-                  <Button size="sm" onClick={openCreate} className="gap-1.5">
+                  <Button size="sm"onClick={openCreate} className="gap-1.5">
                     <Plus size={13} /> {t.cashier.table.addFirstTable}
                   </Button>
                 </>
@@ -375,7 +375,7 @@ export function TableManageTab({
 
       {/* ── Add / Edit dialog ── */}
       <Dialog open={formOpen} onOpenChange={(v) => !submitting && setFormOpen(v)}>
-        <DialogContent aria-describedby="table-form-desc" className={cn(editingTable && "sm:max-w-md")}>
+        <DialogContent aria-describedby="table-form-desc"className={cn(editingTable &&"sm:max-w-md")}>
           <DialogHeader>
             <DialogTitle>
               {editingTable ? t.cashier.table.editTitle(editingTable.table_number) : t.cashier.table.addTitle}
@@ -391,7 +391,7 @@ export function TableManageTab({
             {/* QR section — edit mode only */}
             {editingTable && (
               <div className="flex flex-col items-center gap-3 py-3 border rounded-xl bg-muted/30">
-                <div className="p-3 bg-white rounded-lg shadow-sm">
+                <div className="p-3 bg-card rounded-lg shadow-sm">
                   <QRCode
                     id={`qr-svg-${editingTable.qr_code_token}`}
                     value={buildQrUrl(editingTable.qr_code_token)}
@@ -445,7 +445,7 @@ export function TableManageTab({
             </div>
 
             <DialogFooter className="pt-2 gap-2 sm:gap-0">
-              <Button type="button" variant="outline" onClick={() => setFormOpen(false)} disabled={submitting}>
+              <Button type="button"variant="outline" onClick={() => setFormOpen(false)} disabled={submitting}>
                 {t.common.cancel}
               </Button>
               <Button type="submit" disabled={submitting}>
@@ -486,7 +486,7 @@ export function TableManageTab({
 
       {/* ── QR view dialog (view button + after create) ── */}
       <Dialog open={!!qrPreview} onOpenChange={(v) => !v && setQrPreview(null)}>
-        <DialogContent aria-describedby="qr-view-desc" className="sm:max-w-sm text-center">
+        <DialogContent aria-describedby="qr-view-desc"className="sm:max-w-sm text-center">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-center gap-2">
               <QrCode size={18} />
@@ -499,7 +499,7 @@ export function TableManageTab({
 
           {qrPreview && (
             <div className="flex flex-col items-center gap-3">
-              <div className="p-4 bg-white rounded-xl border shadow-sm">
+              <div className="p-4 bg-card rounded-xl border shadow-sm">
                 <QRCode
                   id={`qr-svg-${qrPreview.token}`}
                   value={buildQrUrl(qrPreview.token)}
@@ -555,11 +555,11 @@ function TableCard({
     <div
       className={cn(
         "group bg-card rounded-2xl border flex flex-col overflow-hidden transition-all hover:shadow-md",
-        occupied && "border-amber-400/60 bg-amber-50/30 dark:bg-amber-950/20",
+        occupied && "border-status-preparing-foreground/50 bg-status-preparing/30",
       )}
     >
       {/* Status bar */}
-      <div className={cn("h-1.5 w-full shrink-0", occupied ? "bg-amber-400" : "bg-emerald-500")} />
+      <div className={cn("h-1.5 w-full shrink-0", occupied ? "bg-status-preparing-foreground" : "bg-status-complete-foreground")} />
 
       {/* Body (hoverable area with overlay) */}
       <div className="relative p-5 flex flex-col gap-4 flex-1">
@@ -573,8 +573,8 @@ function TableCard({
             className={cn(
               "text-[11px] px-2 py-0.5 shrink-0",
               occupied
-                ? "bg-amber-500/20 text-amber-700 border-amber-400/40 dark:text-amber-300"
-                : "bg-emerald-500/15 text-emerald-700 border-emerald-400/30 dark:text-emerald-400",
+                ? "bg-status-preparing-foreground/20 text-status-preparing-foreground border-status-preparing-foreground/40"
+                : "bg-status-complete-foreground/15 text-status-complete-foreground border-status-complete-foreground/30",
             )}
           >
             {occupied ? t.cashier.table.notAvailable : t.cashier.table.available}
@@ -587,7 +587,7 @@ function TableCard({
         </div>
 
         {/* Hover action overlay — View, Edit, Delete */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all rounded-t-2xl">
+        <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all rounded-t-2xl">
           <button
             onClick={onView}
             className="bg-background/90 rounded-full p-2 shadow hover:bg-background"

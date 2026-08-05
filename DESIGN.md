@@ -2,14 +2,17 @@
 name: Emenu
 description: Lao-first restaurant e-menu and POS — scan to order, clarity to operate.
 colors:
+  warm-canvas: "oklch(0.9861 0.0034 67.78)"
   chalk-white: "oklch(1 0 0)"
-  blackboard: "oklch(0.205 0 0)"
-  deep-ink: "oklch(0.145 0 0)"
-  ghost-surface: "oklch(0.97 0 0)"
-  slate-gray: "oklch(0.556 0 0)"
-  hairline: "oklch(0.922 0 0)"
-  focus-ash: "oklch(0.708 0 0)"
-  kitchen-red: "oklch(0.577 0.245 27.325)"
+  gold-accent: "oklch(0.9001 0.131 91.36)"
+  gold-strong: "oklch(0.52 0.115 75)"
+  gold-ring: "oklch(0.655 0.13 91.36)"
+  deep-ink: "oklch(0.1835 0.0327 297.47)"
+  ghost-surface: "oklch(0.956 0.0115 84.58)"
+  slate-gray: "oklch(0.5146 0.0233 307.96)"
+  hairline: "oklch(0.9239 0.0149 80.71)"
+  field-stroke: "oklch(0.66 0.02 80)"
+  kitchen-red: "oklch(0.546 0.1826 32.13)"
 typography:
   display:
     fontFamily: "Outfit, Phetsarath OT, Noto Sans Lao, sans-serif"
@@ -52,14 +55,14 @@ spacing:
   2xl: "32px"
 components:
   button-primary:
-    backgroundColor: "{colors.blackboard}"
-    textColor: "{colors.chalk-white}"
+    backgroundColor: "{colors.gold-accent}"
+    textColor: "{colors.deep-ink}"
     rounded: "{rounded.lg}"
     padding: "0 10px"
     height: "32px"
   button-primary-hover:
-    backgroundColor: "{colors.deep-ink}"
-    textColor: "{colors.chalk-white}"
+    backgroundColor: "{colors.gold-accent}"
+    textColor: "{colors.deep-ink}"
     rounded: "{rounded.lg}"
     padding: "0 10px"
     height: "32px"
@@ -93,41 +96,49 @@ components:
 
 **Creative North Star: "The Well-Run Kitchen"**
 
-A well-run kitchen doesn't waste motion. Every tool is where it belongs, every surface is clear, every action has a single obvious next step. Emenu carries that discipline into the digital — a product UI where operational clarity is the design. The Blackboard-and-Chalk palette is monochromatic by intent: zero visual noise means a cashier can read order state at a glance and a diner can find their dish without scanning through marketing. The brand color lives in `--primary`, injected per restaurant, so each tenant gets identity without the neutral system losing coherence.
+A well-run kitchen doesn't waste motion. Every tool is where it belongs, every surface is clear, every action has a single obvious next step. Emenu carries that discipline into the digital — a product UI where operational clarity is the design. The Warm Canvas palette is near-monochrome by intent: a warm paper ground, white surfaces laid on it, and exactly one chromatic note. That note is Gold Accent, and it appears only where a hand should go. A cashier reads order state at a glance because nothing else on the screen is competing for the eye; a diner finds their dish without scanning through marketing. The brand color lives in `--primary`, injected per restaurant, so each tenant gets identity without the neutral system losing coherence.
 
 Lao script is not an afterthought. Phetsarath OT handles headlines with the weight and legibility the script demands at display sizes; Noto Sans Lao covers body copy across the full Unicode range; Outfit carries Latin characters at the same visual mass. The font stack degrades gracefully in that order, so Lao characters always render through a Lao-optimized face.
 
 This system explicitly rejects the energy of delivery-app marketplaces (UberEats, Foodpanda, GrabFood) — heavy promotions, gamified UI, dense visual layering designed to maximize dwell time. This product wants to minimize dwell time: get the diner to their order, get the cashier to their next table. Glassmorphism and blurred hero images behind menus are equally banned — decoration that competes with the food.
 
 **Key Characteristics:**
-- Achromatic zinc foundation — zero brand-color interference at the base layer; restaurants project identity through `--primary`
-- Flat tonal elevation — no drop shadows; ring-borders and surface layering carry all depth
+- Warm near-neutral foundation — 60% canvas / 30% white surfaces / 10% gold, with the accent reserved strictly for action
+- Flat tonal elevation — no drop shadows; ring-borders carry all depth, and with 1.04:1 between surface levels they are structural
+- Light mode only — one set of contrast guarantees, no `dark:` variants anywhere in the codebase
 - Lao-first typography — Phetsarath OT and Noto Sans Lao as primary weight-carriers, never fallbacks
 - Tenant-injected accent — the system recedes; the restaurant brand advances
 - Dense but breathable layout — cashier UI needs scannable information density; diner UI needs uncluttered whitespace
 
-## 2. Colors: The Blackboard Palette
+## 2. Colors: The Warm Canvas Palette
 
-A deliberate monochrome. Restaurants project their own color into `--primary`; the neutral system must not compete with any injected brand color. Every design decision at the base layer must work correctly when `--primary` becomes deep red, lime green, navy, or gold.
+Built on a 60 / 30 / 10 split. **60%** Warm Canvas is the page ground. **30%** Chalk White is every surface that sits on it — cards, sheets, headers, sidebars. **10%** Gold Accent marks what you can act on, and nothing else. The neutrals carry a faint warm cast (hue ~68–85 at very low chroma) so white surfaces read as *lifted* off the canvas rather than merged into it.
 
-### Primary (tenant-injected)
-- **Blackboard** (`oklch(0.205 0 0)`, `#2e2e2e`): Default `--primary` before a restaurant injects their brand color. Used for primary buttons, active navigation states, and key affordances. In every deployed restaurant, this value is replaced with the brand hue.
+### Accent — the 10%
+- **Gold Accent** (`oklch(0.9001 0.131 91.36)`, `#FEDB71`): Default `--primary`. Primary buttons, the cart FAB, active category pills, active nav. **Fill only.**
+- **Gold Strong** (`oklch(0.52 0.115 75)`, `#8F5D00`): `--primary-strong`. The *only* legible way to write brand-tinted text on a light surface — 5.62:1 on Chalk White, 5.40:1 on Warm Canvas. Prices, inline links, emphasis.
+- **Gold Ring** (`oklch(0.655 0.13 91.36)`, `#AE8D12`): `--ring`. Focus rings and selected-state strokes. Clears the 3:1 non-text floor (3.17:1 white / 3.05:1 canvas) where the raw accent cannot.
 
 ### Neutral
-- **Chalk White** (`oklch(1 0 0)`, `#ffffff`): The background canvas. Pure white, not tinted — warmth comes from the restaurant's injected `--primary`; the base layer stays clean.
-- **Deep Ink** (`oklch(0.145 0 0)`, `#1e1e1e`): Body text, icon fills, high-contrast foreground. Clears 4.5:1 on Chalk White with room to spare.
-- **Ghost Surface** (`oklch(0.97 0 0)`, `#f5f5f5`): Secondary and muted surfaces — sidebar backgrounds, chip fills, card footers, hover states. Barely-there; never cream-tinted.
-- **Slate Gray** (`oklch(0.556 0 0)`, `#767676`): Muted foreground — secondary labels, descriptions, placeholders. Meets 4.5:1 on Chalk White at this exact value. Do not go lighter for any body text.
-- **Hairline** (`oklch(0.922 0 0)`, `#e8e8e8`): Border strokes and input outlines. The visual boundary between elements.
-- **Focus Ash** (`oklch(0.708 0 0)`, `#b2b2b2`): Focus rings and interactive state outlines — appears as a 3px ring at 50% opacity.
+- **Warm Canvas** (`oklch(0.9861 0.0034 67.78)`, `#FCFAF8`): The page ground. The 60%.
+- **Chalk White** (`oklch(1 0 0)`, `#FFFFFF`): Cards, popovers, sheets, sidebar. The 30%.
+- **Deep Ink** (`oklch(0.1835 0.0327 297.47)`, `#140F1F`): Body text and icon fills. 18.0:1 on canvas, 18.8:1 on white. Also the foreground *on* Gold Accent (13.9:1).
+- **Ghost Surface** (`oklch(0.956 0.0115 84.58)`, `#F4F0E8`): Muted fills — chips, card footers, hover states.
+- **Slate Gray** (`oklch(0.5146 0.0233 307.96)`, `#6B6472`): Muted foreground. 5.46:1 on canvas. Do not go lighter for body text.
+- **Hairline** (`oklch(0.9239 0.0149 80.71)`, `#EBE5DB`): Dividers and card boundaries.
+- **Field Stroke** (`oklch(0.66 0.02 80)`, `#9B9487`): `--input`. Form-control borders only, held at 3:1 per WCAG 1.4.11.
 
 ### Destructive
-- **Kitchen Red** (`oklch(0.577 0.245 27.325)`, `~#e04828`): Error states, destructive actions, alert badges. The one chromatic color in the base system. One Kitchen Red on screen means danger; more than two means alarm.
+- **Kitchen Red** (`oklch(0.546 0.1826 32.13)`, `#C4361E`): Error states, destructive actions. 5.39:1 on white. One on screen means danger; more than two means alarm.
 
 ### Named Rules
-**The Slate Gray Floor Rule.** `oklch(0.556 0 0)` is the minimum lightness for any body text on Chalk White. Anything lighter fails 4.5:1 contrast. When in doubt, shift toward Deep Ink.
+**The Fill-Only Rule.** Gold Accent is 1.29:1 on Warm Canvas and 1.35:1 on Chalk White. It can never be text, an icon, a hairline, or a focus ring. If you need gold that *reads*, reach for Gold Strong (text) or Gold Ring (strokes). White on Gold Accent is 1.35:1 and is never correct — the foreground on gold is always Deep Ink.
 
-**The Tenant Accent Rule.** `--primary` is a reservation, not a committed color. Every build decision about primary buttons, active states, and key affordances must survive replacement with any restaurant brand hue. Never assume Blackboard is the final primary.
+**The Card-Needs-An-Edge Rule.** Chalk White on Warm Canvas is only 1.04:1. The surface separation is carried entirely by the hairline ring, never by the fill difference. A card with no ring is an invisible card.
+
+**The Slate Gray Floor Rule.** `oklch(0.5146 0.0233 307.96)` is the lightest permitted body text on either ground. When in doubt, shift toward Deep Ink.
+
+**The Tenant Accent Rule.** `--primary` is a reservation, not a committed color; `THEME_PRESETS` in `src/lib/theme.ts` swaps it per restaurant. Any preset must ship `primaryStrong` alongside `primary` — a light accent has no readable text form otherwise. Never assume the accent is dark enough to write with.
 
 ## 3. Typography
 
@@ -153,17 +164,20 @@ A deliberate monochrome. Restaurants project their own color into `--primary`; t
 
 ## 4. Elevation
 
-This system is flat by default. Surfaces are separated by tonal layering and hairline ring-borders — not drop shadows. The card treatment uses `box-shadow: 0 0 0 1px oklch(0.145 0 0 / 0.1)` — a 1px inset ring at 10% foreground opacity. Visible enough to delimit the card; invisible enough to disappear into the design.
+This system is flat by default. Surfaces are separated by tonal layering and hairline ring-borders — not drop shadows. The card treatment uses `box-shadow: 0 0 0 1px oklch(0.1835 0.0327 297.47 / 0.1)` — a 1px inset ring at 10% foreground opacity. Visible enough to delimit the card; invisible enough to disappear into the design.
 
-Dark mode uses three distinct surface tones instead of shadows:
-- **Layer 0 (background):** `oklch(0.145 0 0)` — the base canvas
-- **Layer 1 (card):** `oklch(0.205 0 0)` — one step lighter
-- **Layer 2 (raised):** `oklch(0.269 0 0)` — popovers, dropdowns, modals
+Light mode is the only mode. There is no dark theme, no `.dark` block, and no `dark:` variant in this codebase — see The One Mode Rule below.
+
+The system has two surface levels, and the warm canvas is what makes them legible:
+- **Layer 0 (background):** Warm Canvas `#FCFAF8` — the page ground
+- **Layer 1 (card / popover / sheet):** Chalk White `#FFFFFF` — everything that sits on it
 
 ### Named Rules
-**The Flat Register Rule.** No `box-shadow` with blur > 0 on any component at rest. Interactive elements may add a soft ambient shadow on hover (`0 2px 8px oklch(0 0 0 / 0.08)`) to signal interactivity — but only interactive elements, never static containers.
+**The Flat Register Rule.** No `box-shadow` with blur > 0 on any component at rest. Interactive elements may add a soft ambient shadow on hover (`0 2px 8px oklch(0.1835 0.0327 297.47 / 0.08)`) to signal interactivity — but only interactive elements, never static containers.
 
-**The Ring-Not-Border Rule.** Card boundaries are drawn with `box-shadow: 0 0 0 1px oklch(0.145 0 0 / 0.1)`, not `border`. This is the system's one-pixel line vocabulary. Using `border` on cards produces a slightly different visual weight due to box-sizing quirks; the ring is the correct primitive.
+**The Ring-Not-Border Rule.** Card boundaries are drawn with `box-shadow: 0 0 0 1px oklch(0.1835 0.0327 297.47 / 0.1)`, not `border`. This is the system's one-pixel line vocabulary. With only 1.04:1 between the two surface levels, this ring is doing all the work of separating them — it is structural here, not decorative.
+
+**The One Mode Rule.** This product is light-mode only. Do not add `dark:` variants, a `.dark` block, `prefers-color-scheme` queries, or a theme toggle. A cashier's screen and a diner's phone both operate under restaurant lighting; a second mode doubles the surface area of every contrast guarantee above for no operational gain.
 
 ## 5. Components
 
@@ -171,13 +185,14 @@ Dark mode uses three distinct surface tones instead of shadows:
 Precise and efficient — tight padding, clean edges, no decorative weight. Every state is unambiguous; active sinks 1px for tactile confirmation.
 
 - **Shape:** Gently rounded (10px / `--radius-lg`)
-- **Primary:** Blackboard fill, Chalk White text; 32px height, 10px horizontal padding; darkens to Deep Ink on hover
-- **Hover:** `oklch(0.145 0 0)` fill deepens — no transform, no lift
-- **Focus:** 3px ring at `oklch(0.708 0 0 / 0.5)`, 1px border in Focus Ash
+- **Primary:** Gold Accent fill, **Deep Ink text**; 32px height, 10px horizontal padding
+- **Hover:** fill drops to `--primary/90` — no transform, no lift
+- **Focus:** 3px ring at `--ring/50`, 1px border in Gold Ring
 - **Active:** `translateY(1px)` — confirms the action physically
-- **Secondary:** Ghost Surface fill, Blackboard text
-- **Outline:** Chalk White fill, Hairline border, Blackboard text; Ghost Surface on hover
+- **Secondary:** Chalk White fill, Deep Ink text
+- **Outline:** Warm Canvas fill, Hairline border, Deep Ink text; Ghost Surface on hover
 - **Ghost:** No fill, no border; Ghost Surface on hover
+- **Link:** Gold Strong text, underline on hover — never Gold Accent
 - **Destructive:** Kitchen Red fill, Chalk White text
 - **Disabled:** 50% opacity, pointer-events none
 
@@ -211,18 +226,24 @@ Ghost Surface panel — lighter than the main canvas in dark mode, matching seco
 ### Order Status Badge (Signature Component)
 The most operationally critical component. A cashier reads dozens per shift; the badge must be scannable at arm's length. Four states are differentiated by background color, not by shade alone.
 
-- **Pending:** Ghost Surface background, Slate Gray text
-- **Confirmed:** `oklch(0.95 0.05 230)` (soft blue tint), `oklch(0.25 0.08 230)` text
-- **Preparing:** `oklch(0.95 0.12 80)` (amber tint), `oklch(0.4 0.12 80)` text
-- **Complete:** `oklch(0.95 0.05 145)` (green tint), `oklch(0.35 0.1 145)` text
+Exposed as `--status-*` token pairs; use `bg-status-preparing text-status-preparing-foreground`, never raw palette colors.
+
+- **Pending:** `oklch(0.948 0.004 80)` (warm neutral), `oklch(0.515 0.015 300)` text — 4.82:1
+- **Confirmed:** `oklch(0.942 0.03 248)` (soft blue), `oklch(0.396 0.09 250)` text — 7.87:1
+- **Preparing:** `oklch(0.915 0.075 58)` (orange), `oklch(0.46 0.125 45)` text — 5.57:1
+- **Complete:** `oklch(0.938 0.04 150)` (green), `oklch(0.439 0.095 153)` text — 6.31:1
 - **Shape:** Pill (18px radius / `--radius-2xl`)
 - **Typography:** Outfit 500 at 0.75rem, 4px 8px padding
+
+**The Badge-Is-Not-The-Accent Rule.** Preparing sits at hue 58 — held 33° clear of the Gold Accent at hue 91.4, and at a little over half its chroma. This gap is deliberate: gold means *tap this*, amber means *this order is cooking*. If a status tint drifts toward the accent, the cashier loses the one color that marks an action.
 
 ## 6. Do's and Don'ts
 
 ### Do:
-- **Do** use `box-shadow: 0 0 0 1px oklch(0.145 0 0 / 0.1)` as the card boundary. Not `border`.
-- **Do** keep muted foreground at ≥ `oklch(0.556 0 0)` for any body text on Chalk White. Lighter fails 4.5:1.
+- **Do** use `box-shadow: 0 0 0 1px oklch(0.1835 0.0327 297.47 / 0.1)` as the card boundary. Not `border`.
+- **Do** keep muted foreground at ≥ `oklch(0.5146 0.0233 307.96)` for any body text. Lighter fails 4.5:1.
+- **Do** hold the 60/30/10 split: Warm Canvas grounds the page, Chalk White carries the surfaces, Gold Accent marks only what is actionable.
+- **Do** use `--primary` as a fill with `--primary-foreground` on it, `--primary-strong` for brand-tinted text, and `--ring` for brand-tinted strokes. Three tokens, three jobs.
 - **Do** set Lao script body text at `line-height: 1.6` minimum. Lower clips ascending letterforms.
 - **Do** design every affordance to work with any `--primary` value — deep red, lime, navy, or gold.
 - **Do** use Phetsarath OT for Lao at ≥1rem; Noto Sans Lao below that boundary.
@@ -235,6 +256,9 @@ The most operationally critical component. A cashier reads dozens per shift; the
 - **Don't** use generic white-label SaaS scaffolding — forgettable structure that could belong to any product. The Lao market context must be legible in the design decisions.
 - **Don't** use glassmorphism: blurred hero images behind menus, frosted-glass card treatments. Decoration that competes with the food is prohibited.
 - **Don't** use gradient text (`background-clip: text` with a gradient). Solid color, always. Weight or size for emphasis.
-- **Don't** tint the neutral base warm or cool by default. The achromatic foundation is intentional — warmth comes from `--primary`, not from background tinting.
+- **Don't** write text, draw an icon, or stroke a border in `--primary`. It is 1.29:1 on the canvas. This is the single easiest way to break the system.
+- **Don't** put white text on Gold Accent — 1.35:1. The foreground on gold is always Deep Ink.
+- **Don't** push the neutrals past ~0.025 chroma. The warmth is a whisper (hue 68–85, chroma 0.003–0.02); at higher chroma the canvas turns cream and starts competing with the food photography.
+- **Don't** add a dark mode, a `dark:` variant, or a theme toggle. See The One Mode Rule.
 - **Don't** use tracked uppercase eyebrow labels on every section, or numbered section markers (`01 · 02 · 03`). This is product UI, not editorial scaffolding.
 - **Don't** use arbitrary `z-index` values (999, 9999). Use semantic scale: dropdown (10), sticky (20), modal-backdrop (30), modal (40), toast (50), tooltip (60).

@@ -206,7 +206,7 @@ export default function LoginPage() {
               {t.newHere}{" "}
               <Link
                 href="/register"
-                className="font-semibold text-primary underline-offset-4 hover:underline"
+                className="font-semibold text-primary-strong underline-offset-4 hover:underline"
               >
                 {t.createAccount}
               </Link>

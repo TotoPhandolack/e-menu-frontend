@@ -20,7 +20,7 @@ export function MobileCartFab({ cartItemCount, mobileOrderOpen, onOpen }: Props)
     >
       <ShoppingBag size={22} strokeWidth={2} />
       {cartItemCount > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-5 h-5 rounded-full flex items-center justify-center px-1">
+        <span className="absolute -top-1.5 -right-1.5 bg-destructive text-white text-[10px] font-bold min-w-5 h-5 rounded-full flex items-center justify-center px-1">
           {cartItemCount}
         </span>
       )}

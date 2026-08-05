@@ -21,15 +21,15 @@ export default function OrderCard({ order, onUpdated }: Props) {
   const timeLabel = minutesAgo < 1 ? "Just now" : `${minutesAgo}m ago`;
 
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm border-2 border-blue-200 space-y-3">
+    <div className="bg-card rounded-xl p-4 shadow-sm border-2 border-status-confirmed-foreground/30 space-y-3">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <span className="font-bold text-slate-900 text-base">
+        <span className="font-bold text-foreground text-base">
           {order.order_type === "TAKEAWAY"
             ? `Takeaway #${order.queue_number}`
             : `ໂຕະ ${order.table?.table_number ?? "-"}`}
         </span>
-        <span className="text-xs text-slate-400">{timeLabel}</span>
+        <span className="text-xs text-muted-foreground">{timeLabel}</span>
       </div>
 
       {/* Items */}
@@ -42,7 +42,7 @@ export default function OrderCard({ order, onUpdated }: Props) {
               </span>
             </div>
             {item.special_note && (
-              <p className="text-xs text-orange-500 italic mt-0.5">
+              <p className="text-xs text-status-preparing-foreground italic mt-0.5">
                 ⚠ {item.special_note}
               </p>
             )}
@@ -51,7 +51,7 @@ export default function OrderCard({ order, onUpdated }: Props) {
       </div>
 
       {/* Footer */}
-      <div className="flex justify-between items-center text-xs text-slate-400 border-t pt-2">
+      <div className="flex justify-between items-center text-xs text-muted-foreground border-t pt-2">
         <span>#{order.id.slice(-6).toUpperCase()}</span>
         <span>{new Date(order.created_at).toLocaleTimeString("lo-LA")}</span>
       </div>
@@ -68,7 +68,7 @@ export default function OrderCard({ order, onUpdated }: Props) {
               setLoading(false);
             }
           }}
-          className="w-full text-sm font-medium py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="w-full text-sm font-medium py-1.5 rounded-lg bg-status-confirmed-foreground text-white hover:bg-status-confirmed-foreground disabled:opacity-50 transition-colors"
         >
           {loading ? "..." : NEXT_STATUS[order.status]!.label}
         </button>

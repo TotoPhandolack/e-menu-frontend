@@ -68,7 +68,7 @@ function FilterPill({
     <button
       className={`text-[11px] font-semibold px-3 py-1 rounded-full transition-colors ${
         active
-          ? 'bg-slate-800 text-white'
+          ? 'bg-foreground text-white'
           : 'bg-muted text-muted-foreground hover:bg-muted/70'
       }`}
       onClick={onClick}
@@ -95,7 +95,7 @@ function OrderRow({ order }: { order: Order }) {
         onClick={() => setExpanded((v) => !v)}
       >
         {/* Order label */}
-        <TableCell className="font-medium text-slate-800">
+        <TableCell className="font-medium text-foreground">
           {order.order_type === 'TAKEAWAY'
             ? `${t.common.takeaway} #${order.queue_number ?? '-'}`
             : t.cashier.order.tableLabel(order.table?.table_number ?? '-')}
@@ -106,8 +106,8 @@ function OrderRow({ order }: { order: Order }) {
           <span
             className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
               order.order_type === 'TAKEAWAY'
-                ? 'bg-orange-100 text-orange-700'
-                : 'bg-indigo-100 text-indigo-700'
+                ? 'bg-status-preparing text-status-preparing-foreground'
+                : 'bg-status-confirmed text-status-confirmed-foreground'
             }`}
           >
             {order.order_type === 'TAKEAWAY' ? t.cashier.history.takeaway : t.cashier.history.dineIn}
@@ -119,8 +119,8 @@ function OrderRow({ order }: { order: Order }) {
           <span
             className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
               isCashier
-                ? 'bg-violet-100 text-violet-700'
-                : 'bg-sky-100 text-sky-700'
+                ? 'bg-accent text-primary-strong'
+                : 'bg-status-confirmed text-status-confirmed-foreground'
             }`}
           >
             {isCashier ? t.cashier.history.cashier : t.cashier.history.customer}
@@ -137,8 +137,8 @@ function OrderRow({ order }: { order: Order }) {
           <span
             className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
               isPaid
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-red-100 text-red-600'
+                ? 'bg-status-complete text-status-complete-foreground'
+                : 'bg-destructive/15 text-destructive'
             }`}
           >
             {isPaid ? t.cashier.history.paid : t.cashier.history.cancelled}
@@ -146,7 +146,7 @@ function OrderRow({ order }: { order: Order }) {
         </TableCell>
 
         {/* Total */}
-        <TableCell className="text-right font-semibold text-slate-800">
+        <TableCell className="text-right font-semibold text-foreground">
           {formatKip(order.total_amount)}
         </TableCell>
 
@@ -164,12 +164,12 @@ function OrderRow({ order }: { order: Order }) {
               {order.orderItems.map((oi) => (
                 <div
                   key={oi.id}
-                  className="flex justify-between text-[12px] text-slate-600"
+                  className="flex justify-between text-[12px] text-muted-foreground"
                 >
                   <span>
                     {oi.quantity}× {oi.menuItem.name}
                     {oi.special_note && (
-                      <span className="ml-1 text-orange-500 italic">
+                      <span className="ml-1 text-status-preparing-foreground italic">
                         ({oi.special_note})
                       </span>
                     )}
@@ -265,14 +265,14 @@ export function OrderHistoryTab({ orders, loading, onRefresh }: Props) {
         {/* Summary */}
         <div className="flex gap-4 text-xs text-muted-foreground">
           <span>
-            <span className="font-semibold text-slate-700">{filtered.length}</span> {t.cashier.history.ordersWord}
+            <span className="font-semibold text-foreground">{filtered.length}</span> {t.cashier.history.ordersWord}
           </span>
           <span>
-            <span className="font-semibold text-emerald-700">{paidCount}</span> {t.cashier.history.paidWord}
+            <span className="font-semibold text-status-complete-foreground">{paidCount}</span> {t.cashier.history.paidWord}
           </span>
           <span>
             {t.cashier.history.revenue}{' '}
-            <span className="font-bold text-slate-800">{formatKip(paidRevenue)}</span>
+            <span className="font-bold text-foreground">{formatKip(paidRevenue)}</span>
           </span>
         </div>
       </div>

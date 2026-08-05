@@ -75,7 +75,7 @@ export default function RegisterPage() {
                 <div className="rounded-2xl border bg-background shadow-sm p-8">
                     {/* Logo */}
                     <div className="flex justify-center mb-6">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-950">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-foreground">
                             <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
                                 <path d="M8 20 Q14 8 20 20" stroke="white" strokeWidth="2.4" strokeLinecap="round" fill="none" />
                                 <circle cx="14" cy="10" r="2.2" fill="white" />
@@ -231,7 +231,7 @@ export default function RegisterPage() {
                         Already have an account?{' '}
                         <button
                             onClick={() => router.push('/login')}
-                            className="font-semibold text-primary underline-offset-4 hover:underline"
+                            className="font-semibold text-primary-strong underline-offset-4 hover:underline"
                         >
                             Sign in
                         </button>

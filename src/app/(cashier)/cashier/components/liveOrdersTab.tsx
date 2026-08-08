@@ -37,8 +37,8 @@ interface Props {
 // Vertical rule between columns — the shared Table primitive only draws row borders.
 const COL_DIVIDER = '[&>*:not(:last-child)]:border-r';
 
-// Must outlast `.animate-row-highlight` (0.8s × 3) so the pulse plays in full.
-const HIGHLIGHT_MS = 2600;
+// Must outlast `.animate-row-highlight` (1.2s × 5) so the pulse plays in full.
+const HIGHLIGHT_MS = 6400;
 // The row only exists once the refetch resolves and the tab swaps out its
 // skeletons. Keep looking for roughly five seconds, then give up.
 const HIGHLIGHT_MAX_FRAMES = 300;

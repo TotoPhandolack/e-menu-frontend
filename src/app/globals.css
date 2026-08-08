@@ -269,21 +269,18 @@
    hover background, so the pulse stays visible even with the cursor over it.
 
    Driven from the CELLS, not the <tr>: preflight puts tables in
-   border-collapse: collapse, where a row's own background sits under the cells
-   and an inset ring on it is not painted at all. */
+   border-collapse: collapse, where a row's own background sits under the cells. */
 @keyframes row-highlight-pulse {
   0%, 100% {
     background-color: transparent;
-    box-shadow: inset 0 0 0 0 transparent;
   }
   50% {
     background-color: color-mix(in oklch, var(--primary) 65%, transparent);
-    box-shadow: inset 0 2px 0 0 var(--ring), inset 0 -2px 0 0 var(--ring);
   }
 }
 
 .animate-row-highlight > td {
-  animation: row-highlight-pulse 0.8s ease-in-out 3;
+  animation: row-highlight-pulse 1.2s ease-in-out 5;
 }
 
 /* Hide number input spinners */

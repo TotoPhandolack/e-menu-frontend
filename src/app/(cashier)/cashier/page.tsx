@@ -196,6 +196,11 @@ export default function CashierPage() {
     fetchLiveOrders(true);
   }, [fetchLiveOrders]);
 
+  // Clear the highlight prop once the Live tab has played it, so the next
+  // unmount/remount of the tab (e.g. switching to history and back) doesn't
+  // re-fire the pulse against the stale `highlightOrder` value.
+  const handleHighlightConsumed = useCallback(() => setHighlightOrder(null), []);
+
   const cartItemIds = useMemo(() => new Set(cart.map((c) => c.menuItem.id)), [cart]);
   const cartItemCount = useMemo(() => cart.reduce((s, i) => s + i.quantity, 0), [cart]);
   const pendingOrders = useMemo(() => liveOrders.filter((o) => o.status === "PENDING"), [liveOrders]);
@@ -378,7 +383,7 @@ export default function CashierPage() {
                 </TabsList>
               </div>
               <TabsContent value="live" className="flex flex-col flex-1 overflow-hidden mt-0">
-                <LiveOrdersTab orders={liveOrders} loading={liveLoading} onRefresh={fetchLiveOrders} highlightOrder={highlightOrder} />
+                <LiveOrdersTab orders={liveOrders} loading={liveLoading} onRefresh={fetchLiveOrders} highlightOrder={highlightOrder} onHighlightConsumed={handleHighlightConsumed} />
               </TabsContent>
               <TabsContent value="history" className="flex flex-col flex-1 overflow-hidden mt-0">
                 <OrderHistoryTab orders={historyOrders} loading={historyLoading} onRefresh={fetchHistory} />

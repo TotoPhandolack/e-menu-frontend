@@ -27,6 +27,11 @@ interface Props {
   loading: boolean;
   onRefresh: () => void;
   highlightOrder?: { orderId: string; status: OrderStatus; nonce: number } | null;
+  // Notify the parent that the current highlight has finished so it can clear
+  // the `highlightOrder` prop. Without this the prop stays set, the Live tab
+  // unmounts/remounts on every tab switch, and the derived-state check fires
+  // the pulse again on its own (the `null` seed makes any remount re-fire).
+  onHighlightConsumed?: () => void;
 }
 
 // Vertical rule between columns — the shared Table primitive only draws row borders.
@@ -285,7 +290,7 @@ function ConfirmedRow({ order, onDone, highlighted }: { order: Order; onDone: ()
 
 // ─── Main tab component ───────────────────────────────────────────────────────
 
-export function LiveOrdersTab({ orders, loading, onRefresh, highlightOrder }: Props) {
+export function LiveOrdersTab({ orders, loading, onRefresh, highlightOrder, onHighlightConsumed }: Props) {
   const t = useTranslations();
   const [statusTab, setStatusTab] = useState<'pending' | 'confirmed'>('pending');
   const [activeHighlight, setActiveHighlight] = useState<string | null>(null);
@@ -319,18 +324,28 @@ export function LiveOrdersTab({ orders, loading, onRefresh, highlightOrder }: Pr
     let raf = 0;
     let clearTimer: ReturnType<typeof setTimeout> | undefined;
     let frames = 0;
+    let consumed = false;
+    const consume = () => {
+      if (consumed) return;
+      consumed = true;
+      onHighlightConsumed?.();
+    };
 
     const waitForRow = () => {
       const el = document.getElementById(`live-order-${activeHighlight}`);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        clearTimer = setTimeout(() => setActiveHighlight(null), HIGHLIGHT_MS);
+        clearTimer = setTimeout(() => {
+          setActiveHighlight(null);
+          consume();
+        }, HIGHLIGHT_MS);
         return;
       }
       if (frames++ < HIGHLIGHT_MAX_FRAMES) {
         raf = requestAnimationFrame(waitForRow);
       } else {
         setActiveHighlight(null);
+        consume();
       }
     };
     raf = requestAnimationFrame(waitForRow);
@@ -339,7 +354,7 @@ export function LiveOrdersTab({ orders, loading, onRefresh, highlightOrder }: Pr
       cancelAnimationFrame(raf);
       clearTimeout(clearTimer);
     };
-  }, [activeHighlight]);
+  }, [activeHighlight, onHighlightConsumed]);
 
   if (loading) {
     return (

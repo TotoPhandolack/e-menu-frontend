@@ -53,9 +53,9 @@ export const metadata: Metadata = {
   title: "E-Menu",
   description: "Digital restaurant menu",
   icons: {
-    icon: "/images/icon.png",
-    shortcut: "/images/icon.png",
-    apple: "/images/icon.png",
+    icon: "/images/logo.png",
+    shortcut: "/images/logo.png",
+    apple: "/images/logo.png",
   },
 };
 

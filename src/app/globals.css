@@ -84,7 +84,7 @@
   --popover-foreground: oklch(0.1835 0.0327 297.47);
 
   /* Accent — the 10%. Fill only. */
-  --primary: oklch(0.9001 0.131 91.36);
+  --primary: oklch(0.854 0.179 95);
   --primary-foreground: oklch(0.1835 0.0327 297.47);
   /* Legible brand-tinted text on light surfaces — 5.62:1 on white */
   --primary-strong: oklch(0.52 0.115 75);
@@ -130,7 +130,7 @@
 
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.1835 0.0327 297.47);
-  --sidebar-primary: oklch(0.9001 0.131 91.36);
+  --sidebar-primary: oklch(0.854 0.179 95);
   --sidebar-primary-foreground: oklch(0.1835 0.0327 297.47);
   --sidebar-accent: oklch(0.965 0.0236 88.23);
   --sidebar-accent-foreground: oklch(0.1835 0.0327 297.47);

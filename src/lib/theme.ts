@@ -18,11 +18,11 @@ export const THEME_PRESETS: ThemePreset[] = [
     key: "default",
     label: "Default",
     // White Canvas gold. Light accent, so the foreground is ink, not white.
-    primary: "oklch(0.9001 0.131 91.36)",
+    primary: "oklch(0.854 0.179 95)",
     primaryForeground: "oklch(0.1835 0.0327 297.47)",
     primaryStrong: "oklch(0.52 0.115 75)",
-    ring: "oklch(0.655 0.13 91.36)",
-    dot: "#FEDB71",
+    ring: "oklch(0.655 0.13 95)",
+    dot: "#facc15",
   },
   {
     key: "forest",

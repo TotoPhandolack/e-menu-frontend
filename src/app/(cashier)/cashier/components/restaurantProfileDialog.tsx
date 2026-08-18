@@ -228,7 +228,7 @@ export function RestaurantProfileDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg w-full p-0 gap-0 overflow-hidden">
+      <DialogContent className="max-w-4xl w-full p-0 gap-0 overflow-hidden">
         <DialogHeader className="px-6 pt-5 pb-0">
           <DialogTitle className="text-base font-bold">
             {t.cashier.profile.title}
@@ -249,12 +249,6 @@ export function RestaurantProfileDialog({
                 className="flex-1 text-xs font-semibold"
               >
                 {t.cashier.profile.tabTeam}
-              </TabsTrigger>
-              <TabsTrigger
-                value="theme"
-                className="flex-1 text-xs font-semibold"
-              >
-                {t.cashier.profile.tabTheme}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -495,7 +489,7 @@ export function RestaurantProfileDialog({
           </TabsContent>
 
           {/* ─── Theme Tab ────────────────────────────────────────────── */}
-          <TabsContent value="theme" className="px-6 pt-4 pb-5 mt-0 space-y-4">
+          <TabsContent value="theme" className="px-6 pt-4 pb-5 mt-0 space-y-4 hidden">
             <p className="text-xs text-muted-foreground">
               {t.cashier.profile.chooseColor}
             </p>

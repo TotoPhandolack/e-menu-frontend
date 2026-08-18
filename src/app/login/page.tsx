@@ -30,7 +30,7 @@ const T: Record<
   }
 > = {
   en: {
-    welcomeBack: "Welcome back",
+    welcomeBack: "Welcome",
     subtitle: "Sign in to E-Menu",
     email: "Email",
     password: "Password",
@@ -42,7 +42,7 @@ const T: Record<
     welcome: (name) => `Welcome back, ${name}!`,
   },
   lo: {
-    welcomeBack: "ຍິນດີຕ້ອນຮັບກັບມາ",
+    welcomeBack: "ຍິນດີຕ້ອນຮັບ",
     subtitle: "ເຂົ້າສູ່ລະບົບ E-Menu",
     email: "ອີເມລ",
     password: "ລະຫັດຜ່ານ",
@@ -54,7 +54,7 @@ const T: Record<
     welcome: (name) => `ຍິນດີຕ້ອນຮັບ ${name}!`,
   },
   th: {
-    welcomeBack: "ยินดีต้อนรับกลับ",
+    welcomeBack: "ยินดีต้อนรับ",
     subtitle: "เข้าสู่ระบบ E-Menu",
     email: "อีเมล",
     password: "รหัสผ่าน",

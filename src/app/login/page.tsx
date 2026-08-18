@@ -110,9 +110,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-svh flex items-center justify-center bg-background px-4 py-12">
+    <div className="min-h-svh flex items-center justify-center bg-yellow-400 px-4 py-12 ">
       <div className="w-full max-w-4xl animate-slideUp">
-        <div className="relative grid overflow-hidden rounded-2xl ring-1 ring-foreground/10 bg-background md:grid-cols-2">
+        <div className="relative grid overflow-hidden rounded-2xl ring-1 ring-foreground/10 bg-background md:grid-cols-2 shadow-[-8px_8px_0px_0px_rgba(0,_0,_0,_0.1)]">
           {/* Language switcher */}
           <LanguageSwitcher className="absolute right-3 top-3 z-20" />
 
@@ -120,7 +120,7 @@ export default function LoginPage() {
           <div className="hidden p-2 md:block">
             <div className="relative min-h-140 overflow-hidden rounded-2xl">
               <Image
-                src="/images/login.png"
+                src="/images/customer.png"
                 alt="E-Menu"
                 fill
                 priority
@@ -135,7 +135,7 @@ export default function LoginPage() {
             {/* Logo */}
             <div className="mb-6 flex justify-center">
               <Image
-                src="/images/main-logo.png"
+                src="/images/logo.png"
                 alt="E-Menu"
                 width={100}
                 height={100}
@@ -164,7 +164,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                   autoComplete="email"
-                  className="h-11 rounded-xl"
+                  className="h-11 rounded-xl shadow-[-6px_8px_0px_-2px_rgba(0,_0,_0,_0.1)]"
                 />
               </div>
 
@@ -179,7 +179,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                     autoComplete="current-password"
-                    className="h-11 rounded-xl pr-10"
+                    className="h-11 rounded-xl shadow-[-6px_8px_0px_-2px_rgba(0,_0,_0,_0.1)] pr-10"
                   />
                   <button
                     type="button"
@@ -193,7 +193,7 @@ export default function LoginPage() {
               </div>
 
               <Button
-                className="w-full h-11 mt-1 rounded-xl bg-primary text-primary-foreground"
+                className="w-full h-11 mt-1 rounded-xl bg-yellow-400 text-primary-foreground shadow-[-6px_8px_0px_-2px_rgba(0,_0,_0,_0.1)] hover:bg-yellow-500"
                 onClick={handleLogin}
                 disabled={loading}
               >

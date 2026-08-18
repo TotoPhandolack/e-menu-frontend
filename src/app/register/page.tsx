@@ -10,11 +10,17 @@ import { Label } from '@/components/ui/label';
 import {
     Eye,
     EyeOff,
-    ChevronDown,
     Loader2,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -169,42 +175,45 @@ export default function RegisterPage() {
                             {/* Restaurant */}
                             <div className="space-y-1.5">
                                 <Label htmlFor="restaurant">Restaurant</Label>
-                                <div className="relative">
-                                    <select
+                                <Select
+                                    value={restaurantId}
+                                    onValueChange={setRestaurantId}
+                                    disabled={loadingRestaurants}
+                                >
+                                    <SelectTrigger
                                         id="restaurant"
-                                        value={restaurantId}
-                                        onChange={(e) => setRestaurantId(e.target.value)}
-                                        disabled={loadingRestaurants}
-                                        className="h-11 w-full appearance-none rounded-xl border border-input bg-transparent px-3 pr-9 text-sm outline-none transition-colors shadow-[-6px_8px_0px_-2px_rgba(0,_0,_0,_0.1)] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 disabled:cursor-not-allowed text-foreground"
+                                        className="h-11 w-full rounded-xl border border-input bg-transparent px-3 text-sm shadow-[-6px_8px_0px_-2px_rgba(0,_0,_0,_0.1)] data-placeholder:text-muted-foreground"
                                     >
-                                        <option value="">
-                                            {loadingRestaurants ? 'Loading restaurants…' : 'Select a restaurant'}
-                                        </option>
+                                        <SelectValue placeholder={loadingRestaurants ? 'Loading restaurants…' : 'Select a restaurant'} />
+                                    </SelectTrigger>
+                                    <SelectContent>
                                         {restaurants.map((r) => (
-                                            <option key={r.id} value={r.id}>
+                                            <SelectItem key={r.id} value={r.id}>
                                                 {r.name}
-                                            </option>
+                                            </SelectItem>
                                         ))}
-                                    </select>
-                                    <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                                </div>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             {/* Role */}
                             <div className="space-y-1.5">
                                 <Label htmlFor="role">Role</Label>
-                                <div className="relative">
-                                    <select
+                                <Select
+                                    value={role}
+                                    onValueChange={(v) => setRole(v as 'CASHIER' | 'ADMIN')}
+                                >
+                                    <SelectTrigger
                                         id="role"
-                                        value={role}
-                                        onChange={(e) => setRole(e.target.value as 'CASHIER' | 'ADMIN')}
-                                        className="h-11 w-full appearance-none rounded-xl border border-input bg-transparent px-3 pr-9 text-sm outline-none transition-colors shadow-[-6px_8px_0px_-2px_rgba(0,_0,_0,_0.1)] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 text-foreground"
+                                        className="h-11 w-full rounded-xl border border-input bg-transparent px-3 text-sm shadow-[-6px_8px_0px_-2px_rgba(0,_0,_0,_0.1)]"
                                     >
-                                        <option value="CASHIER">Cashier</option>
-                                        <option value="ADMIN">Admin</option>
-                                    </select>
-                                    <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                                </div>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="CASHIER">Cashier</SelectItem>
+                                        <SelectItem value="ADMIN">Admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <Button

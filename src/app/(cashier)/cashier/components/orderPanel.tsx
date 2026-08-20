@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { NoteEditDialog } from './noteEditDialog';
+import { SearchableSelect } from './searchableSelect';
 import { useTranslations } from '@/lib/i18n';
 import { resolveImageUrl, type MenuItem, type TableInfo, type OrderType } from '@/lib/api';
 
@@ -122,18 +123,17 @@ export function OrderPanel({
           </Select>
 
           {orderType === 'TABLE' && (
-            <Select value={selectedTableId} onValueChange={onTableChange}>
-              <SelectTrigger className="flex-1 h-9 text-[13px]">
-                <SelectValue placeholder={t.cashier.order.selectTable} />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTables.map((tbl) => (
-                  <SelectItem key={tbl.id} value={tbl.id}>
-                    {t.cashier.order.tableLabel(tbl.table_number)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={selectedTableId}
+              options={availableTables.map((tbl) => ({
+                value: tbl.id,
+                label: t.cashier.order.tableLabel(tbl.table_number),
+              }))}
+              placeholder={t.cashier.order.selectTable}
+              searchPlaceholder={t.cashier.order.searchTable}
+              emptyText={t.cashier.order.noTableMatch}
+              onValueChange={onTableChange}
+            />
           )}
         </div>
 

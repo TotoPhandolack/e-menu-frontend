@@ -66,8 +66,8 @@ export function PaymentDialog({
   const t = useTranslations();
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden p-0 sm:max-w-2xl">
+        <DialogHeader className="shrink-0 border-b px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
               <Receipt size={18} />
@@ -79,7 +79,7 @@ export function PaymentDialog({
           </div>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-4 py-1 sm:grid-cols-[1fr_320px]">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto scrollbar-thin p-5 sm:grid-cols-[1fr_320px]">
           {/* Payment method */}
           <div className="flex min-w-0 flex-col gap-2.5 rounded-xl bg-card p-5 ring-1 ring-border">
             <span className="text-sm font-semibold text-foreground">
@@ -126,7 +126,7 @@ export function PaymentDialog({
           {order && <BillReceipt order={order} restaurantName={restaurantName} className="mx-auto min-w-0" />}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0 mx-0 mb-0 rounded-none border-t bg-muted/50 px-5 py-4">
           <Button variant="outline" onClick={onClose}>
             {t.common.cancel}
           </Button>

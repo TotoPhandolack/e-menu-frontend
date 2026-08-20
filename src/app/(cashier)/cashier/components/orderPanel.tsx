@@ -5,7 +5,6 @@ import { ShoppingBag, Plus, Minus, Edit2, Trash2, UtensilsCrossed, Utensils, X }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -139,7 +138,7 @@ export function OrderPanel({
         </div>
 
         {/* cart items */}
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto scrollbar-thin">
           <div className="px-5 py-1">
             {cart.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-40 text-muted-foreground gap-2.5">
@@ -222,13 +221,17 @@ export function OrderPanel({
               ))
             )}
           </div>
-        </ScrollArea>
+        </div>
 
         {/* payment summary */}
         <div className="px-5 py-4 border-t shrink-0">
           <p className="font-bold text-sm mb-3">{t.cashier.order.summary}</p>
           <div className="space-y-2">
             <SummaryRow label={t.cashier.order.subtotal} value={formatRp(subtotal)} />
+            <SummaryRow
+              label={t.cashier.order.itemsUnit}
+              value={t.cashier.order.itemsCount(cart.reduce((s, i) => s + i.quantity, 0))}
+            />
             <SummaryRow
               label={t.cashier.order.taxService}
               value={t.cashier.order.calculatedAtBilling}
